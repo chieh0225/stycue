@@ -1,4 +1,4 @@
-/** @type {import("prettier").Config} */
+/** @type {import("prettier").Config & import("prettier-plugin-tailwindcss").PluginOptions} */
 const prettierConfig = {
   semi: true,
   singleQuote: true,
@@ -7,6 +7,8 @@ const prettierConfig = {
   tabWidth: 2,
   arrowParens: 'always',
   endOfLine: 'lf',
+  plugins: ['prettier-plugin-tailwindcss'],
+  tailwindStylesheet: './src/app/globals.css',
 };
 
 export default prettierConfig;
