@@ -1,0 +1,60 @@
+# Workflow 名稱（顯示在 GitHub Actions 頁面）
+name: Deploy Preparing to Vercel
+
+# 觸發條件
+on:
+  push:
+    branches:
+      - preparing # 當 preparing 分支有 push 時觸發
+  workflow_dispatch: # 允許手動點擊按鈕部署，以便除錯
+
+# 避免多個部署任務同時進行導致衝突
+concurrency:
+  group: vercel-preparing
+  cancel-in-progress: true
+
+jobs:
+  # 打包並部署到 Vercel，取得公開 URL
+  deploy:
+    runs-on: ubuntu-latest
+    # 指定 deployment environment，讓 GitHub Deployments UI 顯示部署網址
+    environment:
+      name: preparing
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # 先跑 lint，錯誤能更快被抓到，也不會跟 build 錯誤混在一起
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      # 依 Token / Org / Project 資訊，把遠端專案設定拉到本機 .vercel 資料夾
+      - name: Pull Vercel project settings
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      # 產生部署用的 build 檔案（輸出到 .vercel/output）
+      - name: Build project artifacts
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+
+      # --prebuilt：直接使用上一步打包好的結果部署，不用重新 build
+      - name: Deploy prebuilt artifact to Vercel
+        id: deploy
+        run: |
+          url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+          echo "url=$url" >> "$GITHUB_OUTPUT"
