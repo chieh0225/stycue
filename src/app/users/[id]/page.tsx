@@ -7,7 +7,7 @@ export default async function PublicUserProfilePage({
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-6">
-      <h1 className="text-2xl font-semibold text-black dark:text-zinc-50">使用者 #{id}</h1>
+      <h1 className="text-2xl font-semibold text-black dark:text-zinc-50">/users/{id}</h1>
     </div>
   );
 }
