@@ -19,7 +19,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-TW" className={`${geistSans.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full justify-center bg-zinc-200 dark:bg-zinc-950">
+        <div className="flex w-full max-w-md flex-col bg-surface-base">{children}</div>
+      </body>
     </html>
   );
 }
