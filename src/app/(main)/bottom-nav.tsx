@@ -4,10 +4,78 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const navItems = [
-  { href: '/', label: '首頁' },
-  { href: '/search', label: '搜尋' },
-  { href: '/notifications', label: '通知' },
-  { href: '/profile', label: '個人' },
+  {
+    href: '/',
+    label: '首頁',
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="h-5 w-5"
+      >
+        <path d="M3 11.5L12 4l9 7.5" />
+        <path d="M4 12v7a1 1 0 0 0 1 1h4v-5h6v5h4a1 1 0 0 0 1-1v-7" />
+      </svg>
+    ),
+  },
+  {
+    href: '/search',
+    label: '搜尋',
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="h-5 w-5"
+      >
+        <circle cx="11" cy="11" r="7" />
+        <path d="m21 21-4.3-4.3" />
+      </svg>
+    ),
+  },
+  {
+    href: '/notifications',
+    label: '通知',
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="h-5 w-5"
+      >
+        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 8-3 8h18s-3-1-3-8" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+      </svg>
+    ),
+  },
+  {
+    href: '/profile',
+    label: '個人',
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="h-5 w-5"
+      >
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+      </svg>
+    ),
+  },
 ] as const;
 
 function isActive(pathname: string, href: string) {
@@ -31,7 +99,8 @@ export default function BottomNav() {
               active ? 'text-text-primary' : 'text-text-muted'
             }`}
           >
-            {item.label}
+            {item.icon}
+            <span>{item.label}</span>
           </Link>
         );
       })}
@@ -56,7 +125,8 @@ export default function BottomNav() {
               active ? 'text-text-primary' : 'text-text-muted'
             }`}
           >
-            {item.label}
+            {item.icon}
+            <span>{item.label}</span>
           </Link>
         );
       })}
