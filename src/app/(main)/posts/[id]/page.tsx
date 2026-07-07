@@ -22,18 +22,28 @@ const bodyText = `最近開始想認真學穿搭，但自己研究了一段時�
 
 const styleTags = ['韓系', '修身', '簡約', '約會'];
 
-function UserIcon({ className, size = 18 }: { className?: string; size?: number }) {
+function ChevronLeftIcon({ className = 'h-5 w-5' }: { className?: string }) {
   return (
     <svg
-      className={className}
-      width={size}
-      height={size}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      strokeWidth="2"
+      className={className}
+    >
+      <path d="M15 18l-6-6 6-6" />
+    </svg>
+  );
+}
+
+function UserIcon({ className = 'h-[18px] w-[18px]' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      className={className}
     >
       <circle cx="12" cy="8" r="4" />
       <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" />
@@ -41,19 +51,74 @@ function UserIcon({ className, size = 18 }: { className?: string; size?: number 
   );
 }
 
-function ImagePlaceholderIcon() {
+function ImagePlaceholderIcon({ className = 'h-9 w-9' }: { className?: string }) {
   return (
     <svg
-      width="36"
-      height="36"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.6}
+      strokeWidth="1.6"
+      className={className}
     >
       <rect x="3" y="3" width="18" height="18" rx="2" />
       <circle cx="8.5" cy="8.5" r="1.5" />
       <path d="M21 15l-5-5L5 21" />
+    </svg>
+  );
+}
+
+function HeartIcon({ className = 'h-5 w-5' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      className={className}
+    >
+      <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z" />
+    </svg>
+  );
+}
+
+function CommentIcon({ className = 'h-5 w-5' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      className={className}
+    >
+      <path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.4 8.6 8.6 0 0 1-4-1L3 20l1.1-4a8.4 8.4 0 0 1-1-4A8.38 8.38 0 0 1 11.5 3a8.4 8.4 0 0 1 9.5 8.5Z" />
+    </svg>
+  );
+}
+
+function BookmarkIcon({ className = 'h-5 w-5' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      className={className}
+    >
+      <path d="M6 3h12v18l-6-4-6 4Z" />
+    </svg>
+  );
+}
+
+function SendIcon({ className = 'h-4 w-4' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      className={className}
+    >
+      <path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z" />
     </svg>
   );
 }
@@ -64,18 +129,7 @@ export default function PostDetailPage() {
       {/* Header */}
       <header className="flex flex-shrink-0 items-center gap-3.5 border-b border-border-default bg-surface-soft px-4.5 pt-5 pb-3.5 shadow-[0_4px_12px_rgba(217,154,61,0.08)]">
         <Link href="/posts" aria-label="返回全部文章" className="text-text-primary">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
+          <ChevronLeftIcon />
         </Link>
         <span className="text-lg font-bold text-text-primary">全部文章</span>
       </header>
@@ -181,55 +235,21 @@ export default function PostDetailPage() {
         {/* 互動列 */}
         <div className="flex items-center gap-[22px] text-text-primary">
           <div className="flex items-center gap-1.5">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z" />
-            </svg>
+            <HeartIcon />
             <span className="text-[15px]">222</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21 11.5a8.38 8.38 0 01-8.5 8.4 8.6 8.6 0 01-4-1L3 20l1.1-4a8.4 8.4 0 01-1-4A8.38 8.38 0 0111.5 3a8.4 8.4 0 019.5 8.5z" />
-            </svg>
+            <CommentIcon />
             <span className="text-[15px]">50</span>
           </div>
-          <svg
-            className="ml-auto"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M6 3h12v18l-6-4-6 4z" />
-          </svg>
+          <BookmarkIcon className="ml-auto h-5 w-5" />
         </div>
       </div>
 
       {/* Bottom comment bar */}
       <div className="flex flex-shrink-0 items-center gap-2.5 border-t border-border-default bg-surface-base px-4.5 py-3">
         <div className="flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full bg-text-primary text-surface-base">
-          <UserIcon size={16} />
+          <UserIcon className="h-4 w-4" />
         </div>
         <div className="flex h-10 flex-1 items-center rounded-full border border-border-default bg-[#FDF7E9] px-4">
           <span className="text-[13.5px] text-[#B8AF9E]">加入討論...</span>
@@ -239,18 +259,7 @@ export default function PostDetailPage() {
           aria-label="送出留言"
           className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-brand-primary text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.14)]"
         >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
-          </svg>
+          <SendIcon />
         </button>
       </div>
     </div>
