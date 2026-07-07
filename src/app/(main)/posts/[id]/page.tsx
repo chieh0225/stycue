@@ -87,7 +87,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col bg-surface-base">
       {/* Header */}
       <header className="flex flex-shrink-0 items-center gap-3.5 border-b border-border-default bg-surface-soft px-4.5 pt-5 pb-3.5 shadow-[0_4px_12px_rgba(217,154,61,0.08)]">
-        <Link href="/posts" aria-label="返回全部文章" className="text-text-primary">
+        <Link href="/" aria-label="返回全部文章" className="text-text-primary">
           <ChevronLeftIcon />
         </Link>
         <span className="text-lg font-bold text-text-primary">全部文章</span>
