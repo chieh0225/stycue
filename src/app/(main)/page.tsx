@@ -310,7 +310,7 @@ export default function Home() {
             {filterOpen ? (
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setFilterOpen(false)} />
-                <div className="absolute top-full right-0 z-40 mt-2 w-28 overflow-hidden rounded-[12px] border border-border-default bg-white shadow-[0_4px_12px_rgba(217,154,61,0.12)]">
+                <div className="absolute top-full right-0 z-40 mt-2 w-max min-w-full overflow-hidden rounded-[12px] border border-border-default bg-white shadow-[0_4px_12px_rgba(217,154,61,0.12)]">
                   {postFilters.map((filter) => (
                     <button
                       key={filter}
