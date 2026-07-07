@@ -184,7 +184,56 @@ function CommentActions({ likeCount }: { likeCount: number }) {
   );
 }
 
-function ReplyList({ replies, showReplyBox }: { replies: Reply[]; showReplyBox?: boolean }) {
+function ReplyComposer({ onSubmit }: { onSubmit: (text: string) => void }) {
+  const [text, setText] = useState('');
+  const trimmed = text.trim();
+
+  function submit() {
+    if (!trimmed) return;
+    setText('');
+    onSubmit(trimmed);
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <input
+        type="text"
+        value={text}
+        onChange={(event) => setText(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            submit();
+          }
+        }}
+        placeholder="加入討論..."
+        aria-label="加入討論"
+        className="h-9 flex-1 rounded-full border border-[#E5DDBF] bg-[#FDF7E9] px-3.5 text-[12.5px] text-text-primary placeholder:text-[#B8AF9E] focus:outline-none"
+      />
+      <button
+        type="button"
+        onClick={submit}
+        disabled={!trimmed}
+        aria-label="送出回覆"
+        className="flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full bg-brand-primary text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.14)] disabled:opacity-40"
+      >
+        <SendIcon />
+      </button>
+    </div>
+  );
+}
+
+function ReplyList({
+  commentId,
+  replies,
+  showReplyBox,
+  onReply,
+}: {
+  commentId: string;
+  replies: Reply[];
+  showReplyBox?: boolean;
+  onReply: (commentId: string, text: string) => void;
+}) {
   return (
     <div className="mt-1.5 ml-[46px] flex flex-col gap-3.5 border-l-2 border-[#EFE7CE] pl-3.5">
       {replies.map((reply) => (
@@ -211,21 +260,18 @@ function ReplyList({ replies, showReplyBox }: { replies: Reply[]; showReplyBox?:
         </div>
       ))}
 
-      {showReplyBox ? (
-        <div className="flex items-center gap-2">
-          <div className="flex h-9 flex-1 items-center rounded-full border border-[#E5DDBF] bg-[#FDF7E9] px-3.5">
-            <span className="text-[12.5px] text-[#B8AF9E]">加入討論...</span>
-          </div>
-          <div className="flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full bg-brand-primary text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.14)]">
-            <SendIcon />
-          </div>
-        </div>
-      ) : null}
+      {showReplyBox ? <ReplyComposer onSubmit={(text) => onReply(commentId, text)} /> : null}
     </div>
   );
 }
 
-function CommentItem({ comment }: { comment: Comment }) {
+function CommentItem({
+  comment,
+  onReply,
+}: {
+  comment: Comment;
+  onReply: (commentId: string, text: string) => void;
+}) {
   return (
     <div className="flex flex-col gap-2.5">
       <div className="flex gap-2.5">
@@ -248,8 +294,13 @@ function CommentItem({ comment }: { comment: Comment }) {
         </div>
       </div>
 
-      {comment.replies && comment.replies.length > 0 ? (
-        <ReplyList replies={comment.replies} showReplyBox={comment.showReplyBox} />
+      {(comment.replies && comment.replies.length > 0) || comment.showReplyBox ? (
+        <ReplyList
+          commentId={comment.commentId}
+          replies={comment.replies ?? []}
+          showReplyBox={comment.showReplyBox}
+          onReply={onReply}
+        />
       ) : null}
     </div>
   );
@@ -293,13 +344,37 @@ export default function CommentBoard({
     ]);
   }
 
+  // Optimistically insert the reply into its parent comment, then fire the
+  // (mock) network write. Mirrors addComment: fire-and-forget, no rollback
+  // until POST /api/v1/comments/{commentId}/replies is wired up.
+  function addReply(commentId: string, text: string) {
+    setComments((prev) =>
+      prev.map((comment) =>
+        comment.commentId === commentId
+          ? {
+              ...comment,
+              replies: [
+                ...(comment.replies ?? []),
+                { replyId: `tmp_${Date.now()}`, nickName: '你', content: text },
+              ],
+            }
+          : comment,
+      ),
+    );
+    void fetch(`/api/comments/${commentId}/replies`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: text }),
+    }).catch(() => {});
+  }
+
   return (
     <>
       {/* Scrollable body — extra bottom padding clears the fixed comment bar */}
       <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-4.5 pt-5 pb-24">
         {comments.map((comment, index) => (
           <Fragment key={comment.commentId}>
-            <CommentItem comment={comment} />
+            <CommentItem comment={comment} onReply={addReply} />
             {index < comments.length - 1 ? <div className="h-px bg-[#E0D4AA]" /> : null}
           </Fragment>
         ))}
