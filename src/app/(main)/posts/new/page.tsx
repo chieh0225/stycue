@@ -84,6 +84,7 @@ export default function NewPostPage() {
           </div>
           <input
             type="number"
+            min="1"
             placeholder={heightFocused ? '' : '您的身高 (公分)'}
             onFocus={() => setHeightFocused(true)}
             onBlur={() => setHeightFocused(false)}
@@ -91,6 +92,7 @@ export default function NewPostPage() {
           />
           <input
             type="number"
+            min="1"
             placeholder={weightFocused ? '' : '您的體重 (公斤)'}
             onFocus={() => setWeightFocused(true)}
             onBlur={() => setWeightFocused(false)}
@@ -98,6 +100,7 @@ export default function NewPostPage() {
           />
           <input
             type="number"
+            min="1"
             placeholder={ageFocused ? '' : '您的年齡'}
             onFocus={() => setAgeFocused(true)}
             onBlur={() => setAgeFocused(false)}
