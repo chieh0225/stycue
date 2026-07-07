@@ -1,4 +1,8 @@
-﻿@import 'tailwindcss';
+@import 'tailwindcss';
+
+html {
+  overflow-y: scroll;
+}
 
 @theme {
   --color-brand-primary: #f6d978;
