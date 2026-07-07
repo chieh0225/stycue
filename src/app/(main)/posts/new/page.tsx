@@ -40,6 +40,7 @@ export default function NewPostPage() {
   const [form, setForm] = useState<Draft>(emptyDraft);
   const { title, description, height, weight, age, selectedBudget, postType, points } = form;
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
+  const [pointsMenuOpen, setPointsMenuOpen] = useState(false);
 
   useEffect(() => {
     // Deferred to a microtask so the restore doesn't setState synchronously
@@ -240,17 +241,50 @@ export default function NewPostPage() {
             <span aria-hidden className="text-accent-amber">
               ✦
             </span>
-            <select
-              value={points}
-              onChange={(event) => setForm((prev) => ({ ...prev, points: event.target.value }))}
-              className="flex-1 rounded-lg border border-border-default bg-transparent py-2 pr-3.5 pl-3 text-sm text-text-primary outline-none"
-            >
-              {pointsOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
+            <div className="relative flex-1">
+              <button
+                type="button"
+                onClick={() => setPointsMenuOpen((open) => !open)}
+                aria-expanded={pointsMenuOpen}
+                className="flex w-full items-center justify-between rounded-lg bg-surface-soft px-3.5 py-2 text-sm font-semibold text-accent-amber"
+              >
+                {points}
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  className={`h-3 w-3 transition-transform ${pointsMenuOpen ? 'rotate-180' : ''}`}
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+
+              {pointsMenuOpen ? (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setPointsMenuOpen(false)} />
+                  <div className="absolute top-full left-0 z-40 mt-2 w-full overflow-hidden rounded-xl border border-border-default bg-white shadow-[0_4px_12px_rgba(217,154,61,0.12)]">
+                    {pointsOptions.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => {
+                          setForm((prev) => ({ ...prev, points: option }));
+                          setPointsMenuOpen(false);
+                        }}
+                        className={`block w-full px-4 py-2.5 text-left text-sm font-medium ${
+                          option === points
+                            ? 'bg-surface-soft text-accent-amber'
+                            : 'text-text-primary hover:bg-surface-soft'
+                        }`}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : null}
+            </div>
             <span className="text-sm text-text-muted">點</span>
           </div>
         </div>
