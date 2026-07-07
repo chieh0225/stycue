@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import CommentComposer from './comment-composer';
+import PostInteractions from './post-interactions';
 
 const bodyText = `最近開始想認真學穿搭，但自己研究了一段時間後，還是不太確定什麼樣的版型和配色比較適合自己，所以想請大家根據我的身形給一些建議。
 
@@ -70,67 +72,9 @@ function ImagePlaceholderIcon({ className = 'h-9 w-9' }: { className?: string })
   );
 }
 
-function HeartIcon({ className = 'h-5 w-5' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      aria-hidden="true"
-      className={className}
-    >
-      <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z" />
-    </svg>
-  );
-}
+export default async function PostDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
 
-function CommentIcon({ className = 'h-5 w-5' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      aria-hidden="true"
-      className={className}
-    >
-      <path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.4 8.6 8.6 0 0 1-4-1L3 20l1.1-4a8.4 8.4 0 0 1-1-4A8.38 8.38 0 0 1 11.5 3a8.4 8.4 0 0 1 9.5 8.5Z" />
-    </svg>
-  );
-}
-
-function BookmarkIcon({ className = 'h-5 w-5' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      aria-hidden="true"
-      className={className}
-    >
-      <path d="M6 3h12v18l-6-4-6 4Z" />
-    </svg>
-  );
-}
-
-function SendIcon({ className = 'h-4 w-4' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      aria-hidden="true"
-      className={className}
-    >
-      <path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z" />
-    </svg>
-  );
-}
-
-export default function PostDetailPage() {
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col bg-surface-base">
       {/* Header */}
@@ -141,8 +85,8 @@ export default function PostDetailPage() {
         <span className="text-lg font-bold text-text-primary">全部文章</span>
       </header>
 
-      {/* Scrollable body */}
-      <article className="flex-1 overflow-y-auto px-4.5 pt-5 pb-6">
+      {/* Scrollable body — extra bottom padding clears the fixed comment bar */}
+      <article className="flex-1 overflow-y-auto px-4.5 pt-5 pb-24">
         {/* Title */}
         <div className="mb-4 flex items-center gap-2">
           <span className="flex-shrink-0 rounded-md bg-[#FCEFDA] px-[9px] py-[3px] text-[13px] font-bold text-accent-amber">
@@ -242,42 +186,11 @@ export default function PostDetailPage() {
         <div className="mb-4 h-px bg-border-default" />
 
         {/* 互動列 */}
-        <div className="flex items-center gap-[22px] text-text-primary">
-          <button type="button" className="flex items-center gap-1.5">
-            <HeartIcon />
-            <span className="sr-only">讚</span>
-            <span className="text-[15px]">222</span>
-          </button>
-          <button type="button" className="flex items-center gap-1.5">
-            <CommentIcon />
-            <span className="sr-only">留言</span>
-            <span className="text-[15px]">50</span>
-          </button>
-          <button type="button" aria-label="收藏" className="ml-auto">
-            <BookmarkIcon className="h-5 w-5" />
-          </button>
-        </div>
+        <PostInteractions postId={id} initialLikes={222} comments={50} />
       </article>
 
       {/* Bottom comment bar */}
-      <footer className="flex flex-shrink-0 items-center gap-2.5 border-t border-border-default bg-surface-base px-4.5 py-3">
-        <div className="flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full bg-text-primary text-surface-base">
-          <UserIcon className="h-4 w-4" />
-        </div>
-        <a
-          href="#comments"
-          className="flex h-10 flex-1 items-center rounded-full border border-border-default bg-[#FDF7E9] px-4 text-left"
-        >
-          <span className="text-[13.5px] text-[#B8AF9E]">加入討論...</span>
-        </a>
-        <button
-          type="button"
-          aria-label="送出留言"
-          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-brand-primary text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.14)]"
-        >
-          <SendIcon />
-        </button>
-      </footer>
+      <CommentComposer postId={id} />
     </div>
   );
 }
