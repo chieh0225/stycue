@@ -78,11 +78,6 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
     setSearchQuery('');
   }
 
-  function pickSuggestedTag(tag: string) {
-    toggleTag(tag);
-    exitSearch();
-  }
-
   const allTagNames = tagGroups
     .flatMap((group) => [...group.tags, ...(customTags[group.title] ?? [])])
     .map((tag) => tag.toLowerCase());
@@ -158,39 +153,71 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
 
           <h3 className="mb-3 text-base font-bold text-text-primary">最近用過</h3>
           <div className="mb-6 flex flex-wrap gap-2.5">
-            {recentTags.map((tag) => (
-              <button
-                key={tag.name}
-                type="button"
-                onClick={() => pickSuggestedTag(tag.name)}
-                className="flex items-baseline gap-1.5 rounded-full border border-border-default bg-white px-3.5 py-2"
-              >
-                <span className="text-sm font-bold text-text-muted">#</span>
-                <span className="text-sm text-text-primary">{tag.name}</span>
-                <span className="text-xs text-text-muted">{tag.category}</span>
-              </button>
-            ))}
+            {recentTags.map((tag) => {
+              const active = selected.includes(tag.name);
+              return (
+                <button
+                  key={tag.name}
+                  type="button"
+                  onClick={() => toggleTag(tag.name)}
+                  className={
+                    active
+                      ? 'flex items-baseline gap-1.5 rounded-full border border-brand-primary bg-brand-primary px-3.5 py-2'
+                      : 'flex items-baseline gap-1.5 rounded-full border border-border-default bg-white px-3.5 py-2'
+                  }
+                >
+                  <span className="text-sm font-bold text-text-muted">#</span>
+                  <span className="text-sm text-text-primary">{tag.name}</span>
+                  <span className="text-xs text-text-muted">{tag.category}</span>
+                </button>
+              );
+            })}
           </div>
 
           <h3 className="mb-3 text-base font-bold text-text-primary">熱門標籤</h3>
           <div className="flex flex-wrap gap-2.5">
-            {popularTags.map((tag) => (
-              <button
-                key={tag.name}
-                type="button"
-                onClick={() => pickSuggestedTag(tag.name)}
-                className="flex items-baseline gap-1.5 rounded-full bg-accent-amber/15 px-3.5 py-2"
-              >
-                <span className="text-sm font-bold text-accent-amber">#</span>
-                <span className="text-sm text-text-primary">{tag.name}</span>
-                <span className="text-xs text-accent-amber/80">{tag.category}</span>
-              </button>
-            ))}
+            {popularTags.map((tag) => {
+              const active = selected.includes(tag.name);
+              return (
+                <button
+                  key={tag.name}
+                  type="button"
+                  onClick={() => toggleTag(tag.name)}
+                  className={
+                    active
+                      ? 'flex items-baseline gap-1.5 rounded-full border border-brand-primary bg-brand-primary px-3.5 py-2'
+                      : 'flex items-baseline gap-1.5 rounded-full bg-accent-amber/15 px-3.5 py-2'
+                  }
+                >
+                  <span className="text-sm font-bold text-accent-amber">#</span>
+                  <span className="text-sm text-text-primary">{tag.name}</span>
+                  <span className="text-xs text-accent-amber/80">{tag.category}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       ) : (
         /* Tag group browsing content */
         <div className="flex-1 overflow-y-auto px-5 pb-6">
+          {selected.length > 0 && (
+            <div className="mb-5">
+              <h3 className="mb-3 text-base font-bold text-text-primary">已選標籤（點擊可取消）</h3>
+              <div className="flex flex-wrap gap-2.5">
+                {selected.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => toggleTag(tag)}
+                    className="rounded-full border border-brand-primary bg-brand-primary px-5 py-2.5 text-sm font-medium text-text-primary"
+                  >
+                    {tag} ✕
+                  </button>
+                ))}
+              </div>
+              <hr className="mt-5 border-border-default" />
+            </div>
+          )}
           {tagGroups.map((group) => (
             <div key={group.title} className="mb-5">
               <h3 className="mb-3 text-base font-bold text-text-primary">{group.title}</h3>
