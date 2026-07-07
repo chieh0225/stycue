@@ -100,7 +100,7 @@ export default function NewPostPage() {
             {typeMenuOpen ? (
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setTypeMenuOpen(false)} />
-                <div className="absolute top-full left-0 z-40 mt-2 w-24 overflow-hidden rounded-xl border border-border-default bg-white shadow-[0_4px_12px_rgba(217,154,61,0.12)]">
+                <div className="absolute top-full left-0 z-40 mt-2 w-max min-w-full overflow-hidden rounded-xl border border-border-default bg-white shadow-[0_4px_12px_rgba(217,154,61,0.12)]">
                   {postTypes.map((type) => (
                     <button
                       key={type}
