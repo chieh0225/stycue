@@ -36,7 +36,7 @@ const posts = [
     body: '面試時應該要穿什麼樣的服裝比較合適？不同產業的穿搭有什麼眉角嗎？',
     accent: 'bg-text-primary',
     badge: '熱門',
-    hero: 'bg-[linear-gradient(135deg,#3f3b37_0%,#7b6856_100%)]',
+    photos: ['#4a5a6b', '#3f3b37', '#8a7f6e'],
     chips: ['正式穿搭', '職場感'],
     likes: '1688',
     comments: '180',
@@ -50,7 +50,7 @@ const posts = [
     body: '簡單的裙裝配色，也能營造溫柔又清新的日系感。',
     accent: 'bg-accent-amber',
     badge: '日系',
-    hero: 'bg-[linear-gradient(135deg,#d7a55f_0%,#7e8a5f_100%)]',
+    photos: ['linear-gradient(135deg,#d7a55f 0%,#7e8a5f 100%)'],
     chips: ['日系穿搭', '柔和色系'],
     likes: '101',
     comments: '30',
@@ -63,7 +63,7 @@ const posts = [
     title: '男生棉褲求推薦',
     body: '想要質感好的，預算 1500 內。',
     accent: 'bg-text-muted',
-    hero: 'bg-[linear-gradient(135deg,#7d7368_0%,#b6a68b_100%)]',
+    photos: [],
     chips: ['日常穿搭', '質感推薦'],
     likes: '9',
     comments: '1',
@@ -75,12 +75,16 @@ type Interaction = { liked: boolean; likes: number; bookmarked: boolean };
 const postFilters = ['全部', '提問', '分享', '委託'] as const;
 type PostFilter = (typeof postFilters)[number];
 
-const menuLinks = [
-  { label: '追蹤中', icon: '👥', href: '/profile/following' },
-  { label: '已收藏', icon: '🔖', href: '/profile/favorites' },
-  { label: '管理委託', icon: '🧵', href: '/profile/commissions/sent' },
-  { label: '積分商城', icon: '💰', href: '/profile/points' },
-  { label: '免責聲明', icon: '📝', href: '/disclaimer' },
+const menuLinkGroups = [
+  [
+    { label: '追蹤中', icon: '👥', href: '/profile/following' },
+    { label: '已收藏', icon: '🔖', href: '/profile/favorites' },
+  ],
+  [
+    { label: '管理委託', icon: '🧵', href: '/profile/commissions/sent' },
+    { label: '積分商城', icon: '💰', href: '/profile/points' },
+    { label: '免責聲明', icon: '📝', href: '/disclaimer' },
+  ],
 ] as const;
 
 function MenuIcon() {
@@ -354,20 +358,31 @@ export default function Home() {
                   ) : null}
                 </div>
 
-                <div
-                  className={`mb-3 flex h-[164px] flex-col justify-between rounded-[16px] p-4 text-white ${post.hero}`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-semibold backdrop-blur-sm">
-                      {post.tag}
-                    </span>
-                    <span className="text-[12px] font-medium text-white/80">StyCue</span>
-                  </div>
-                  <div>
-                    <div className="mb-2 text-[17px] font-bold">{post.title}</div>
-                    <div className="text-[12px] leading-5 text-white/85">{post.body}</div>
-                  </div>
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="rounded-full bg-surface-soft px-2.5 py-1 text-[11px] font-semibold text-accent-amber">
+                    {post.tag}
+                  </span>
+                  <span className="text-[15px] font-bold text-text-primary">{post.title}</span>
                 </div>
+                <p className="mb-3 text-[13px] leading-5 text-text-muted">{post.body}</p>
+
+                {post.photos.length > 0 ? (
+                  <>
+                    {/* Color blocks stand in for the post's uploaded photo(s) until real media exists. */}
+                    <div className="mb-1 flex gap-2">
+                      {post.photos.map((photo, index) => (
+                        <div
+                          key={index}
+                          className={`rounded-[12px] ${post.photos.length === 1 ? 'h-[164px] flex-1' : 'h-[96px] flex-1'}`}
+                          style={{ background: photo }}
+                        />
+                      ))}
+                    </div>
+                    <div className="mb-3 text-[11px] text-text-muted italic">
+                      照片示意（尚未串接真實圖片）
+                    </div>
+                  </>
+                ) : null}
 
                 <div className="flex flex-wrap gap-2">
                   {post.chips.map((chip) => (
@@ -415,7 +430,7 @@ export default function Home() {
 
       {menuOpen ? (
         <div
-          className="fixed inset-0 z-40 bg-[rgba(64,58,50,0.42)]"
+          className="fixed inset-y-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 bg-[rgba(64,58,50,0.42)]"
           onClick={() => setMenuOpen(false)}
         >
           <div
@@ -433,15 +448,20 @@ export default function Home() {
               </button>
             </div>
             <div className="space-y-2">
-              {menuLinks.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className="flex w-full items-center gap-3 rounded-[10px] px-3 py-3 text-left text-[14.5px] font-medium text-text-primary hover:bg-white/80"
-                >
-                  <span className="text-lg">{item.icon}</span>
-                  {item.label}
-                </Link>
+              {menuLinkGroups.map((group, groupIndex) => (
+                <div key={groupIndex}>
+                  {groupIndex > 0 ? <div className="my-3 border-t border-border-default" /> : null}
+                  {group.map((item) => (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      className="flex w-full items-center gap-3 rounded-[10px] px-3 py-3 text-left text-[14.5px] font-medium text-text-primary hover:bg-white/80"
+                    >
+                      <span className="text-lg">{item.icon}</span>
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
               ))}
             </div>
           </div>
@@ -450,7 +470,7 @@ export default function Home() {
 
       {checkinOpen ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(64,58,50,0.45)] p-4"
+          className="fixed inset-y-0 left-1/2 z-50 flex w-full max-w-md -translate-x-1/2 items-center justify-center bg-[rgba(64,58,50,0.45)] p-4"
           onClick={() => setCheckinOpen(false)}
         >
           <div
