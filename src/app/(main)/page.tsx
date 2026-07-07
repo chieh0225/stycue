@@ -75,6 +75,14 @@ type Interaction = { liked: boolean; likes: number; bookmarked: boolean };
 const postFilters = ['全部', '提問', '分享', '委託'] as const;
 type PostFilter = (typeof postFilters)[number];
 
+const menuLinks = [
+  { label: '追蹤中', icon: '👥', href: '/profile/following' },
+  { label: '已收藏', icon: '🔖', href: '/profile/favorites' },
+  { label: '管理委託', icon: '🧵', href: '/profile/commissions/sent' },
+  { label: '積分商城', icon: '💰', href: '/profile/points' },
+  { label: '免責聲明', icon: '📝', href: '/disclaimer' },
+] as const;
+
 function MenuIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
@@ -425,20 +433,15 @@ export default function Home() {
               </button>
             </div>
             <div className="space-y-2">
-              {[
-                ['追蹤中', '👥'],
-                ['已收藏', '🔖'],
-                ['管理委託', '🧵'],
-                ['積分商城', '💰'],
-                ['免責聲明', '📝'],
-              ].map(([label, icon]) => (
-                <button
-                  key={label}
+              {menuLinks.map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
                   className="flex w-full items-center gap-3 rounded-[10px] px-3 py-3 text-left text-[14.5px] font-medium text-text-primary hover:bg-white/80"
                 >
-                  <span className="text-lg">{icon}</span>
-                  {label}
-                </button>
+                  <span className="text-lg">{item.icon}</span>
+                  {item.label}
+                </Link>
               ))}
             </div>
           </div>
