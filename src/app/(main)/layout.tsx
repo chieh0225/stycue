@@ -7,7 +7,7 @@ export default function MainLayout({
 }>) {
   return (
     <div className="flex flex-1 flex-col">
-      <div className="flex flex-1 flex-col">{children}</div>
+      <div className="flex flex-1 flex-col pb-6">{children}</div>
       <BottomNav />
     </div>
   );
