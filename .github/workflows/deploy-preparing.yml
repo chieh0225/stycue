@@ -53,8 +53,10 @@ jobs:
         run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
 
       # --prebuilt：直接使用上一步打包好的結果部署，不用重新 build
+      # --archive=tgz：把輸出打包成單一壓縮檔上傳，避免逐檔上傳耗掉太多請求次數
+      # （之前曾因此撞到 Vercel 免費方案的 api-upload-free 上傳次數上限）
       - name: Deploy prebuilt artifact to Vercel
         id: deploy
         run: |
-          url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+          url=$(vercel deploy --prebuilt --archive=tgz --token=${{ secrets.VERCEL_TOKEN }})
           echo "url=$url" >> "$GITHUB_OUTPUT"
