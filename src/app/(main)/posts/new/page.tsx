@@ -1,7 +1,28 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+
+const DRAFT_STORAGE_KEY = 'stycue:commission-post-draft';
+const budgetOptions = ['1000 - 3000', '3000 - 5000', '5000 - 10000', '10000 以上'];
+
+type Draft = {
+  title: string;
+  description: string;
+  height: string;
+  weight: string;
+  age: string;
+  selectedBudget: string;
+};
+
+const emptyDraft: Draft = {
+  title: '',
+  description: '',
+  height: '',
+  weight: '',
+  age: '',
+  selectedBudget: budgetOptions[0],
+};
 
 export default function NewPostPage() {
   const [titleFocused, setTitleFocused] = useState(false);
@@ -9,14 +30,35 @@ export default function NewPostPage() {
   const [heightFocused, setHeightFocused] = useState(false);
   const [weightFocused, setWeightFocused] = useState(false);
   const [ageFocused, setAgeFocused] = useState(false);
-  const budgetOptions = ['1000 - 3000', '3000 - 5000', '5000 - 10000', '10000 以上'];
-  const [selectedBudget, setSelectedBudget] = useState(budgetOptions[0]);
+
+  const [form, setForm] = useState<Draft>(emptyDraft);
+  const { title, description, height, weight, age, selectedBudget } = form;
+
+  useEffect(() => {
+    // Deferred to a microtask so the restore doesn't setState synchronously
+    // within the effect body (react-hooks/set-state-in-effect).
+    queueMicrotask(() => {
+      const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (!saved) return;
+      try {
+        setForm({ ...emptyDraft, ...(JSON.parse(saved) as Partial<Draft>) });
+      } catch {
+        // Ignore a corrupted draft rather than blocking the page.
+      }
+    });
+  }, []);
+
+  function saveDraft() {
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(form));
+  }
 
   return (
     <div className="flex flex-1 flex-col bg-surface-base">
       {/* Header */}
       <div className="flex items-center justify-between bg-surface-soft px-4 py-4">
-        <button className="text-sm text-text-muted">取消</button>
+        <Link href="/" onClick={saveDraft} className="text-sm text-text-muted">
+          取消
+        </Link>
         <h1 className="text-base font-semibold text-text-primary">發表委託</h1>
         <div className="w-8" />
       </div>
@@ -40,6 +82,8 @@ export default function NewPostPage() {
           <div className="flex items-center justify-between">
             <input
               type="text"
+              value={title}
+              onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
               placeholder={titleFocused ? '' : '標題'}
               onFocus={() => setTitleFocused(true)}
               onBlur={() => setTitleFocused(false)}
@@ -52,6 +96,8 @@ export default function NewPostPage() {
         {/* Description */}
         <textarea
           rows={3}
+          value={description}
+          onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
           placeholder={descriptionFocused ? '' : '描述你想要的需求\n( etc. 場景、風格... )'}
           onFocus={() => setDescriptionFocused(true)}
           onBlur={() => setDescriptionFocused(false)}
@@ -85,6 +131,8 @@ export default function NewPostPage() {
           <input
             type="number"
             min="1"
+            value={height}
+            onChange={(event) => setForm((prev) => ({ ...prev, height: event.target.value }))}
             placeholder={heightFocused ? '' : '您的身高 (公分)'}
             onFocus={() => setHeightFocused(true)}
             onBlur={() => setHeightFocused(false)}
@@ -93,6 +141,8 @@ export default function NewPostPage() {
           <input
             type="number"
             min="1"
+            value={weight}
+            onChange={(event) => setForm((prev) => ({ ...prev, weight: event.target.value }))}
             placeholder={weightFocused ? '' : '您的體重 (公斤)'}
             onFocus={() => setWeightFocused(true)}
             onBlur={() => setWeightFocused(false)}
@@ -101,6 +151,8 @@ export default function NewPostPage() {
           <input
             type="number"
             min="1"
+            value={age}
+            onChange={(event) => setForm((prev) => ({ ...prev, age: event.target.value }))}
             placeholder={ageFocused ? '' : '您的年齡'}
             onFocus={() => setAgeFocused(true)}
             onBlur={() => setAgeFocused(false)}
@@ -121,7 +173,7 @@ export default function NewPostPage() {
                 <button
                   key={option}
                   type="button"
-                  onClick={() => setSelectedBudget(option)}
+                  onClick={() => setForm((prev) => ({ ...prev, selectedBudget: option }))}
                   className={
                     selected
                       ? 'rounded-lg border-2 border-brand-primary bg-surface-soft px-3 py-2 text-sm font-medium text-text-primary'
