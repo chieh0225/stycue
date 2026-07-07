@@ -167,7 +167,13 @@ function CommentImages({ comment }: { comment: Comment }) {
   );
 }
 
-function CommentActions({ likeCount }: { likeCount: number }) {
+function CommentActions({
+  likeCount,
+  onGivePoints,
+}: {
+  likeCount: number;
+  onGivePoints: () => void;
+}) {
   return (
     <div className="mt-4 flex items-center gap-[18px]">
       <div className="flex items-center gap-1.5 text-text-primary">
@@ -175,11 +181,14 @@ function CommentActions({ likeCount }: { likeCount: number }) {
         <span className="sr-only">讚</span>
         <span className="text-[13px]">{likeCount}</span>
       </div>
-      {/* TODO: wire up the give-points modal + best-comment API in a later step. */}
-      <div className="flex items-center gap-1.5 text-accent-amber">
+      <button
+        type="button"
+        onClick={onGivePoints}
+        className="flex items-center gap-1.5 text-accent-amber"
+      >
         <StarIcon />
         <span className="text-[13px] font-semibold">給予積分</span>
-      </div>
+      </button>
     </div>
   );
 }
@@ -265,12 +274,94 @@ function ReplyList({
   );
 }
 
+const GIVE_POINTS_AMOUNTS = [50, 75, 100];
+
+function GivePointsModal({
+  targetName,
+  selectedAmount,
+  onSelectAmount,
+  onClose,
+  onConfirm,
+}: {
+  targetName: string;
+  selectedAmount: number;
+  onSelectAmount: (amount: number) => void;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div
+      onClick={onClose}
+      className="fixed inset-y-0 left-1/2 z-30 flex w-full max-w-md -translate-x-1/2 items-center justify-center bg-[rgba(64,58,50,0.42)] px-7"
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        onClick={(event) => event.stopPropagation()}
+        className="flex w-full max-w-[300px] flex-col items-center rounded-2xl bg-surface-base px-[22px] pt-[26px] pb-5 text-center shadow-[0_12px_32px_rgba(64,58,50,0.28)]"
+      >
+        <div className="mb-4 flex h-[52px] w-[52px] items-center justify-center rounded-full bg-[#FCEFDA] text-accent-amber">
+          <StarIcon className="h-6 w-6" />
+        </div>
+        <span className="mb-2 text-base leading-[1.5] font-bold text-text-primary">
+          將 {targetName} 選為最佳留言並給予積分
+        </span>
+        <span className="mb-5 text-[13px] leading-[1.6] text-text-muted">
+          確定要將積分給予 {targetName} 嗎？此操作無法復原。
+        </span>
+
+        <div className="flex w-full justify-center gap-3">
+          {GIVE_POINTS_AMOUNTS.map((amount) => {
+            const isSelected = amount === selectedAmount;
+            return (
+              <button
+                key={amount}
+                type="button"
+                onClick={() => onSelectAmount(amount)}
+                aria-pressed={isSelected}
+                className={`flex h-10 w-[72px] items-center justify-center rounded-full border-[1.5px] text-[15px] text-text-primary ${
+                  isSelected
+                    ? 'border-brand-primary bg-brand-primary font-bold'
+                    : 'border-[#E5DDBF] bg-[#FDF7E9] font-medium'
+                }`}
+              >
+                {amount}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-5 mb-4 h-px w-full bg-[#EFE7CE]" />
+
+        <div className="flex w-full items-center gap-2.5">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-[46px] flex-1 items-center justify-center rounded-lg border-[1.5px] border-[#E5DDBF] text-sm font-bold text-text-primary"
+          >
+            取消
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="flex h-[46px] flex-1 items-center justify-center rounded-lg bg-brand-primary text-sm font-bold text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.14)]"
+          >
+            確認
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CommentItem({
   comment,
   onReply,
+  onGivePoints,
 }: {
   comment: Comment;
   onReply: (commentId: string, text: string) => void;
+  onGivePoints: (comment: Comment) => void;
 }) {
   return (
     <div className="flex flex-col gap-2.5">
@@ -290,7 +381,10 @@ function CommentItem({
             {comment.content}
           </div>
           <CommentImages comment={comment} />
-          <CommentActions likeCount={comment.likeCount} />
+          <CommentActions
+            likeCount={comment.likeCount}
+            onGivePoints={() => onGivePoints(comment)}
+          />
         </div>
       </div>
 
@@ -314,6 +408,8 @@ export default function CommentBoard({
   initialComments: Comment[];
 }) {
   const [comments, setComments] = useState(initialComments);
+  const [pointsTarget, setPointsTarget] = useState<{ id: string; name: string } | null>(null);
+  const [selectedAmount, setSelectedAmount] = useState(75);
   const bottomRef = useRef<HTMLDivElement>(null);
   const isFirstRender = useRef(true);
 
@@ -368,13 +464,28 @@ export default function CommentBoard({
     }).catch(() => {});
   }
 
+  function openGivePoints(comment: Comment) {
+    setPointsTarget({ id: comment.commentId, name: comment.nickName });
+    setSelectedAmount(75);
+  }
+
+  function closeGivePoints() {
+    setPointsTarget(null);
+  }
+
+  function confirmGivePoints() {
+    // TODO: call the best-comment / boost API once the 50/75/100 amount
+    // semantics are confirmed with the backend. For now this only closes.
+    setPointsTarget(null);
+  }
+
   return (
     <>
       {/* Scrollable body — extra bottom padding clears the fixed comment bar */}
       <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-4.5 pt-5 pb-24">
         {comments.map((comment, index) => (
           <Fragment key={comment.commentId}>
-            <CommentItem comment={comment} onReply={addReply} />
+            <CommentItem comment={comment} onReply={addReply} onGivePoints={openGivePoints} />
             {index < comments.length - 1 ? <div className="h-px bg-[#E0D4AA]" /> : null}
           </Fragment>
         ))}
@@ -383,6 +494,16 @@ export default function CommentBoard({
 
       {/* Bottom comment bar */}
       <CommentComposer postId={postId} onSubmit={addComment} />
+
+      {pointsTarget ? (
+        <GivePointsModal
+          targetName={pointsTarget.name}
+          selectedAmount={selectedAmount}
+          onSelectAmount={setSelectedAmount}
+          onClose={closeGivePoints}
+          onConfirm={confirmGivePoints}
+        />
+      ) : null}
     </>
   );
 }
