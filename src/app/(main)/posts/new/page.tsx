@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 const DRAFT_STORAGE_KEY = 'stycue:commission-post-draft';
 const budgetOptions = ['1000 - 3000', '3000 - 5000', '5000 - 10000', '10000 以上'];
 const postTypes = ['委託', '提問', '分享'] as const;
+const pointsOptions = ['50', '75', '100'];
 
 type Draft = {
   title: string;
@@ -15,6 +16,7 @@ type Draft = {
   age: string;
   selectedBudget: string;
   postType: string;
+  points: string;
 };
 
 const emptyDraft: Draft = {
@@ -25,6 +27,7 @@ const emptyDraft: Draft = {
   age: '',
   selectedBudget: budgetOptions[0],
   postType: postTypes[0],
+  points: pointsOptions[0],
 };
 
 export default function NewPostPage() {
@@ -35,7 +38,7 @@ export default function NewPostPage() {
   const [ageFocused, setAgeFocused] = useState(false);
 
   const [form, setForm] = useState<Draft>(emptyDraft);
-  const { title, description, height, weight, age, selectedBudget, postType } = form;
+  const { title, description, height, weight, age, selectedBudget, postType, points } = form;
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -237,10 +240,16 @@ export default function NewPostPage() {
             <span aria-hidden className="text-accent-amber">
               ✦
             </span>
-            <select className="flex-1 rounded-lg border border-border-default bg-transparent py-2 pr-3.5 pl-3 text-sm text-text-primary outline-none">
-              <option>50</option>
-              <option>75</option>
-              <option>100</option>
+            <select
+              value={points}
+              onChange={(event) => setForm((prev) => ({ ...prev, points: event.target.value }))}
+              className="flex-1 rounded-lg border border-border-default bg-transparent py-2 pr-3.5 pl-3 text-sm text-text-primary outline-none"
+            >
+              {pointsOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
             </select>
             <span className="text-sm text-text-muted">點</span>
           </div>
