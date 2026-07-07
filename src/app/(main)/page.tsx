@@ -72,6 +72,9 @@ const posts = [
 
 type Interaction = { liked: boolean; likes: number; bookmarked: boolean };
 
+const postFilters = ['全部', '提問', '分享', '委託'] as const;
+type PostFilter = (typeof postFilters)[number];
+
 function MenuIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
@@ -121,6 +124,8 @@ function BookmarkIcon({ filled, className = 'h-4 w-4' }: { filled?: boolean; cla
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [checkinOpen, setCheckinOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState<PostFilter>('全部');
 
   useEffect(() => {
     let active = true;
@@ -185,6 +190,9 @@ export default function Home() {
       body: JSON.stringify({ bookmarked }),
     }).catch(() => {});
   }
+
+  const filteredPosts =
+    selectedFilter === '全部' ? posts : posts.filter((post) => post.tag === selectedFilter);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -252,18 +260,50 @@ export default function Home() {
       <section className="px-4 pb-6">
         <div className="mb-4 flex items-center justify-between">
           <div className="text-[20px] font-bold text-text-primary">全部文章</div>
-          <button className="flex items-center gap-1 rounded-full border border-border-default bg-white px-3 py-2 text-[13px] font-medium text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.08)]">
-            全部
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              className="h-3 w-3 text-text-muted"
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setFilterOpen((open) => !open)}
+              aria-expanded={filterOpen}
+              className="flex items-center gap-1 rounded-full border border-border-default bg-white px-3 py-2 text-[13px] font-medium text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.08)]"
             >
-              <path d="m6 9 6 6 6-6" />
-            </svg>
-          </button>
+              {selectedFilter}
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                className={`h-3 w-3 text-text-muted transition-transform ${filterOpen ? 'rotate-180' : ''}`}
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+
+            {filterOpen ? (
+              <>
+                <div className="fixed inset-0 z-30" onClick={() => setFilterOpen(false)} />
+                <div className="absolute top-full right-0 z-40 mt-2 w-28 overflow-hidden rounded-[12px] border border-border-default bg-white shadow-[0_4px_12px_rgba(217,154,61,0.12)]">
+                  {postFilters.map((filter) => (
+                    <button
+                      key={filter}
+                      type="button"
+                      onClick={() => {
+                        setSelectedFilter(filter);
+                        setFilterOpen(false);
+                      }}
+                      className={`block w-full px-4 py-2.5 text-left text-[13px] font-medium ${
+                        filter === selectedFilter
+                          ? 'bg-surface-soft text-accent-amber'
+                          : 'text-text-primary hover:bg-surface-soft'
+                      }`}
+                    >
+                      {filter}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : null}
+          </div>
         </div>
 
         <div className="mb-4 flex border-b border-border-default text-[15px]">
@@ -273,7 +313,13 @@ export default function Home() {
           <div className="flex-1 pb-2 text-center text-text-muted">最新</div>
         </div>
 
-        {posts.map((post) => {
+        {filteredPosts.length === 0 ? (
+          <div className="py-10 text-center text-[13px] text-text-muted">
+            目前沒有這個分類的文章
+          </div>
+        ) : null}
+
+        {filteredPosts.map((post) => {
           const interaction = postInteractions[post.id];
           return (
             <article
