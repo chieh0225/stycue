@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 
 const DRAFT_STORAGE_KEY = 'stycue:commission-post-draft';
 const budgetOptions = ['1000 - 3000', '3000 - 5000', '5000 - 10000', '10000 以上'];
+const postTypes = ['委託', '提問', '分享'] as const;
 
 type Draft = {
   title: string;
@@ -13,6 +14,7 @@ type Draft = {
   weight: string;
   age: string;
   selectedBudget: string;
+  postType: string;
 };
 
 const emptyDraft: Draft = {
@@ -22,6 +24,7 @@ const emptyDraft: Draft = {
   weight: '',
   age: '',
   selectedBudget: budgetOptions[0],
+  postType: postTypes[0],
 };
 
 export default function NewPostPage() {
@@ -32,7 +35,8 @@ export default function NewPostPage() {
   const [ageFocused, setAgeFocused] = useState(false);
 
   const [form, setForm] = useState<Draft>(emptyDraft);
-  const { title, description, height, weight, age, selectedBudget } = form;
+  const { title, description, height, weight, age, selectedBudget, postType } = form;
+  const [typeMenuOpen, setTypeMenuOpen] = useState(false);
 
   useEffect(() => {
     // Deferred to a microtask so the restore doesn't setState synchronously
@@ -70,11 +74,50 @@ export default function NewPostPage() {
             M
           </div>
           <span className="text-sm font-medium text-text-primary">Maple</span>
-          <select className="rounded-full border border-border-default px-3 py-1 text-xs text-text-muted outline-none">
-            <option value="commission">委託</option>
-            <option value="question">提問</option>
-            <option value="share">分享</option>
-          </select>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setTypeMenuOpen((open) => !open)}
+              aria-expanded={typeMenuOpen}
+              className="flex items-center gap-1 rounded-full bg-surface-soft px-3 py-1 text-xs font-semibold text-accent-amber"
+            >
+              {postType}
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                className={`h-2.5 w-2.5 transition-transform ${typeMenuOpen ? 'rotate-180' : ''}`}
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+
+            {typeMenuOpen ? (
+              <>
+                <div className="fixed inset-0 z-30" onClick={() => setTypeMenuOpen(false)} />
+                <div className="absolute top-full left-0 z-40 mt-2 w-24 overflow-hidden rounded-xl border border-border-default bg-white shadow-[0_4px_12px_rgba(217,154,61,0.12)]">
+                  {postTypes.map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => {
+                        setForm((prev) => ({ ...prev, postType: type }));
+                        setTypeMenuOpen(false);
+                      }}
+                      className={`block w-full px-4 py-2.5 text-left text-xs font-medium ${
+                        type === postType
+                          ? 'bg-surface-soft text-accent-amber'
+                          : 'text-text-primary hover:bg-surface-soft'
+                      }`}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : null}
+          </div>
         </div>
 
         {/* Title */}
