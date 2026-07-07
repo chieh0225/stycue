@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const trendingItems = [
   {
@@ -70,6 +70,8 @@ const posts = [
   },
 ];
 
+type Interaction = { liked: boolean; likes: number; bookmarked: boolean };
+
 function MenuIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
@@ -80,9 +82,15 @@ function MenuIcon() {
   );
 }
 
-function HeartIcon() {
+function HeartIcon({ filled }: { filled?: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+    <svg
+      viewBox="0 0 24 24"
+      fill={filled ? 'currentColor' : 'none'}
+      stroke="currentColor"
+      strokeWidth="2"
+      className="h-4 w-4"
+    >
       <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z" />
     </svg>
   );
@@ -96,14 +104,14 @@ function CommentIcon() {
   );
 }
 
-function BookmarkIcon() {
+function BookmarkIcon({ filled, className = 'h-4 w-4' }: { filled?: boolean; className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
-      fill="none"
+      fill={filled ? 'currentColor' : 'none'}
       stroke="currentColor"
       strokeWidth="2"
-      className="ml-auto h-4 w-4"
+      className={className}
     >
       <path d="M6 3h12v18l-6-4-6 4Z" />
     </svg>
@@ -112,7 +120,71 @@ function BookmarkIcon() {
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [checkinOpen, setCheckinOpen] = useState(true);
+  const [checkinOpen, setCheckinOpen] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    fetch('/api/checkin')
+      .then((res) => res.json())
+      .then((data: { claimedToday: boolean }) => {
+        if (!active || data.claimedToday) return;
+        setCheckinOpen(true);
+        // Landing on the home page while unclaimed IS the check-in action.
+        void fetch('/api/checkin', { method: 'POST' }).catch(() => {});
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+  const [postInteractions, setPostInteractions] = useState<Record<string, Interaction>>(() =>
+    Object.fromEntries(
+      posts.map((post) => [
+        post.id,
+        { liked: false, likes: Number(post.likes), bookmarked: false },
+      ]),
+    ),
+  );
+  const [trendingBookmarks, setTrendingBookmarks] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(trendingItems.map((item) => [item.id, false])),
+  );
+
+  function toggleLike(postId: string) {
+    const liked = !postInteractions[postId].liked;
+    setPostInteractions((prev) => ({
+      ...prev,
+      [postId]: { ...prev[postId], liked, likes: prev[postId].likes + (liked ? 1 : -1) },
+    }));
+    // Mock write — replace with the real posts API once it exists.
+    void fetch(`/api/posts/${postId}/like`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ liked }),
+    }).catch(() => {});
+  }
+
+  function toggleBookmark(postId: string) {
+    const bookmarked = !postInteractions[postId].bookmarked;
+    setPostInteractions((prev) => ({
+      ...prev,
+      [postId]: { ...prev[postId], bookmarked },
+    }));
+    void fetch(`/api/posts/${postId}/bookmark`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bookmarked }),
+    }).catch(() => {});
+  }
+
+  function toggleTrendingBookmark(itemId: string) {
+    const bookmarked = !trendingBookmarks[itemId];
+    setTrendingBookmarks((prev) => ({ ...prev, [itemId]: bookmarked }));
+    void fetch(`/api/posts/${itemId}/bookmark`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bookmarked }),
+    }).catch(() => {});
+  }
 
   return (
     <div className="flex flex-1 flex-col">
@@ -133,26 +205,27 @@ export default function Home() {
         <div className="mb-3 text-[20px] font-bold text-text-primary">人氣穿搭</div>
         <div className="-mx-1 flex gap-3 overflow-x-auto pb-2">
           {trendingItems.map((item) => (
-            <Link
+            <article
               key={item.id}
-              href={`/posts/${item.id}`}
-              className="block w-[172px] flex-none overflow-hidden rounded-[16px] bg-white shadow-[0_4px_12px_rgba(217,154,61,0.08)]"
+              className="w-[172px] flex-none overflow-hidden rounded-[16px] bg-white shadow-[0_4px_12px_rgba(217,154,61,0.08)]"
             >
-              <div className="relative">
-                <div
-                  className={`absolute top-2 left-2 z-10 flex h-6 w-6 items-center justify-center rounded-md text-[12px] font-bold text-white ${item.accent}`}
-                >
-                  {item.rank}
+              <Link href={`/posts/${item.id}`} className="block">
+                <div className="relative">
+                  <div
+                    className={`absolute top-2 left-2 z-10 flex h-6 w-6 items-center justify-center rounded-md text-[12px] font-bold text-white ${item.accent}`}
+                  >
+                    {item.rank}
+                  </div>
+                  <div
+                    className="flex h-[216px] items-center justify-center"
+                    style={{ background: item.gradient }}
+                  >
+                    <span className="rounded-md bg-white/70 px-2 py-1 text-[11px] font-medium text-text-primary">
+                      {item.title}
+                    </span>
+                  </div>
                 </div>
-                <div
-                  className="flex h-[216px] items-center justify-center"
-                  style={{ background: item.gradient }}
-                >
-                  <span className="rounded-md bg-white/70 px-2 py-1 text-[11px] font-medium text-text-primary">
-                    {item.title}
-                  </span>
-                </div>
-              </div>
+              </Link>
               <div className="flex items-center justify-between px-3 py-3">
                 <div className="flex items-center gap-2">
                   <div className={`h-7 w-7 rounded-full ${item.accent}`} />
@@ -161,17 +234,17 @@ export default function Home() {
                     <div className="text-[11px] text-text-muted">{item.meta}</div>
                   </div>
                 </div>
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  className="h-4 w-4 text-text-muted"
+                <button
+                  type="button"
+                  onClick={() => toggleTrendingBookmark(item.id)}
+                  aria-label="收藏"
+                  aria-pressed={trendingBookmarks[item.id]}
+                  className={trendingBookmarks[item.id] ? 'text-accent-amber' : 'text-text-muted'}
                 >
-                  <path d="M6 3h12v18l-6-4-6 4Z" />
-                </svg>
+                  <BookmarkIcon filled={trendingBookmarks[item.id]} />
+                </button>
               </div>
-            </Link>
+            </article>
           ))}
         </div>
       </section>
@@ -200,68 +273,90 @@ export default function Home() {
           <div className="flex-1 pb-2 text-center text-text-muted">最新</div>
         </div>
 
-        {posts.map((post) => (
-          <Link
-            key={post.id}
-            href={`/posts/${post.id}`}
-            className="mb-4 block overflow-hidden rounded-[18px] border border-border-default bg-white p-4 shadow-[0_4px_12px_rgba(217,154,61,0.08)]"
-          >
-            <div className="mb-3 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div
-                  className={`h-[34px] w-[34px] rounded-full border-2 border-border-default ${post.accent}`}
-                />
-                <div>
-                  <div className="text-[14px] font-semibold text-text-primary">{post.author}</div>
-                  <div className="text-[12px] text-text-muted">{post.time}</div>
-                </div>
-              </div>
-              {post.badge ? (
-                <div className="rounded-full bg-surface-soft px-2.5 py-1 text-[11px] font-semibold text-accent-amber">
-                  {post.badge}
-                </div>
-              ) : null}
-            </div>
-
-            <div
-              className={`mb-3 flex h-[164px] flex-col justify-between rounded-[16px] p-4 text-white ${post.hero}`}
+        {posts.map((post) => {
+          const interaction = postInteractions[post.id];
+          return (
+            <article
+              key={post.id}
+              className="mb-4 overflow-hidden rounded-[18px] border border-border-default bg-white shadow-[0_4px_12px_rgba(217,154,61,0.08)]"
             >
-              <div className="flex items-center justify-between">
-                <span className="rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-semibold backdrop-blur-sm">
-                  {post.tag}
-                </span>
-                <span className="text-[12px] font-medium text-white/80">StyCue</span>
-              </div>
-              <div>
-                <div className="mb-2 text-[17px] font-bold">{post.title}</div>
-                <div className="text-[12px] leading-5 text-white/85">{post.body}</div>
-              </div>
-            </div>
+              <Link href={`/posts/${post.id}`} className="block p-4 pb-0">
+                <div className="mb-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className={`h-[34px] w-[34px] rounded-full border-2 border-border-default ${post.accent}`}
+                    />
+                    <div>
+                      <div className="text-[14px] font-semibold text-text-primary">
+                        {post.author}
+                      </div>
+                      <div className="text-[12px] text-text-muted">{post.time}</div>
+                    </div>
+                  </div>
+                  {post.badge ? (
+                    <div className="rounded-full bg-surface-soft px-2.5 py-1 text-[11px] font-semibold text-accent-amber">
+                      {post.badge}
+                    </div>
+                  ) : null}
+                </div>
 
-            <div className="mb-3 flex flex-wrap gap-2">
-              {post.chips.map((chip) => (
-                <span
-                  key={chip}
-                  className="rounded-full bg-surface-soft px-2.5 py-1 text-[11px] font-semibold text-text-primary"
+                <div
+                  className={`mb-3 flex h-[164px] flex-col justify-between rounded-[16px] p-4 text-white ${post.hero}`}
                 >
-                  {chip}
-                </span>
-              ))}
-            </div>
+                  <div className="flex items-center justify-between">
+                    <span className="rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-semibold backdrop-blur-sm">
+                      {post.tag}
+                    </span>
+                    <span className="text-[12px] font-medium text-white/80">StyCue</span>
+                  </div>
+                  <div>
+                    <div className="mb-2 text-[17px] font-bold">{post.title}</div>
+                    <div className="text-[12px] leading-5 text-white/85">{post.body}</div>
+                  </div>
+                </div>
 
-            <div className="flex items-center gap-4 text-text-muted">
-              <div className="flex items-center gap-1 text-[13px]">
-                <HeartIcon />
-                {post.likes}
+                <div className="flex flex-wrap gap-2">
+                  {post.chips.map((chip) => (
+                    <span
+                      key={chip}
+                      className="rounded-full bg-surface-soft px-2.5 py-1 text-[11px] font-semibold text-text-primary"
+                    >
+                      {chip}
+                    </span>
+                  ))}
+                </div>
+              </Link>
+
+              <div className="flex items-center gap-4 p-4 pt-3 text-text-muted">
+                <button
+                  type="button"
+                  onClick={() => toggleLike(post.id)}
+                  aria-pressed={interaction.liked}
+                  className={`flex items-center gap-1 text-[13px] ${interaction.liked ? 'text-accent-amber' : ''}`}
+                >
+                  <HeartIcon filled={interaction.liked} />
+                  {interaction.likes}
+                </button>
+                <Link
+                  href={`/posts/${post.id}/comments`}
+                  className="flex items-center gap-1 text-[13px]"
+                >
+                  <CommentIcon />
+                  {post.comments}
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => toggleBookmark(post.id)}
+                  aria-label="收藏"
+                  aria-pressed={interaction.bookmarked}
+                  className={`ml-auto ${interaction.bookmarked ? 'text-accent-amber' : ''}`}
+                >
+                  <BookmarkIcon filled={interaction.bookmarked} />
+                </button>
               </div>
-              <div className="flex items-center gap-1 text-[13px]">
-                <CommentIcon />
-                {post.comments}
-              </div>
-              <BookmarkIcon />
-            </div>
-          </Link>
-        ))}
+            </article>
+          );
+        })}
       </section>
 
       {menuOpen ? (
