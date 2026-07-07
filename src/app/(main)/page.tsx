@@ -30,7 +30,7 @@ const posts = [
   {
     id: 'post-1',
     author: 'GD',
-    time: '1天',
+    createdAt: '2026-07-06T09:30:00+08:00',
     tag: '提問',
     title: '面試穿搭',
     body: '面試時應該要穿什麼樣的服裝比較合適？不同產業的穿搭有什麼眉角嗎？',
@@ -44,7 +44,7 @@ const posts = [
   {
     id: 'post-2',
     author: 'Mao',
-    time: '5小時',
+    createdAt: '2026-07-07T04:30:00+08:00',
     tag: '分享',
     title: '秋天的第一套日系裙裝',
     body: '簡單的裙裝配色，也能營造溫柔又清新的日系感。',
@@ -58,7 +58,7 @@ const posts = [
   {
     id: 'post-3',
     author: 'W',
-    time: '1小時',
+    createdAt: '2026-07-07T08:30:00+08:00',
     tag: '提問',
     title: '男生棉褲求推薦',
     body: '想要質感好的，預算 1500 內。',
@@ -71,6 +71,14 @@ const posts = [
 ];
 
 type Interaction = { liked: boolean; likes: number; bookmarked: boolean };
+
+function formatRelativeTime(createdAt: string): string {
+  const diffMinutes = Math.floor((Date.now() - new Date(createdAt).getTime()) / 60000);
+  if (diffMinutes < 60) return `${Math.max(diffMinutes, 1)}分鐘`;
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}小時`;
+  return `${Math.floor(diffHours / 24)}天`;
+}
 
 const postFilters = ['全部', '提問', '分享', '委託'] as const;
 type PostFilter = (typeof postFilters)[number];
@@ -138,6 +146,7 @@ export default function Home() {
   const [checkinOpen, setCheckinOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<PostFilter>('全部');
+  const [sortMode, setSortMode] = useState<'hot' | 'latest'>('hot');
 
   useEffect(() => {
     let active = true;
@@ -203,8 +212,15 @@ export default function Home() {
     }).catch(() => {});
   }
 
-  const filteredPosts =
-    selectedFilter === '全部' ? posts : posts.filter((post) => post.tag === selectedFilter);
+  const filteredPosts = (
+    selectedFilter === '全部' ? posts : posts.filter((post) => post.tag === selectedFilter)
+  )
+    .slice()
+    .sort((a, b) =>
+      sortMode === 'hot'
+        ? Number(b.likes) - Number(a.likes)
+        : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
 
   return (
     <div className="flex flex-1 flex-col">
@@ -319,10 +335,28 @@ export default function Home() {
         </div>
 
         <div className="mb-4 flex border-b border-border-default text-[15px]">
-          <div className="flex-1 border-b-2 border-accent-amber pb-2 text-center font-bold text-text-primary">
+          <button
+            type="button"
+            onClick={() => setSortMode('hot')}
+            className={
+              sortMode === 'hot'
+                ? 'flex-1 border-b-2 border-accent-amber pb-2 text-center font-bold text-text-primary'
+                : 'flex-1 pb-2 text-center text-text-muted'
+            }
+          >
             熱門
-          </div>
-          <div className="flex-1 pb-2 text-center text-text-muted">最新</div>
+          </button>
+          <button
+            type="button"
+            onClick={() => setSortMode('latest')}
+            className={
+              sortMode === 'latest'
+                ? 'flex-1 border-b-2 border-accent-amber pb-2 text-center font-bold text-text-primary'
+                : 'flex-1 pb-2 text-center text-text-muted'
+            }
+          >
+            最新
+          </button>
         </div>
 
         {filteredPosts.length === 0 ? (
@@ -348,7 +382,9 @@ export default function Home() {
                       <div className="text-[14px] font-semibold text-text-primary">
                         {post.author}
                       </div>
-                      <div className="text-[12px] text-text-muted">{post.time}</div>
+                      <div className="text-[12px] text-text-muted">
+                        {formatRelativeTime(post.createdAt)}
+                      </div>
                     </div>
                   </div>
                   {post.badge ? (
