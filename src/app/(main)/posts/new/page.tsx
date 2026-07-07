@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 const DRAFT_STORAGE_KEY = 'stycue:commission-post-draft';
@@ -41,6 +42,16 @@ export default function NewPostPage() {
   const { title, description, height, weight, age, selectedBudget, postType, points } = form;
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
   const [pointsMenuOpen, setPointsMenuOpen] = useState(false);
+  const [draftTags, setDraftTags] = useState<string[]>([]);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (pathname !== '/posts/new') return;
+    fetch('/api/posts/draft-tags')
+      .then((res) => res.json())
+      .then((data: { tags: string[] }) => setDraftTags(data.tags))
+      .catch(() => {});
+  }, [pathname]);
 
   useEffect(() => {
     // Deferred to a microtask so the restore doesn't setState synchronously
@@ -163,7 +174,8 @@ export default function NewPostPage() {
             href="/posts/new/tags"
             className="flex items-center gap-1 rounded-full border border-border-default px-3 py-1.5 text-xs text-text-muted"
           >
-            <span aria-hidden>🏷️</span> 選擇標籤
+            <span aria-hidden>🏷️</span>{' '}
+            {draftTags.length > 0 ? `${draftTags.join('、')}` : '選擇標籤'}
           </Link>
         </div>
 
