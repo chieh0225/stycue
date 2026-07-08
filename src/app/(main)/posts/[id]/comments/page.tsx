@@ -97,9 +97,9 @@ export default async function PostCommentsPage({ params }: { params: Promise<{ i
         <Link href={`/posts/${id}`} aria-label="返回文章" className="text-text-primary">
           <ChevronLeftIcon />
         </Link>
-        <span className="absolute left-1/2 -translate-x-1/2 text-lg font-bold text-text-primary">
+        <h1 className="absolute left-1/2 -translate-x-1/2 text-lg font-bold text-text-primary">
           全部留言
-        </span>
+        </h1>
       </header>
 
       <CommentBoard postId={id} initialComments={comments} />
