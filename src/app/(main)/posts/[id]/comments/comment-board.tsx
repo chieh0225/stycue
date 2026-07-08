@@ -203,6 +203,8 @@ function CommentImages({ comment }: { comment: Comment }) {
 
 function CommentActions({
   likeCount,
+  isLiked,
+  onLike,
   isReplyOpen,
   onReplyClick,
   onGivePoints,
@@ -211,6 +213,8 @@ function CommentActions({
   canAward,
 }: {
   likeCount: number;
+  isLiked: boolean;
+  onLike: () => void;
   isReplyOpen: boolean;
   onReplyClick: () => void;
   onGivePoints: () => void;
@@ -218,13 +222,20 @@ function CommentActions({
   awardedAmount?: number;
   canAward: boolean;
 }) {
+  // Base count plus an optimistic +1 while the current user's like is on.
+  const displayLikeCount = likeCount + (isLiked ? 1 : 0);
   return (
     <div className="mt-4 flex items-center gap-[18px]">
-      <div className="flex items-center gap-1.5 text-text-primary">
-        <HeartIcon />
+      <button
+        type="button"
+        onClick={onLike}
+        aria-pressed={isLiked}
+        className={`flex items-center gap-1.5 ${isLiked ? 'text-accent-amber' : 'text-text-primary'}`}
+      >
+        <HeartIcon className={isLiked ? 'h-4 w-4 fill-current' : 'h-4 w-4'} />
         <span className="sr-only">讚</span>
-        <span className="text-[13px]">{likeCount}</span>
-      </div>
+        <span className="text-[13px]">{displayLikeCount}</span>
+      </button>
       <button
         type="button"
         onClick={onReplyClick}
@@ -545,6 +556,8 @@ function InsufficientPointsModal({
 
 function CommentItem({
   comment,
+  isLiked,
+  onLike,
   isReplyOpen,
   onReplyClick,
   onReply,
@@ -554,6 +567,8 @@ function CommentItem({
   canAward,
 }: {
   comment: Comment;
+  isLiked: boolean;
+  onLike: (commentId: string) => void;
   isReplyOpen: boolean;
   onReplyClick: (commentId: string) => void;
   onReply: (commentId: string, text: string) => void;
@@ -588,6 +603,8 @@ function CommentItem({
           <CommentImages comment={comment} />
           <CommentActions
             likeCount={comment.likeCount}
+            isLiked={isLiked}
+            onLike={() => onLike(comment.commentId)}
             isReplyOpen={isReplyOpen}
             onReplyClick={() => onReplyClick(comment.commentId)}
             onGivePoints={() => onGivePoints(comment)}
@@ -622,6 +639,9 @@ export default function CommentBoard({
 }) {
   const giveAmounts = buildGivePointsAmounts(publishPoints);
   const [comments, setComments] = useState(initialComments);
+  // Tracks which comments the current user has liked. The base like count lives
+  // on each comment; this only records the current user's optimistic toggle.
+  const [likedComments, setLikedComments] = useState<Record<string, boolean>>({});
   const [pointsTarget, setPointsTarget] = useState<{ id: string; name: string } | null>(null);
   const [selectedAmount, setSelectedAmount] = useState(publishPoints);
   const [insufficient, setInsufficient] = useState<{ name: string; amount: number } | null>(null);
@@ -688,6 +708,19 @@ export default function CommentBoard({
     setActiveReplyId(null);
   }
 
+  // Optimistically toggle the current user's like, then fire the (mock) write.
+  // Mirrors addReply: fire-and-forget, no rollback until POST
+  // /api/comments/{commentId}/like is wired up.
+  function toggleLike(commentId: string) {
+    const liked = !likedComments[commentId];
+    setLikedComments((prev) => ({ ...prev, [commentId]: liked }));
+    void fetch(`/api/comments/${commentId}/like`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ liked }),
+    }).catch(() => {});
+  }
+
   function openGivePoints(comment: Comment) {
     setPointsTarget({ id: comment.commentId, name: comment.nickName });
     setSelectedAmount(publishPoints);
@@ -731,6 +764,8 @@ export default function CommentBoard({
           <li key={comment.commentId} className="flex flex-col gap-5">
             <CommentItem
               comment={comment}
+              isLiked={likedComments[comment.commentId] ?? false}
+              onLike={toggleLike}
               isReplyOpen={activeReplyId === comment.commentId}
               onReplyClick={(id) => setActiveReplyId((prev) => (prev === id ? null : id))}
               onReply={addReply}
