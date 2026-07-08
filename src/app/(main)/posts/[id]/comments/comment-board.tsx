@@ -283,19 +283,31 @@ function ReplyList({
   );
 }
 
-const GIVE_POINTS_AMOUNTS = [50, 75, 100];
+// The give-points options start at the commission's 本次委託發佈積分 (the amount
+// the commissioner chose when publishing) as the minimum, then step up by 25.
+const GIVE_POINTS_STEP = 25;
+const GIVE_POINTS_OPTION_COUNT = 3;
+
+function buildGivePointsAmounts(publishPoints: number) {
+  return Array.from(
+    { length: GIVE_POINTS_OPTION_COUNT },
+    (_, index) => publishPoints + index * GIVE_POINTS_STEP,
+  );
+}
 
 // Mock balance — replace with GET /api/v1/points/balance (availablePoints).
 const MOCK_USER_POINTS = 60;
 
 function GivePointsModal({
   targetName,
+  amounts,
   selectedAmount,
   onSelectAmount,
   onClose,
   onConfirm,
 }: {
   targetName: string;
+  amounts: number[];
   selectedAmount: number;
   onSelectAmount: (amount: number) => void;
   onClose: () => void;
@@ -327,7 +339,7 @@ function GivePointsModal({
         </span>
 
         <div className="flex w-full justify-center gap-3">
-          {GIVE_POINTS_AMOUNTS.map((amount) => {
+          {amounts.map((amount) => {
             const isSelected = amount === selectedAmount;
             return (
               <button
@@ -485,13 +497,16 @@ function CommentItem({
 export default function CommentBoard({
   postId,
   initialComments,
+  publishPoints,
 }: {
   postId: string;
   initialComments: Comment[];
+  publishPoints: number;
 }) {
+  const giveAmounts = buildGivePointsAmounts(publishPoints);
   const [comments, setComments] = useState(initialComments);
   const [pointsTarget, setPointsTarget] = useState<{ id: string; name: string } | null>(null);
-  const [selectedAmount, setSelectedAmount] = useState(75);
+  const [selectedAmount, setSelectedAmount] = useState(publishPoints);
   const [insufficient, setInsufficient] = useState<{ name: string; amount: number } | null>(null);
   const bottomRef = useRef<HTMLLIElement>(null);
   const isFirstRender = useRef(true);
@@ -549,7 +564,7 @@ export default function CommentBoard({
 
   function openGivePoints(comment: Comment) {
     setPointsTarget({ id: comment.commentId, name: comment.nickName });
-    setSelectedAmount(75);
+    setSelectedAmount(publishPoints);
   }
 
   function closeGivePoints() {
@@ -564,8 +579,8 @@ export default function CommentBoard({
       setPointsTarget(null);
       return;
     }
-    // TODO: call the best-comment / boost API once the 50/75/100 amount
-    // semantics are confirmed with the backend. For now this only closes.
+    // TODO: POST /api/v1/commissions/{commissionId}/best-comment (委託者發放積分)
+    // with the selected comment and amount once wired up. For now this only closes.
     setPointsTarget(null);
   }
 
@@ -590,6 +605,7 @@ export default function CommentBoard({
       {pointsTarget ? (
         <GivePointsModal
           targetName={pointsTarget.name}
+          amounts={giveAmounts}
           selectedAmount={selectedAmount}
           onSelectAmount={setSelectedAmount}
           onClose={closeGivePoints}

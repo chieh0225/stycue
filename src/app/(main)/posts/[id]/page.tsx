@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import CommentComposer from './comment-composer';
+import { MOCK_PUBLISH_POINTS } from './mock-commission';
 import PostInteractions from './post-interactions';
 
 const bodyText = `最近開始想認真學穿搭，但自己研究了一段時間後，還是不太確定什麼樣的版型和配色比較適合自己，所以想請大家根據我的身形給一些建議。
@@ -193,7 +194,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
         <div className="mb-[18px] text-[13px] leading-[1.7] text-[#B8AF9E]">
           直到 <time dateTime={deadline}>{formatDate(deadline)}</time>
           <br />
-          委託者可給予青睞留言 50 積分
+          委託者可給予青睞留言 {MOCK_PUBLISH_POINTS} 積分
         </div>
 
         <div className="mb-4 h-px bg-border-default" />
