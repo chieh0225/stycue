@@ -16,9 +16,14 @@ export default function RegisterPage() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [emailTaken, setEmailTaken] = useState(false);
 
   const nicknameError = submitted && !nickname.trim() ? '請輸入暱稱' : null;
-  const emailError = submitted && !EMAIL_REGEX.test(email) ? '請輸入正確的 Email 格式' : null;
+  const emailError = emailTaken
+    ? 'Email 已被註冊'
+    : submitted && !EMAIL_REGEX.test(email)
+      ? '請輸入正確的 Email 格式'
+      : null;
   const passwordError =
     submitted && !PASSWORD_REGEX.test(password) ? '密碼只可為英文字母與數字' : null;
   const confirmPasswordError =
@@ -28,6 +33,7 @@ export default function RegisterPage() {
     event.preventDefault();
     setSubmitted(true);
     setApiError(null);
+    setEmailTaken(false);
     if (
       !nickname.trim() ||
       !EMAIL_REGEX.test(email) ||
@@ -51,7 +57,11 @@ export default function RegisterPage() {
       });
       const registerResult = await registerRes.json();
       if (!registerResult.success) {
-        setApiError(registerResult.message || '註冊失敗，請稍後再試');
+        if (registerResult.message?.includes('Email')) {
+          setEmailTaken(true);
+        } else {
+          setApiError(registerResult.message || '註冊失敗，請稍後再試');
+        }
         return;
       }
 
@@ -142,7 +152,10 @@ export default function RegisterPage() {
               id="email"
               type="email"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) => {
+                setEmail(event.target.value);
+                setEmailTaken(false);
+              }}
               placeholder="you@example.com"
               className="flex-1 bg-transparent text-sm text-text-primary placeholder-[#B8AF9E] outline-none"
             />
