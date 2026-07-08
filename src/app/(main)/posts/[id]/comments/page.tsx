@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import CommentBoard, { type Comment } from './comment-board';
-import LockViewport from '../lock-viewport';
+import HideScrollbar from '../hide-scrollbar';
 import { MOCK_PUBLISH_POINTS } from '../mock-commission';
 
 // Mock data shaped after GET /api/v1/commisions/{id}/comments — swap for the
@@ -92,10 +92,10 @@ export default async function PostCommentsPage({ params }: { params: Promise<{ i
   const { id } = await params;
 
   return (
-    <div className="fixed inset-0 mx-auto flex w-full max-w-md flex-col bg-surface-base">
-      <LockViewport />
-      {/* Header */}
-      <header className="relative flex flex-shrink-0 items-center gap-3.5 border-b border-border-default bg-surface-soft px-4.5 pt-5 pb-3.5 shadow-[0_4px_12px_rgba(217,154,61,0.08)]">
+    <div className="mx-auto flex w-full max-w-md flex-1 flex-col bg-surface-base">
+      <HideScrollbar />
+      {/* Header — sticky so it stays pinned to the top while the page scrolls */}
+      <header className="sticky top-0 z-10 flex flex-shrink-0 items-center gap-3.5 border-b border-border-default bg-surface-soft px-4.5 pt-5 pb-3.5 shadow-[0_4px_12px_rgba(217,154,61,0.08)]">
         <Link href={`/posts/${id}`} aria-label="返回文章" className="text-text-primary">
           <ChevronLeftIcon />
         </Link>
