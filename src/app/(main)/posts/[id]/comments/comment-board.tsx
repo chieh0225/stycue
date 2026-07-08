@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import CommentComposer from '../comment-composer';
 
 export type CommentImage = { label?: string };
@@ -117,6 +117,8 @@ function ImageCell({ label, variant }: { label?: string; variant: 'lg' | 'grid' 
   const isGrid = variant === 'grid';
   return (
     <div
+      role="img"
+      aria-label={label ?? '穿搭參考圖'}
       className={
         isGrid
           ? 'relative flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-[#EAE2CB] text-[#B8AF9E]'
@@ -246,29 +248,35 @@ function ReplyList({
 }) {
   return (
     <div className="mt-1.5 ml-[46px] flex flex-col gap-3.5 border-l-2 border-[#EFE7CE] pl-3.5">
-      {replies.map((reply) => (
-        <div key={reply.replyId} className="flex gap-[9px]">
-          <div className="flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full bg-text-primary text-surface-base">
-            <UserIcon className="h-3.5 w-3.5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-[7px]">
-              <span className="text-sm font-bold text-text-primary">{reply.nickName}</span>
-              {reply.isCommissioner ? (
-                <span className="rounded-full bg-[#E7EDFA] px-[9px] py-0.5 text-[11px] font-bold text-[#5B7FBE]">
-                  委託人
-                </span>
-              ) : null}
-            </div>
-            <div className="mt-[3px] text-sm leading-[1.7] text-text-primary">{reply.content}</div>
-            {reply.hasImage ? (
-              <div className="mt-2">
-                <ImageCell variant="lg" />
+      {replies.length > 0 ? (
+        <ul className="flex flex-col gap-3.5">
+          {replies.map((reply) => (
+            <li key={reply.replyId} className="flex gap-[9px]">
+              <div className="flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full bg-text-primary text-surface-base">
+                <UserIcon className="h-3.5 w-3.5" />
               </div>
-            ) : null}
-          </div>
-        </div>
-      ))}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-[7px]">
+                  <span className="text-sm font-bold text-text-primary">{reply.nickName}</span>
+                  {reply.isCommissioner ? (
+                    <span className="rounded-full bg-[#E7EDFA] px-[9px] py-0.5 text-[11px] font-bold text-[#5B7FBE]">
+                      委託人
+                    </span>
+                  ) : null}
+                </div>
+                <div className="mt-[3px] text-sm leading-[1.7] text-text-primary">
+                  {reply.content}
+                </div>
+                {reply.hasImage ? (
+                  <div className="mt-2">
+                    <ImageCell variant="lg" />
+                  </div>
+                ) : null}
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : null}
 
       {showReplyBox ? <ReplyComposer onSubmit={(text) => onReply(commentId, text)} /> : null}
     </div>
@@ -301,13 +309,17 @@ function GivePointsModal({
       <div
         role="dialog"
         aria-modal="true"
+        aria-labelledby="give-points-title"
         onClick={(event) => event.stopPropagation()}
         className="flex w-full max-w-[300px] flex-col items-center rounded-2xl bg-surface-base px-[22px] pt-[26px] pb-5 text-center shadow-[0_12px_32px_rgba(64,58,50,0.28)]"
       >
         <div className="mb-4 flex h-[52px] w-[52px] items-center justify-center rounded-full bg-[#FCEFDA] text-accent-amber">
           <StarIcon className="h-6 w-6" />
         </div>
-        <span className="mb-2 text-base leading-[1.5] font-bold text-text-primary">
+        <span
+          id="give-points-title"
+          className="mb-2 text-base leading-[1.5] font-bold text-text-primary"
+        >
           將 {targetName} 選為最佳留言並給予積分
         </span>
         <span className="mb-5 text-[13px] leading-[1.6] text-text-muted">
@@ -385,13 +397,17 @@ function InsufficientPointsModal({
       <div
         role="dialog"
         aria-modal="true"
+        aria-labelledby="insufficient-points-title"
         onClick={(event) => event.stopPropagation()}
         className="flex w-full max-w-[300px] flex-col items-center rounded-2xl bg-surface-base px-[22px] pt-[26px] pb-5 text-center shadow-[0_12px_32px_rgba(64,58,50,0.28)]"
       >
         <div className="mb-4 flex h-[52px] w-[52px] items-center justify-center rounded-full bg-[rgba(196,62,50,0.1)] text-[#C43E32]">
           <AlertTriangleIcon className="h-[26px] w-[26px]" />
         </div>
-        <span className="mb-2 text-[14.5px] font-bold whitespace-nowrap text-text-primary">
+        <span
+          id="insufficient-points-title"
+          className="mb-2 text-[14.5px] font-bold whitespace-nowrap text-text-primary"
+        >
           積分不足
         </span>
         <span className="mb-5 text-[13px] leading-[1.6] text-text-muted">
@@ -430,7 +446,7 @@ function CommentItem({
   onGivePoints: (comment: Comment) => void;
 }) {
   return (
-    <div className="flex flex-col gap-2.5">
+    <article className="flex flex-col gap-2.5">
       <div className="flex gap-2.5">
         <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-text-primary text-surface-base">
           <UserIcon />
@@ -438,7 +454,7 @@ function CommentItem({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="text-[15px] font-bold text-text-primary">{comment.nickName}</span>
-            <span className="ml-auto text-[12px] text-[#B8AF9E]">{comment.timeLabel}</span>
+            <time className="ml-auto text-[12px] text-[#B8AF9E]">{comment.timeLabel}</time>
             <span className="rounded-md bg-[rgba(169,184,142,0.15)] px-[7px] py-0.5 text-[11px] font-bold text-[#4E6B45]">
               {comment.floor}
             </span>
@@ -462,7 +478,7 @@ function CommentItem({
           onReply={onReply}
         />
       ) : null}
-    </div>
+    </article>
   );
 }
 
@@ -477,7 +493,7 @@ export default function CommentBoard({
   const [pointsTarget, setPointsTarget] = useState<{ id: string; name: string } | null>(null);
   const [selectedAmount, setSelectedAmount] = useState(75);
   const [insufficient, setInsufficient] = useState<{ name: string; amount: number } | null>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLLIElement>(null);
   const isFirstRender = useRef(true);
 
   // Scroll the newest comment into view after it is appended, but not on the
@@ -556,15 +572,17 @@ export default function CommentBoard({
   return (
     <>
       {/* Scrollable body — extra bottom padding clears the fixed comment bar */}
-      <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-4.5 pt-5 pb-24">
+      <ul className="flex flex-1 flex-col gap-5 overflow-y-auto px-4.5 pt-5 pb-24">
         {comments.map((comment, index) => (
-          <Fragment key={comment.commentId}>
+          <li key={comment.commentId} className="flex flex-col gap-5">
             <CommentItem comment={comment} onReply={addReply} onGivePoints={openGivePoints} />
-            {index < comments.length - 1 ? <div className="h-px bg-[#E0D4AA]" /> : null}
-          </Fragment>
+            {index < comments.length - 1 ? (
+              <div className="h-px bg-[#E0D4AA]" aria-hidden="true" />
+            ) : null}
+          </li>
         ))}
-        <div ref={bottomRef} />
-      </div>
+        <li ref={bottomRef} aria-hidden="true" />
+      </ul>
 
       {/* Bottom comment bar */}
       <CommentComposer postId={postId} onSubmit={addComment} />
