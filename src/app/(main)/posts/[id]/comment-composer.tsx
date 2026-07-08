@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 
 function UserIcon({ className = 'h-4 w-4' }: { className?: string }) {
@@ -33,14 +34,37 @@ function SendIcon({ className = 'h-4 w-4' }: { className?: string }) {
   );
 }
 
+function ImageIcon({ className = 'h-4 w-4' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <circle cx="8.5" cy="8.5" r="1.5" />
+      <path d="M21 15l-5-5L5 21" />
+    </svg>
+  );
+}
+
 export default function CommentComposer({
   postId,
   onSubmit,
+  templateHref,
 }: {
   postId: string;
   // When provided, the parent handles the optimistic UI update; the composer
   // just clears itself and still fires the (mock) network write.
   onSubmit?: (text: string) => void;
+  // When provided, a hint row + button is shown above the input linking to the
+  // dedicated commission-comment template (text + tagged outfit images).
+  templateHref?: string;
 }) {
   const [text, setText] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -69,20 +93,33 @@ export default function CommentComposer({
       <div className="flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full bg-text-primary text-surface-base">
         <UserIcon className="h-4 w-4" />
       </div>
-      <input
-        type="text"
-        value={text}
-        onChange={(event) => setText(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter') {
-            event.preventDefault();
-            submit();
-          }
-        }}
-        placeholder="加入討論..."
-        aria-label="加入討論"
-        className="h-10 flex-1 rounded-full border border-border-default bg-[#FDF7E9] px-4 text-[13.5px] text-text-primary placeholder:text-[#B8AF9E] focus:outline-none"
-      />
+      {/* Input pill — text field plus, when a template is available, an image
+          button that opens the dedicated commission-comment template */}
+      <div className="flex h-10 min-w-0 flex-1 items-center gap-2 overflow-hidden rounded-full border border-border-default bg-[#FDF7E9] pr-2 pl-4">
+        <input
+          type="text"
+          value={text}
+          onChange={(event) => setText(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              submit();
+            }
+          }}
+          placeholder={templateHref ? '加入討論，或附上圖片' : '加入討論...'}
+          aria-label="加入討論"
+          className="h-full min-w-0 flex-1 bg-transparent text-[13px] text-text-primary placeholder:text-[#B8AF9E] focus:outline-none"
+        />
+        {templateHref ? (
+          <Link
+            href={templateHref}
+            aria-label="用穿搭推薦模板附上圖片"
+            className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-text-muted"
+          >
+            <ImageIcon className="h-[17px] w-[17px]" />
+          </Link>
+        ) : null}
+      </div>
       <button
         type="button"
         onClick={submit}

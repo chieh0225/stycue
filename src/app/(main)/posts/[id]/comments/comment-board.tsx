@@ -782,8 +782,12 @@ export default function CommentBoard({
         <li ref={bottomRef} aria-hidden="true" />
       </ul>
 
-      {/* Bottom comment bar */}
-      <CommentComposer postId={postId} onSubmit={addComment} />
+      {/* Bottom comment bar — quick text inline, or the dedicated template */}
+      <CommentComposer
+        postId={postId}
+        onSubmit={addComment}
+        templateHref={`/posts/${postId}/comments/new`}
+      />
 
       {pointsTarget ? (
         <GivePointsModal
