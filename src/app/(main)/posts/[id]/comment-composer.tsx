@@ -33,29 +33,39 @@ function SendIcon({ className = 'h-4 w-4' }: { className?: string }) {
   );
 }
 
-export default function CommentComposer({ postId }: { postId: string }) {
+export default function CommentComposer({
+  postId,
+  onSubmit,
+}: {
+  postId: string;
+  // When provided, the parent handles the optimistic UI update; the composer
+  // just clears itself and still fires the (mock) network write.
+  onSubmit?: (text: string) => void;
+}) {
   const [text, setText] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const trimmed = text.trim();
 
   function submit() {
     if (!trimmed || submitting) return;
+    const value = trimmed;
+    setText('');
+    onSubmit?.(value);
     setSubmitting(true);
     // Mock write — replace with the real comments API once it exists.
     void fetch(`/api/posts/${postId}/comments`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: trimmed }),
+      body: JSON.stringify({ text: value }),
     })
       .catch(() => {})
       .finally(() => {
-        setText('');
         setSubmitting(false);
       });
   }
 
   return (
-    <footer className="fixed bottom-0 left-1/2 z-20 flex w-full max-w-md -translate-x-1/2 items-center gap-2.5 border-t border-border-default bg-surface-base px-4.5 py-3">
+    <footer className="sticky bottom-0 z-10 flex items-center gap-2.5 border-t border-border-default bg-surface-base px-4.5 py-3">
       <div className="flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full bg-text-primary text-surface-base">
         <UserIcon className="h-4 w-4" />
       </div>

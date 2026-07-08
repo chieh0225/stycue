@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { getCreatedPost } from '@/app/api/posts/store';
 import CommentComposer from './comment-composer';
+import HideScrollbar from './hide-scrollbar';
+import { MOCK_PUBLISH_POINTS } from './mock-commission';
 import PostInteractions from './post-interactions';
 
 const fallbackBodyText = `最近開始想認真學穿搭，但自己研究了一段時間後，還是不太確定什麼樣的版型和配色比較適合自己，所以想請大家根據我的身形給一些建議。
@@ -93,7 +95,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
   const weight = created?.weight || '67';
   const age = created?.age || '25';
   const budgetLabel = created ? `NT$ ${created.budget}` : 'NT$ 3,000 - 5,000';
-  const points = created?.points || '50';
+  const points = created?.points || String(MOCK_PUBLISH_POINTS);
   const createdAt = created?.createdAt ?? fallbackCreatedAt;
   const deadline = created
     ? new Date(new Date(created.createdAt).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString()
@@ -101,16 +103,18 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col bg-surface-base">
-      {/* Header */}
-      <header className="flex flex-shrink-0 items-center gap-3.5 border-b border-border-default bg-surface-soft px-4.5 pt-5 pb-3.5 shadow-[0_4px_12px_rgba(217,154,61,0.08)]">
+      <HideScrollbar />
+      {/* Header — sticky so it stays pinned to the top while the page scrolls */}
+      <header className="sticky top-0 z-10 flex flex-shrink-0 items-center gap-3.5 border-b border-border-default bg-surface-soft px-4.5 pt-5 pb-3.5 shadow-[0_4px_12px_rgba(217,154,61,0.08)]">
         <Link href="/" aria-label="返回全部文章" className="text-text-primary">
           <ChevronLeftIcon />
         </Link>
         <span className="text-lg font-bold text-text-primary">全部文章</span>
       </header>
 
-      {/* Scrollable body — extra bottom padding clears the fixed comment bar */}
-      <article className="flex-1 overflow-y-auto px-4.5 pt-5 pb-24">
+      {/* Article body — grows with the page (document scroll) between the
+          sticky header and the sticky comment bar. */}
+      <article className="flex-1 px-4.5 pt-5 pb-5">
         {/* Title */}
         <div className="mb-4 flex items-center gap-2">
           <span className="flex-shrink-0 rounded-md bg-[#FCEFDA] px-[9px] py-[3px] text-[13px] font-bold text-accent-amber">

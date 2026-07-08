@@ -4,6 +4,15 @@ html {
   overflow-y: scroll;
 }
 
+/* Toggled by <HideScrollbar> on full-screen post pages: keep document scroll
+   but hide the native scrollbar so there is no outer bar / reserved gutter. */
+html.hide-native-scrollbar {
+  scrollbar-width: none;
+}
+html.hide-native-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 @theme {
   --color-brand-primary: #f6d978;
   --color-surface-soft: #fff9e8;
