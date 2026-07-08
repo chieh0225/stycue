@@ -33,23 +33,33 @@ function SendIcon({ className = 'h-4 w-4' }: { className?: string }) {
   );
 }
 
-export default function CommentComposer({ postId }: { postId: string }) {
+export default function CommentComposer({
+  postId,
+  onSubmit,
+}: {
+  postId: string;
+  // When provided, the parent handles the optimistic UI update; the composer
+  // just clears itself and still fires the (mock) network write.
+  onSubmit?: (text: string) => void;
+}) {
   const [text, setText] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const trimmed = text.trim();
 
   function submit() {
     if (!trimmed || submitting) return;
+    const value = trimmed;
+    setText('');
+    onSubmit?.(value);
     setSubmitting(true);
     // Mock write — replace with the real comments API once it exists.
     void fetch(`/api/posts/${postId}/comments`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: trimmed }),
+      body: JSON.stringify({ text: value }),
     })
       .catch(() => {})
       .finally(() => {
-        setText('');
         setSubmitting(false);
       });
   }
