@@ -14,6 +14,8 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const nicknameError = submitted && !nickname.trim() ? '請輸入暱稱' : null;
   const emailError = submitted && !EMAIL_REGEX.test(email) ? '請輸入正確的 Email 格式' : null;
@@ -22,17 +24,56 @@ export default function RegisterPage() {
   const confirmPasswordError =
     submitted && confirmPassword !== password ? '兩次密碼輸入不一致' : null;
 
-  function handleSubmit(event: React.FormEvent) {
+  async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setSubmitted(true);
+    setApiError(null);
     if (
-      nickname.trim() &&
-      EMAIL_REGEX.test(email) &&
-      PASSWORD_REGEX.test(password) &&
-      confirmPassword === password
+      !nickname.trim() ||
+      !EMAIL_REGEX.test(email) ||
+      !PASSWORD_REGEX.test(password) ||
+      confirmPassword !== password
     ) {
-      setAuthed();
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const registerRes = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          nickName: nickname,
+          password,
+          passwordCheck: confirmPassword,
+        }),
+      });
+      const registerResult = await registerRes.json();
+      if (!registerResult.success) {
+        setApiError(registerResult.message || '註冊失敗，請稍後再試');
+        return;
+      }
+
+      // Register doesn't return an access token, so log in right after to
+      // actually establish a session with the same credentials.
+      const loginRes = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const loginResult = await loginRes.json();
+      if (!loginResult.success) {
+        setApiError('註冊成功，但自動登入失敗，請改用登入頁面登入');
+        return;
+      }
+
+      setAuthed(loginResult.data);
       router.push('/');
+    } catch {
+      setApiError('無法連線到伺服器，請稍後再試');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -178,11 +219,19 @@ export default function RegisterPage() {
           )}
         </div>
 
+        {apiError && (
+          <div className="mt-4 flex items-center gap-1.25 rounded-lg bg-[#FDF0EE] px-3.5 py-2.5 text-xs font-semibold text-[#D64545]">
+            <AlertIcon />
+            {apiError}
+          </div>
+        )}
+
         <button
           type="submit"
-          className="mt-4.5 h-12.5 w-full rounded-lg bg-brand-primary text-[15px] font-bold text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.14)]"
+          disabled={loading}
+          className="mt-4.5 h-12.5 w-full rounded-lg bg-brand-primary text-[15px] font-bold text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.14)] disabled:opacity-60"
         >
-          建立帳號
+          {loading ? '建立中...' : '建立帳號'}
         </button>
       </form>
 
