@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import CommentBoard, { type Comment } from './comment-board';
+import { MOCK_PUBLISH_POINTS } from '../mock-commission';
 
 // Mock data shaped after GET /api/v1/commisions/{id}/comments — swap for the
 // real comments API once it exists.
@@ -102,7 +103,7 @@ export default async function PostCommentsPage({ params }: { params: Promise<{ i
         </h1>
       </header>
 
-      <CommentBoard postId={id} initialComments={comments} />
+      <CommentBoard postId={id} initialComments={comments} publishPoints={MOCK_PUBLISH_POINTS} />
     </div>
   );
 }
