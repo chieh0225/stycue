@@ -19,8 +19,19 @@ function CloseIcon({ className = 'h-5 w-5' }: { className?: string }) {
   );
 }
 
-export default async function NewCommentPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function NewCommentPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const { id } = await params;
+  // `?replyTo={commentId}` switches this screen from composing a new top-level
+  // commission comment to composing a reply under that comment. A string[] (a
+  // repeated param) is not a valid single target, so treat it as no target.
+  const replyToParam = (await searchParams).replyTo;
+  const replyTo = typeof replyToParam === 'string' ? replyToParam : undefined;
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col bg-surface-base">
@@ -30,12 +41,14 @@ export default async function NewCommentPage({ params }: { params: Promise<{ id:
         <Link href={`/posts/${id}/comments`} aria-label="關閉" className="text-text-primary">
           <CloseIcon />
         </Link>
-        <h1 className="text-base font-bold text-text-primary">新增留言</h1>
+        <h1 className="text-base font-bold text-text-primary">
+          {replyTo ? '回覆留言' : '新增留言'}
+        </h1>
         {/* Spacer keeps the title optically centred opposite the close button */}
         <span className="w-5" aria-hidden="true" />
       </header>
 
-      <AddCommentForm postId={id} />
+      <AddCommentForm postId={id} replyTo={replyTo} />
     </div>
   );
 }

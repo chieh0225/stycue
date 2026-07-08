@@ -45,7 +45,15 @@ function ImagePlusIcon({ className = 'h-[18px] w-[18px]' }: { className?: string
   );
 }
 
-export default function AddCommentForm({ postId }: { postId: string }) {
+export default function AddCommentForm({
+  postId,
+  replyTo,
+}: {
+  postId: string;
+  // When set, this screen composes a reply under the given parent commentId
+  // instead of a new top-level commission comment.
+  replyTo?: string;
+}) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [text, setText] = useState('');
@@ -66,12 +74,16 @@ export default function AddCommentForm({ postId }: { postId: string }) {
   function publish() {
     if (!canPublish) return;
     setSubmitting(true);
-    // Mock write — fire-and-forget, mirroring CommentComposer. This screen is a
-    // commission comment, so the real flow is two steps:
-    //   1. POST /api/v1/commisions/{commisionId}/comments  -> returns commentId
-    //   2. for each image: POST /api/v1/comments/{commentId}/images
+    // Mock write — fire-and-forget, mirroring CommentComposer. Both flows are
+    // two steps (create, then attach each image via the shared comment image
+    // endpoint POST /api/v1/comments/{commentId}/images):
+    //   reply  (replyTo set): POST /api/v1/comments/{replyTo}/replies -> replyId
+    //   top-level          : POST /api/v1/commisions/{postId}/comments -> commentId
     // `postId` here is the commission id (commissions are served under /posts/[id]).
-    void fetch(`/api/commisions/${postId}/comments`, {
+    const createUrl = replyTo
+      ? `/api/comments/${replyTo}/replies`
+      : `/api/commisions/${postId}/comments`;
+    void fetch(createUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content: text.trim(), imageCount: images.length }),
@@ -147,7 +159,7 @@ export default function AddCommentForm({ postId }: { postId: string }) {
           disabled={!canPublish}
           className="flex h-13 flex-1 items-center justify-center rounded-lg bg-brand-primary text-base font-bold text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.14)] disabled:opacity-50"
         >
-          發佈留言
+          {replyTo ? '發佈回覆' : '發佈留言'}
         </button>
       </div>
     </>
