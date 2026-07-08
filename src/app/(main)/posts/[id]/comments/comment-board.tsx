@@ -96,6 +96,23 @@ function StarIcon({ className = 'h-4 w-4' }: { className?: string }) {
   );
 }
 
+function ChevronDownIcon({ className = 'h-4 w-4' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
 function SendIcon({ className = 'h-3.5 w-3.5' }: { className?: string }) {
   return (
     <svg
@@ -246,9 +263,26 @@ function ReplyList({
   showReplyBox?: boolean;
   onReply: (commentId: string, text: string) => void;
 }) {
+  const [expanded, setExpanded] = useState(false);
+  const hasReplies = replies.length > 0;
+
   return (
     <div className="mt-1.5 ml-[46px] flex flex-col gap-3.5 border-l-2 border-[#EFE7CE] pl-3.5">
-      {replies.length > 0 ? (
+      {hasReplies ? (
+        <button
+          type="button"
+          onClick={() => setExpanded((prev) => !prev)}
+          aria-expanded={expanded}
+          className="flex items-center gap-1 self-start text-[13px] font-semibold text-text-muted"
+        >
+          <span>{expanded ? '隱藏回覆' : `顯示回覆（${replies.length}）`}</span>
+          <ChevronDownIcon
+            className={`h-4 w-4 transition-transform ${expanded ? 'rotate-180' : ''}`}
+          />
+        </button>
+      ) : null}
+
+      {hasReplies && expanded ? (
         <ul className="flex flex-col gap-3.5">
           {replies.map((reply) => (
             <li key={reply.replyId} className="flex gap-[9px]">
@@ -278,7 +312,14 @@ function ReplyList({
         </ul>
       ) : null}
 
-      {showReplyBox ? <ReplyComposer onSubmit={(text) => onReply(commentId, text)} /> : null}
+      {showReplyBox ? (
+        <ReplyComposer
+          onSubmit={(text) => {
+            setExpanded(true);
+            onReply(commentId, text);
+          }}
+        />
+      ) : null}
     </div>
   );
 }
