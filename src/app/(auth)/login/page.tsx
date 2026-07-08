@@ -12,17 +12,37 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const emailError = submitted && !EMAIL_REGEX.test(email) ? '請輸入正確的 Email 格式' : null;
   const passwordError =
     submitted && !PASSWORD_REGEX.test(password) ? '密碼只可為英文字母與數字' : null;
 
-  function handleSubmit(event: React.FormEvent) {
+  async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setSubmitted(true);
-    if (EMAIL_REGEX.test(email) && PASSWORD_REGEX.test(password)) {
-      setAuthed();
+    setApiError(null);
+    if (!EMAIL_REGEX.test(email) || !PASSWORD_REGEX.test(password)) return;
+
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const result = await res.json();
+      if (!result.success) {
+        setApiError(result.message || '登入失敗，請稍後再試');
+        return;
+      }
+      setAuthed(result.data);
       router.push('/');
+    } catch {
+      setApiError('無法連線到伺服器，請稍後再試');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -110,11 +130,19 @@ export default function LoginPage() {
           </Link>
         </div>
 
+        {apiError && (
+          <div className="mb-4 flex items-center gap-1.25 rounded-lg bg-[#FDF0EE] px-3.5 py-2.5 text-xs font-semibold text-[#D64545]">
+            <AlertIcon />
+            {apiError}
+          </div>
+        )}
+
         <button
           type="submit"
-          className="h-12.5 w-full rounded-lg bg-brand-primary text-[15px] font-bold text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.14)]"
+          disabled={loading}
+          className="h-12.5 w-full rounded-lg bg-brand-primary text-[15px] font-bold text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.14)] disabled:opacity-60"
         >
-          登入
+          {loading ? '登入中...' : '登入'}
         </button>
       </form>
 
