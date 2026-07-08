@@ -206,11 +206,17 @@ function CommentActions({
   isReplyOpen,
   onReplyClick,
   onGivePoints,
+  isAwarded,
+  awardedAmount,
+  canAward,
 }: {
   likeCount: number;
   isReplyOpen: boolean;
   onReplyClick: () => void;
   onGivePoints: () => void;
+  isAwarded: boolean;
+  awardedAmount?: number;
+  canAward: boolean;
 }) {
   return (
     <div className="mt-4 flex items-center gap-[18px]">
@@ -228,14 +234,25 @@ function CommentActions({
         <ReplyIcon />
         <span className="text-[13px] font-semibold">回覆</span>
       </button>
-      <button
-        type="button"
-        onClick={onGivePoints}
-        className="flex items-center gap-1.5 text-accent-amber"
-      >
-        <StarIcon />
-        <span className="text-[13px] font-semibold">給予積分</span>
-      </button>
+      {/* Once the commission's reward is awarded it is a one-time state
+          (best-comment API 409s on a second call), so the give-points button
+          only ever shows before an award — and afterwards only the winning
+          comment shows the awarded badge. */}
+      {isAwarded ? (
+        <span className="flex items-center gap-1.5 text-accent-amber">
+          <StarIcon className="h-4 w-4 fill-current" />
+          <span className="text-[13px] font-semibold">已給予 {awardedAmount} 積分</span>
+        </span>
+      ) : canAward ? (
+        <button
+          type="button"
+          onClick={onGivePoints}
+          className="flex items-center gap-1.5 text-accent-amber"
+        >
+          <StarIcon />
+          <span className="text-[13px] font-semibold">給予積分</span>
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -532,12 +549,18 @@ function CommentItem({
   onReplyClick,
   onReply,
   onGivePoints,
+  isAwarded,
+  awardedAmount,
+  canAward,
 }: {
   comment: Comment;
   isReplyOpen: boolean;
   onReplyClick: (commentId: string) => void;
   onReply: (commentId: string, text: string) => void;
   onGivePoints: (comment: Comment) => void;
+  isAwarded: boolean;
+  awardedAmount?: number;
+  canAward: boolean;
 }) {
   return (
     <article className="flex flex-col gap-2.5">
@@ -548,6 +571,12 @@ function CommentItem({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="text-[15px] font-bold text-text-primary">{comment.nickName}</span>
+            {isAwarded ? (
+              <span className="flex items-center gap-1 rounded-full bg-[#FCEFDA] px-[9px] py-0.5 text-[11px] font-bold text-accent-amber">
+                <StarIcon className="h-3 w-3 fill-current" />
+                最佳留言
+              </span>
+            ) : null}
             <time className="ml-auto text-[12px] text-[#B8AF9E]">{comment.timeLabel}</time>
             <span className="rounded-md bg-[rgba(169,184,142,0.15)] px-[7px] py-0.5 text-[11px] font-bold text-[#4E6B45]">
               {comment.floor}
@@ -562,6 +591,9 @@ function CommentItem({
             isReplyOpen={isReplyOpen}
             onReplyClick={() => onReplyClick(comment.commentId)}
             onGivePoints={() => onGivePoints(comment)}
+            isAwarded={isAwarded}
+            awardedAmount={awardedAmount}
+            canAward={canAward}
           />
         </div>
       </div>
@@ -593,6 +625,10 @@ export default function CommentBoard({
   const [pointsTarget, setPointsTarget] = useState<{ id: string; name: string } | null>(null);
   const [selectedAmount, setSelectedAmount] = useState(publishPoints);
   const [insufficient, setInsufficient] = useState<{ name: string; amount: number } | null>(null);
+  // A commission's reward is awarded at most once. Once set, the winning
+  // comment shows the best-comment style and every comment's give-points button
+  // is hidden — mirroring the best-comment API, which 409s on a second award.
+  const [awarded, setAwarded] = useState<{ commentId: string; amount: number } | null>(null);
   // Only one comment's reply box is open at a time — cleaner on the mobile
   // width and keeps the composer focus unambiguous.
   const [activeReplyId, setActiveReplyId] = useState<string | null>(null);
@@ -669,9 +705,21 @@ export default function CommentBoard({
       setPointsTarget(null);
       return;
     }
-    // TODO: POST /api/v1/commissions/{commissionId}/best-comment (委託者發放積分)
-    // with the selected comment and amount once wired up. For now this only closes.
+    // Optimistically mark the winning comment, then fire the award write. The
+    // Idempotency-Key guards against a double confirm resulting in two awards;
+    // fire-and-forget with no rollback mirrors addComment/addReply until the
+    // real best-comment API is wired up.
+    const commentId = pointsTarget.id;
+    setAwarded({ commentId, amount: selectedAmount });
     setPointsTarget(null);
+    void fetch(`/api/commissions/${postId}/best-comment`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Idempotency-Key': crypto.randomUUID(),
+      },
+      body: JSON.stringify({ commentId }),
+    }).catch(() => {});
   }
 
   return (
@@ -687,6 +735,9 @@ export default function CommentBoard({
               onReplyClick={(id) => setActiveReplyId((prev) => (prev === id ? null : id))}
               onReply={addReply}
               onGivePoints={openGivePoints}
+              isAwarded={awarded?.commentId === comment.commentId}
+              awardedAmount={awarded?.amount}
+              canAward={awarded === null}
             />
             {index < comments.length - 1 ? (
               <div className="h-px bg-[#E0D4AA]" aria-hidden="true" />
