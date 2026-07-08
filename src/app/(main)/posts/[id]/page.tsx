@@ -1,10 +1,11 @@
 import Link from 'next/link';
+import { getCreatedPost } from '@/app/api/posts/store';
 import CommentComposer from './comment-composer';
 import LockViewport from './lock-viewport';
 import { MOCK_PUBLISH_POINTS } from './mock-commission';
 import PostInteractions from './post-interactions';
 
-const bodyText = `最近開始想認真學穿搭，但自己研究了一段時間後，還是不太確定什麼樣的版型和配色比較適合自己，所以想請大家根據我的身形給一些建議。
+const fallbackBodyText = `最近開始想認真學穿搭，但自己研究了一段時間後，還是不太確定什麼樣的版型和配色比較適合自己，所以想請大家根據我的身形給一些建議。
 
 我有附上幾張不同角度的身形照片，希望大家可以依照我的比例推薦一套適合我的韓系簡約穿搭。
 
@@ -24,10 +25,10 @@ const bodyText = `最近開始想認真學穿搭，但自己研究了一段時�
 
 謝謝願意花時間幫忙回覆的人！`;
 
-const styleTags = ['韓系', '修身', '簡約', '約會'];
+const fallbackTags = ['韓系', '修身', '簡約', '約會'];
 
-const createdAt = '2026-07-02T14:30:00Z';
-const deadline = '2026-07-08';
+const fallbackCreatedAt = '2026-07-02T14:30:00Z';
+const fallbackDeadline = '2026-07-08';
 
 function formatDate(iso: string): string {
   const date = new Date(iso);
@@ -84,6 +85,21 @@ function ImagePlaceholderIcon({ className = 'h-9 w-9' }: { className?: string })
 
 export default async function PostDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const created = getCreatedPost(id);
+
+  const postTypeLabel = created?.postType || '委託';
+  const title = created?.title || '希望能找到一套適合我的穿搭';
+  const bodyText = created?.description || fallbackBodyText;
+  const tags = created && created.tags.length > 0 ? created.tags : fallbackTags;
+  const height = created?.height || '175';
+  const weight = created?.weight || '67';
+  const age = created?.age || '25';
+  const budgetLabel = created ? `NT$ ${created.budget}` : 'NT$ 3,000 - 5,000';
+  const points = created?.points || String(MOCK_PUBLISH_POINTS);
+  const createdAt = created?.createdAt ?? fallbackCreatedAt;
+  const deadline = created
+    ? new Date(new Date(created.createdAt).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString()
+    : fallbackDeadline;
 
   return (
     <div className="fixed inset-0 mx-auto flex w-full max-w-md flex-col bg-surface-base">
@@ -102,11 +118,9 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
         {/* Title */}
         <div className="mb-4 flex items-center gap-2">
           <span className="flex-shrink-0 rounded-md bg-[#FCEFDA] px-[9px] py-[3px] text-[13px] font-bold text-accent-amber">
-            委託
+            {postTypeLabel}
           </span>
-          <h1 className="text-[19px] leading-[1.4] font-bold text-text-primary">
-            希望能找到一套適合我的穿搭
-          </h1>
+          <h1 className="text-[19px] leading-[1.4] font-bold text-text-primary">{title}</h1>
         </div>
 
         {/* Author row */}
@@ -153,7 +167,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
         {/* 穿搭標籤 */}
         <h2 className="mb-3 text-base font-bold text-text-primary">穿搭標籤</h2>
         <div className="mb-6 flex flex-wrap gap-2">
-          {styleTags.map((tag) => (
+          {tags.map((tag) => (
             <div
               key={tag}
               className="rounded-full border border-border-default bg-[#FDF7E9] px-3.5 py-1.75 text-[13px] text-text-primary"
@@ -170,26 +184,26 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
             <div className="flex flex-col items-center gap-[3px]">
               <dt className="text-[11px] text-[#9A9080]">身高</dt>
               <dd className="text-[15px] font-bold text-text-primary">
-                175 <span className="text-[11px] font-medium text-[#9A9080]">cm</span>
+                {height} <span className="text-[11px] font-medium text-[#9A9080]">cm</span>
               </dd>
             </div>
             <div className="flex flex-col items-center gap-[3px] border-x border-border-default">
               <dt className="text-[11px] text-[#9A9080]">體重</dt>
               <dd className="text-[15px] font-bold text-text-primary">
-                67 <span className="text-[11px] font-medium text-[#9A9080]">kg</span>
+                {weight} <span className="text-[11px] font-medium text-[#9A9080]">kg</span>
               </dd>
             </div>
             <div className="flex flex-col items-center gap-[3px]">
               <dt className="text-[11px] text-[#9A9080]">年齡</dt>
               <dd className="text-[15px] font-bold text-text-primary">
-                25 <span className="text-[11px] font-medium text-[#9A9080]">歲</span>
+                {age} <span className="text-[11px] font-medium text-[#9A9080]">歲</span>
               </dd>
             </div>
           </dl>
           <div className="mx-3.5 mb-3 h-px bg-border-default" />
           <dl className="flex items-center justify-between px-3.5">
             <dt className="text-[12.5px] text-[#9A9080]">預算範圍</dt>
-            <dd className="text-sm font-bold text-text-primary">NT$ 3,000 - 5,000</dd>
+            <dd className="text-sm font-bold text-text-primary">{budgetLabel}</dd>
           </dl>
         </div>
 
@@ -197,7 +211,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
         <div className="mb-[18px] text-[13px] leading-[1.7] text-[#B8AF9E]">
           直到 <time dateTime={deadline}>{formatDate(deadline)}</time>
           <br />
-          委託者可給予青睞留言 {MOCK_PUBLISH_POINTS} 積分
+          委託者可給予青睞留言 {points} 積分
         </div>
 
         <div className="mb-4 h-px bg-border-default" />

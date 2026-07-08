@@ -92,14 +92,31 @@ export default function NewPostPreviewPage() {
     }).catch(() => {});
   }
 
-  function confirmSubmit() {
+  async function confirmSubmit() {
+    const res = await fetch('/api/posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        postType,
+        title,
+        description,
+        height,
+        weight,
+        age,
+        budget: selectedBudget,
+        points,
+        tags: draftTags,
+      }),
+    });
+    const { id } = (await res.json()) as { id: string };
+
     localStorage.removeItem(DRAFT_STORAGE_KEY);
     fetch('/api/posts/draft-tags', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tags: [] }),
     }).catch(() => {});
-    router.push('/');
+    router.push(`/posts/${id}`);
   }
 
   if (!loaded || !title.trim()) return null;
