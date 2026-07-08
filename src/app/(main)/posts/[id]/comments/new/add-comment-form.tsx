@@ -112,6 +112,27 @@ function AlertIcon({ className = 'h-4 w-4' }: { className?: string }) {
   );
 }
 
+// Trash icon with lid + inner strokes, used at a larger size inside the delete
+// confirmation modal (mirrors the modal glyph in the design).
+function TrashLinesIcon({ className = 'h-6 w-6' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+      <line x1="10" y1="11" x2="10" y2="17" />
+      <line x1="14" y1="11" x2="14" y2="17" />
+    </svg>
+  );
+}
+
 export default function AddCommentForm({
   postId,
   replyTo,
@@ -130,6 +151,8 @@ export default function AddCommentForm({
   const [openTagId, setOpenTagId] = useState<string | null>(null);
   // Names of files rejected on the last pick (over 10MB), shown inline.
   const [rejected, setRejected] = useState<string[]>([]);
+  // Attachment awaiting delete confirmation; drives the confirmation modal.
+  const [deleteTarget, setDeleteTarget] = useState<Attachment | null>(null);
 
   const cancelHref = `/posts/${postId}/comments`;
   const canPublish = (text.trim().length > 0 || images.length > 0) && !submitting;
@@ -163,6 +186,7 @@ export default function AddCommentForm({
       return prev.filter((img) => img.id !== id);
     });
     setOpenTagId((current) => (current === id ? null : current));
+    setDeleteTarget((current) => (current?.id === id ? null : current));
   }
 
   function updateImage(id: string, patch: Partial<Pick<Attachment, 'tag' | 'brand'>>) {
@@ -233,7 +257,7 @@ export default function AddCommentForm({
         >
           <ImagePlusIcon className="h-[18px] w-[18px] text-text-muted" />
           <span className="text-sm font-semibold text-[#5A5248]">
-            新增圖片{images.length > 0 ? `（${images.length}/${MAX_IMAGES}）` : ''}
+            新增圖片（{images.length}/{MAX_IMAGES}）
           </span>
         </button>
 
@@ -268,9 +292,9 @@ export default function AddCommentForm({
                 </span>
                 <button
                   type="button"
-                  onClick={() => removeImage(image.id)}
+                  onClick={() => setDeleteTarget(image)}
                   aria-label={`移除 ${image.file.name}`}
-                  className="ml-2 flex-shrink-0 text-[#B8AF9E]"
+                  className="ml-2 flex-shrink-0 rounded-md p-1 text-[#B8AF9E] hover:bg-[#F5EEDA]"
                 >
                   <TrashIcon />
                 </button>
@@ -364,6 +388,49 @@ export default function AddCommentForm({
           {replyTo ? '發佈回覆' : '發佈留言'}
         </button>
       </div>
+
+      {/* Delete confirmation modal — the trash button stages an attachment here
+          instead of removing it outright, so the removal is opt-in. */}
+      {deleteTarget && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-image-title"
+          onClick={() => setDeleteTarget(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(64,58,50,0.42)] px-8"
+        >
+          <div
+            onClick={(event) => event.stopPropagation()}
+            className="flex w-full max-w-[300px] flex-col items-center rounded-2xl bg-surface-base px-[22px] pt-[26px] pb-5 text-center shadow-[0_12px_32px_rgba(64,58,50,0.28)]"
+          >
+            <div className="mb-4 flex h-13 w-13 items-center justify-center rounded-full bg-[#FBE8E4] text-[#C0564B]">
+              <TrashLinesIcon />
+            </div>
+            <span id="delete-image-title" className="mb-2 text-base font-bold text-text-primary">
+              刪除圖片？
+            </span>
+            <span className="mb-[22px] text-[13px] leading-[1.6] text-text-muted">
+              確定要刪除「{deleteTarget.file.name}」嗎？此操作無法復原。
+            </span>
+            <div className="flex w-full gap-2.5">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                className="flex h-[46px] flex-1 items-center justify-center rounded-lg border-[1.5px] border-border-default text-sm font-bold text-text-primary hover:bg-[#F5EEDA]"
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                onClick={() => removeImage(deleteTarget.id)}
+                className="flex h-[46px] flex-1 items-center justify-center rounded-lg bg-[#C0564B] text-sm font-bold text-surface-base shadow-[0_4px_12px_rgba(192,86,75,0.28)] hover:bg-[#AB4B41]"
+              >
+                刪除
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
