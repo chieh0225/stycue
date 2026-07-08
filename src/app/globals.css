@@ -13,6 +13,16 @@ html.hide-native-scrollbar::-webkit-scrollbar {
   display: none;
 }
 
+/* Keep a container scrollable but hide its scrollbar — used where a transient
+   overflow (e.g. an open dropdown extending past the bottom) would otherwise
+   flash a vertical scrollbar. Applied via the .no-scrollbar utility class. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 @theme {
   --color-brand-primary: #f6d978;
   --color-surface-soft: #fff9e8;
@@ -22,4 +32,8 @@ html.hide-native-scrollbar::-webkit-scrollbar {
   --color-text-muted: #756c60;
   --color-surface-base: #fffdf7;
   --color-border-default: #e9ddbf;
+  /* Error role from the Warm Goose spec, for form validation messaging. */
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
 }
