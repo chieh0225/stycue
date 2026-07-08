@@ -96,10 +96,11 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-// The post detail page (/posts/{id}) has its own fixed bottom comment
-// composer, so the global nav is hidden there to avoid stacking two bars.
+// The post detail page (/posts/{id}) and its comment board
+// (/posts/{id}/comments) each have their own fixed bottom comment composer,
+// so the global nav is hidden there to avoid stacking two bars.
 function hidesBottomNav(pathname: string) {
-  return /^\/posts\/[^/]+$/.test(pathname) && pathname !== '/posts/new';
+  return /^\/posts\/[^/]+(?:\/comments)?$/.test(pathname) && pathname !== '/posts/new';
 }
 
 export default function BottomNav() {
