@@ -757,9 +757,9 @@ export default function CommentBoard({
 
   return (
     <>
-      {/* Scrollable body — the only scroll region; min-h-0 lets it shrink so
-          the list scrolls internally instead of the whole document. */}
-      <ul className="flex min-h-0 flex-1 [scrollbar-width:none] flex-col gap-5 overflow-y-auto px-4.5 pt-5 pb-5 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+      {/* Comment list — grows with the page (document scroll); flex-1 keeps the
+          sticky composer pinned to the bottom even when there are few comments. */}
+      <ul className="flex flex-1 flex-col gap-5 px-4.5 pt-5 pb-5">
         {comments.map((comment, index) => (
           <li key={comment.commentId} className="flex flex-col gap-5">
             <CommentItem

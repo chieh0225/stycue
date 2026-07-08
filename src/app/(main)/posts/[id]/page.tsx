@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import CommentComposer from './comment-composer';
-import LockViewport from './lock-viewport';
+import HideScrollbar from './hide-scrollbar';
 import { MOCK_PUBLISH_POINTS } from './mock-commission';
 import PostInteractions from './post-interactions';
 
@@ -86,19 +86,19 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
   const { id } = await params;
 
   return (
-    <div className="fixed inset-0 mx-auto flex w-full max-w-md flex-col bg-surface-base">
-      <LockViewport />
-      {/* Header */}
-      <header className="flex flex-shrink-0 items-center gap-3.5 border-b border-border-default bg-surface-soft px-4.5 pt-5 pb-3.5 shadow-[0_4px_12px_rgba(217,154,61,0.08)]">
+    <div className="mx-auto flex w-full max-w-md flex-1 flex-col bg-surface-base">
+      <HideScrollbar />
+      {/* Header — sticky so it stays pinned to the top while the page scrolls */}
+      <header className="sticky top-0 z-10 flex flex-shrink-0 items-center gap-3.5 border-b border-border-default bg-surface-soft px-4.5 pt-5 pb-3.5 shadow-[0_4px_12px_rgba(217,154,61,0.08)]">
         <Link href="/" aria-label="返回全部文章" className="text-text-primary">
           <ChevronLeftIcon />
         </Link>
         <span className="text-lg font-bold text-text-primary">全部文章</span>
       </header>
 
-      {/* Scrollable body — the only scroll region; min-h-0 lets it shrink so
-          the article scrolls internally instead of the whole document. */}
-      <article className="min-h-0 flex-1 [scrollbar-width:none] overflow-y-auto px-4.5 pt-5 pb-5 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+      {/* Article body — grows with the page (document scroll) between the
+          sticky header and the sticky comment bar. */}
+      <article className="flex-1 px-4.5 pt-5 pb-5">
         {/* Title */}
         <div className="mb-4 flex items-center gap-2">
           <span className="flex-shrink-0 rounded-md bg-[#FCEFDA] px-[9px] py-[3px] text-[13px] font-bold text-accent-amber">
