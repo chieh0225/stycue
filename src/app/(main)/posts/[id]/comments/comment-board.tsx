@@ -24,7 +24,6 @@ export type Comment = {
   images?: CommentImage[];
   imageLayout?: 'scroll' | 'single' | 'grid';
   replies?: Reply[];
-  showReplyBox?: boolean;
 };
 
 function UserIcon({ className = 'h-[17px] w-[17px]' }: { className?: string }) {
@@ -96,6 +95,23 @@ function StarIcon({ className = 'h-4 w-4' }: { className?: string }) {
   );
 }
 
+function ChevronDownIcon({ className = 'h-4 w-4' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
 function SendIcon({ className = 'h-3.5 w-3.5' }: { className?: string }) {
   return (
     <svg
@@ -109,6 +125,21 @@ function SendIcon({ className = 'h-3.5 w-3.5' }: { className?: string }) {
       className={className}
     >
       <path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z" />
+    </svg>
+  );
+}
+
+function ReplyIcon({ className = 'h-4 w-4' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.4 8.6 8.6 0 0 1-4-1L3 20l1.1-4a8.4 8.4 0 0 1-1-4A8.38 8.38 0 0 1 11.5 3a8.4 8.4 0 0 1 9.5 8.5Z" />
     </svg>
   );
 }
@@ -172,9 +203,13 @@ function CommentImages({ comment }: { comment: Comment }) {
 
 function CommentActions({
   likeCount,
+  isReplyOpen,
+  onReplyClick,
   onGivePoints,
 }: {
   likeCount: number;
+  isReplyOpen: boolean;
+  onReplyClick: () => void;
   onGivePoints: () => void;
 }) {
   return (
@@ -184,6 +219,15 @@ function CommentActions({
         <span className="sr-only">讚</span>
         <span className="text-[13px]">{likeCount}</span>
       </div>
+      <button
+        type="button"
+        onClick={onReplyClick}
+        aria-expanded={isReplyOpen}
+        className="flex items-center gap-1.5 text-text-muted"
+      >
+        <ReplyIcon />
+        <span className="text-[13px] font-semibold">回覆</span>
+      </button>
       <button
         type="button"
         onClick={onGivePoints}
@@ -196,9 +240,16 @@ function CommentActions({
   );
 }
 
-function ReplyComposer({ onSubmit }: { onSubmit: (text: string) => void }) {
+function ReplyComposer({
+  targetName,
+  onSubmit,
+}: {
+  targetName?: string;
+  onSubmit: (text: string) => void;
+}) {
   const [text, setText] = useState('');
   const trimmed = text.trim();
+  const placeholder = targetName ? `回覆 @${targetName}...` : '加入討論...';
 
   function submit() {
     if (!trimmed) return;
@@ -218,8 +269,8 @@ function ReplyComposer({ onSubmit }: { onSubmit: (text: string) => void }) {
             submit();
           }
         }}
-        placeholder="加入討論..."
-        aria-label="加入討論"
+        placeholder={placeholder}
+        aria-label={placeholder}
         className="h-9 flex-1 rounded-full border border-[#E5DDBF] bg-[#FDF7E9] px-3.5 text-[12.5px] text-text-primary placeholder:text-[#B8AF9E] focus:outline-none"
       />
       <button
@@ -237,18 +288,37 @@ function ReplyComposer({ onSubmit }: { onSubmit: (text: string) => void }) {
 
 function ReplyList({
   commentId,
+  targetName,
   replies,
-  showReplyBox,
+  isReplyOpen,
   onReply,
 }: {
   commentId: string;
+  targetName: string;
   replies: Reply[];
-  showReplyBox?: boolean;
+  isReplyOpen: boolean;
   onReply: (commentId: string, text: string) => void;
 }) {
+  const [expanded, setExpanded] = useState(false);
+  const hasReplies = replies.length > 0;
+
   return (
     <div className="mt-1.5 ml-[46px] flex flex-col gap-3.5 border-l-2 border-[#EFE7CE] pl-3.5">
-      {replies.length > 0 ? (
+      {hasReplies ? (
+        <button
+          type="button"
+          onClick={() => setExpanded((prev) => !prev)}
+          aria-expanded={expanded}
+          className="flex items-center gap-1 self-start text-[13px] font-semibold text-text-muted"
+        >
+          <span>{expanded ? '隱藏回覆' : `顯示回覆（${replies.length}）`}</span>
+          <ChevronDownIcon
+            className={`h-4 w-4 transition-transform ${expanded ? 'rotate-180' : ''}`}
+          />
+        </button>
+      ) : null}
+
+      {hasReplies && expanded ? (
         <ul className="flex flex-col gap-3.5">
           {replies.map((reply) => (
             <li key={reply.replyId} className="flex gap-[9px]">
@@ -278,7 +348,15 @@ function ReplyList({
         </ul>
       ) : null}
 
-      {showReplyBox ? <ReplyComposer onSubmit={(text) => onReply(commentId, text)} /> : null}
+      {expanded || isReplyOpen ? (
+        <ReplyComposer
+          targetName={targetName}
+          onSubmit={(text) => {
+            setExpanded(true);
+            onReply(commentId, text);
+          }}
+        />
+      ) : null}
     </div>
   );
 }
@@ -450,10 +528,14 @@ function InsufficientPointsModal({
 
 function CommentItem({
   comment,
+  isReplyOpen,
+  onReplyClick,
   onReply,
   onGivePoints,
 }: {
   comment: Comment;
+  isReplyOpen: boolean;
+  onReplyClick: (commentId: string) => void;
   onReply: (commentId: string, text: string) => void;
   onGivePoints: (comment: Comment) => void;
 }) {
@@ -477,16 +559,19 @@ function CommentItem({
           <CommentImages comment={comment} />
           <CommentActions
             likeCount={comment.likeCount}
+            isReplyOpen={isReplyOpen}
+            onReplyClick={() => onReplyClick(comment.commentId)}
             onGivePoints={() => onGivePoints(comment)}
           />
         </div>
       </div>
 
-      {(comment.replies && comment.replies.length > 0) || comment.showReplyBox ? (
+      {(comment.replies && comment.replies.length > 0) || isReplyOpen ? (
         <ReplyList
           commentId={comment.commentId}
+          targetName={comment.nickName}
           replies={comment.replies ?? []}
-          showReplyBox={comment.showReplyBox}
+          isReplyOpen={isReplyOpen}
           onReply={onReply}
         />
       ) : null}
@@ -508,6 +593,9 @@ export default function CommentBoard({
   const [pointsTarget, setPointsTarget] = useState<{ id: string; name: string } | null>(null);
   const [selectedAmount, setSelectedAmount] = useState(publishPoints);
   const [insufficient, setInsufficient] = useState<{ name: string; amount: number } | null>(null);
+  // Only one comment's reply box is open at a time — cleaner on the mobile
+  // width and keeps the composer focus unambiguous.
+  const [activeReplyId, setActiveReplyId] = useState<string | null>(null);
   const bottomRef = useRef<HTMLLIElement>(null);
   const isFirstRender = useRef(true);
 
@@ -560,6 +648,8 @@ export default function CommentBoard({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content: text }),
     }).catch(() => {});
+    // Collapse the composer now that the reply has been sent.
+    setActiveReplyId(null);
   }
 
   function openGivePoints(comment: Comment) {
@@ -591,7 +681,13 @@ export default function CommentBoard({
       <ul className="flex min-h-0 flex-1 [scrollbar-width:none] flex-col gap-5 overflow-y-auto px-4.5 pt-5 pb-5 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {comments.map((comment, index) => (
           <li key={comment.commentId} className="flex flex-col gap-5">
-            <CommentItem comment={comment} onReply={addReply} onGivePoints={openGivePoints} />
+            <CommentItem
+              comment={comment}
+              isReplyOpen={activeReplyId === comment.commentId}
+              onReplyClick={(id) => setActiveReplyId((prev) => (prev === id ? null : id))}
+              onReply={addReply}
+              onGivePoints={openGivePoints}
+            />
             {index < comments.length - 1 ? (
               <div className="h-px bg-[#E0D4AA]" aria-hidden="true" />
             ) : null}

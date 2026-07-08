@@ -29,7 +29,6 @@ const comments: Comment[] = [
         hasImage: true,
       },
     ],
-    showReplyBox: true,
   },
   {
     commentId: 'cmt_b2',
