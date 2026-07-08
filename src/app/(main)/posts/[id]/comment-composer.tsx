@@ -65,7 +65,7 @@ export default function CommentComposer({
   }
 
   return (
-    <footer className="fixed bottom-0 left-1/2 z-20 flex w-full max-w-md -translate-x-1/2 items-center gap-2.5 border-t border-border-default bg-surface-base px-4.5 py-3">
+    <footer className="flex flex-shrink-0 items-center gap-2.5 border-t border-border-default bg-surface-base px-4.5 py-3">
       <div className="flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full bg-text-primary text-surface-base">
         <UserIcon className="h-4 w-4" />
       </div>
