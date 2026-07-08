@@ -5,9 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { setAuthed } from '../../auth';
 import { AlertIcon, GoogleIcon, LockIcon, LogoIcon, MailIcon, PersonIcon } from '../icons';
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PASSWORD_REGEX = /^[A-Za-z0-9]{6,}$/;
+import { EMAIL_REGEX, PASSWORD_REGEX } from '../validation';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -136,7 +134,7 @@ export default function RegisterPage() {
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder="至少 6 字元、只能含英文字母與數字"
+              placeholder="至少 8 字元、只能含英文字母與數字"
               className="flex-1 bg-transparent text-sm text-text-primary placeholder-[#B8AF9E] outline-none"
             />
           </div>
@@ -168,7 +166,7 @@ export default function RegisterPage() {
               type="password"
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
-              placeholder="至少 6 字元、只能含英文字母與數字"
+              placeholder="至少 8 字元、只能含英文字母與數字"
               className="flex-1 bg-transparent text-sm text-text-primary placeholder-[#B8AF9E] outline-none"
             />
           </div>
