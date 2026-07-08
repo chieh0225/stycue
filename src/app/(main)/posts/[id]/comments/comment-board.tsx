@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import CommentComposer from '../comment-composer';
 
@@ -276,6 +277,9 @@ function ReplyList({
 
 const GIVE_POINTS_AMOUNTS = [50, 75, 100];
 
+// Mock balance — replace with GET /api/v1/points/balance (availablePoints).
+const MOCK_USER_POINTS = 60;
+
 function GivePointsModal({
   targetName,
   selectedAmount,
@@ -354,6 +358,68 @@ function GivePointsModal({
   );
 }
 
+function AlertTriangleIcon({ className = 'h-4 w-4' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path d="M12 2.5 1.5 21h21L12 2.5Z" fill="currentColor" />
+      <rect x="11" y="9" width="2" height="6.2" rx="1" fill="#FFFDF7" />
+      <circle cx="12" cy="17.6" r="1.15" fill="#FFFDF7" />
+    </svg>
+  );
+}
+
+function InsufficientPointsModal({
+  targetName,
+  amount,
+  onClose,
+}: {
+  targetName: string;
+  amount: number;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      onClick={onClose}
+      className="fixed inset-y-0 left-1/2 z-40 flex w-full max-w-md -translate-x-1/2 items-center justify-center bg-[rgba(64,58,50,0.42)] px-7"
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        onClick={(event) => event.stopPropagation()}
+        className="flex w-full max-w-[300px] flex-col items-center rounded-2xl bg-surface-base px-[22px] pt-[26px] pb-5 text-center shadow-[0_12px_32px_rgba(64,58,50,0.28)]"
+      >
+        <div className="mb-4 flex h-[52px] w-[52px] items-center justify-center rounded-full bg-[rgba(196,62,50,0.1)] text-[#C43E32]">
+          <AlertTriangleIcon className="h-[26px] w-[26px]" />
+        </div>
+        <span className="mb-2 text-[14.5px] font-bold whitespace-nowrap text-text-primary">
+          積分不足
+        </span>
+        <span className="mb-5 text-[13px] leading-[1.6] text-text-muted">
+          您目前的積分不足以給予 {targetName} {amount} 積分，請前往儲值積分！
+        </span>
+
+        <div className="mb-4 h-px w-full bg-[#EFE7CE]" />
+
+        <div className="flex w-full items-center gap-2.5">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-[46px] flex-1 items-center justify-center rounded-lg border-[1.5px] border-[#E5DDBF] text-sm font-bold text-text-primary"
+          >
+            取消
+          </button>
+          <Link
+            href="/profile/points/buy"
+            className="flex h-[46px] flex-1 items-center justify-center rounded-lg bg-[#835500] text-sm font-bold text-white shadow-[0_4px_12px_rgba(131,85,0,0.24)]"
+          >
+            前往儲值
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CommentItem({
   comment,
   onReply,
@@ -410,6 +476,7 @@ export default function CommentBoard({
   const [comments, setComments] = useState(initialComments);
   const [pointsTarget, setPointsTarget] = useState<{ id: string; name: string } | null>(null);
   const [selectedAmount, setSelectedAmount] = useState(75);
+  const [insufficient, setInsufficient] = useState<{ name: string; amount: number } | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const isFirstRender = useRef(true);
 
@@ -474,6 +541,13 @@ export default function CommentBoard({
   }
 
   function confirmGivePoints() {
+    if (!pointsTarget) return;
+    // Not enough points: surface the insufficient-points modal instead.
+    if (selectedAmount > MOCK_USER_POINTS) {
+      setInsufficient({ name: pointsTarget.name, amount: selectedAmount });
+      setPointsTarget(null);
+      return;
+    }
     // TODO: call the best-comment / boost API once the 50/75/100 amount
     // semantics are confirmed with the backend. For now this only closes.
     setPointsTarget(null);
@@ -502,6 +576,14 @@ export default function CommentBoard({
           onSelectAmount={setSelectedAmount}
           onClose={closeGivePoints}
           onConfirm={confirmGivePoints}
+        />
+      ) : null}
+
+      {insufficient ? (
+        <InsufficientPointsModal
+          targetName={insufficient.name}
+          amount={insufficient.amount}
+          onClose={() => setInsufficient(null)}
         />
       ) : null}
     </>
