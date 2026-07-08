@@ -2,34 +2,16 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
-
-const DRAFT_STORAGE_KEY = 'stycue:commission-post-draft';
-const budgetOptions = ['1000 - 3000', '3000 - 5000', '5000 - 10000', '10000 以上'];
-const postTypes = ['委託', '提問', '分享'] as const;
-const pointsOptions = ['50', '75', '100'];
-
-type Draft = {
-  title: string;
-  description: string;
-  height: string;
-  weight: string;
-  age: string;
-  selectedBudget: string;
-  postType: string;
-  points: string;
-};
-
-const emptyDraft: Draft = {
-  title: '',
-  description: '',
-  height: '',
-  weight: '',
-  age: '',
-  selectedBudget: budgetOptions[0],
-  postType: postTypes[0],
-  points: pointsOptions[0],
-};
+import { useEffect, useRef, useState } from 'react';
+import {
+  DRAFT_STORAGE_KEY,
+  TITLE_MAX_LENGTH,
+  budgetOptions,
+  postTypes,
+  pointsOptions,
+  emptyDraft,
+  type Draft,
+} from './draft';
 
 export default function NewPostPage() {
   const [titleFocused, setTitleFocused] = useState(false);
@@ -43,7 +25,32 @@ export default function NewPostPage() {
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
   const [pointsMenuOpen, setPointsMenuOpen] = useState(false);
   const [draftTags, setDraftTags] = useState<string[]>([]);
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const titleRef = useRef<HTMLTextAreaElement>(null);
   const pathname = usePathname();
+
+  // The title wraps across multiple lines instead of overflowing past the
+  // screen edge, so it needs the same auto-grow treatment as the description.
+  useEffect(() => {
+    const el = titleRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [title]);
+
+  // Auto-grow to fit the full text when expanded so it never needs its own
+  // scrollbar; collapsed mode keeps the fixed 3-row clamp instead.
+  useEffect(() => {
+    const el = descriptionRef.current;
+    if (!el) return;
+    if (descriptionExpanded) {
+      el.style.height = 'auto';
+      el.style.height = `${el.scrollHeight}px`;
+    } else {
+      el.style.height = '';
+    }
+  }, [descriptionExpanded, description]);
 
   useEffect(() => {
     if (pathname !== '/posts/new') return;
@@ -147,30 +154,60 @@ export default function NewPostPage() {
 
         {/* Title */}
         <div className="flex flex-col gap-1">
-          <div className="flex items-center justify-between">
-            <input
-              type="text"
+          <div className="flex items-start justify-between gap-2">
+            <textarea
+              ref={titleRef}
+              rows={1}
               value={title}
               onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') event.preventDefault();
+              }}
+              maxLength={TITLE_MAX_LENGTH}
               placeholder={titleFocused ? '' : '標題'}
               onFocus={() => setTitleFocused(true)}
               onBlur={() => setTitleFocused(false)}
-              className="w-full bg-transparent text-base text-text-primary placeholder-text-muted outline-none"
+              className="w-full resize-none overflow-hidden bg-transparent text-base text-text-primary placeholder-text-muted outline-none"
             />
-            <span className="shrink-0 text-xs text-text-muted">40 字</span>
+            <span className="shrink-0 pt-0.5 text-xs text-text-muted">
+              {title.length}/{TITLE_MAX_LENGTH} 字
+            </span>
           </div>
         </div>
 
         {/* Description */}
-        <textarea
-          rows={3}
-          value={description}
-          onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
-          placeholder={descriptionFocused ? '' : '描述你想要的需求\n( etc. 場景、風格... )'}
-          onFocus={() => setDescriptionFocused(true)}
-          onBlur={() => setDescriptionFocused(false)}
-          className="w-full resize-none bg-transparent text-sm text-text-primary placeholder-text-muted outline-none"
-        />
+        <div>
+          <textarea
+            ref={descriptionRef}
+            rows={3}
+            value={description}
+            onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
+            placeholder={descriptionFocused ? '' : '描述你想要的需求\n( etc. 場景、風格... )'}
+            onFocus={() => setDescriptionFocused(true)}
+            onBlur={() => setDescriptionFocused(false)}
+            className={`w-full resize-none bg-transparent text-sm text-text-primary placeholder-text-muted outline-none ${
+              descriptionExpanded ? 'overflow-hidden' : 'overflow-y-auto'
+            }`}
+          />
+          {description.trim() && (
+            <button
+              type="button"
+              onClick={() => setDescriptionExpanded((expanded) => !expanded)}
+              className="mt-1 flex items-center gap-1 text-xs font-semibold text-accent-amber"
+            >
+              {descriptionExpanded ? '收合內文' : '展開全文'}
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                className={`h-2.5 w-2.5 transition-transform ${descriptionExpanded ? 'rotate-180' : ''}`}
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+          )}
+        </div>
 
         {/* Upload / tags */}
         <div className="flex flex-col gap-2.5">
@@ -277,7 +314,7 @@ export default function NewPostPage() {
                   className={
                     selected
                       ? 'rounded-lg border-2 border-brand-primary bg-surface-soft px-3 py-2 text-sm font-medium text-text-primary'
-                      : 'rounded-lg border-2 border-border-default px-3 py-2 text-sm text-text-muted'
+                      : 'rounded-lg border-2 border-border-default px-3 py-2 text-sm text-text-muted transition-colors hover:border-brand-primary hover:bg-surface-soft hover:text-text-primary'
                   }
                 >
                   {option}
@@ -371,9 +408,13 @@ export default function NewPostPage() {
         </div>
 
         {/* Submit */}
-        <button className="w-full rounded-lg bg-brand-primary py-3 text-sm font-semibold text-text-primary">
+        <Link
+          href="/posts/new/preview"
+          onClick={saveDraft}
+          className="block w-full rounded-lg bg-brand-primary py-3 text-center text-sm font-semibold text-text-primary"
+        >
           送出
-        </button>
+        </Link>
       </div>
     </div>
   );
