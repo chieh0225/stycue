@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 const DRAFT_STORAGE_KEY = 'stycue:commission-post-draft';
@@ -41,6 +42,26 @@ export default function NewPostPage() {
   const { title, description, height, weight, age, selectedBudget, postType, points } = form;
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
   const [pointsMenuOpen, setPointsMenuOpen] = useState(false);
+  const [draftTags, setDraftTags] = useState<string[]>([]);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (pathname !== '/posts/new') return;
+    fetch('/api/posts/draft-tags')
+      .then((res) => res.json())
+      .then((data: { tags: string[] }) => setDraftTags(data.tags))
+      .catch(() => {});
+  }, [pathname]);
+
+  function removeDraftTag(tag: string) {
+    const next = draftTags.filter((t) => t !== tag);
+    setDraftTags(next);
+    fetch('/api/posts/draft-tags', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tags: next }),
+    }).catch(() => {});
+  }
 
   useEffect(() => {
     // Deferred to a microtask so the restore doesn't setState synchronously
@@ -152,19 +173,51 @@ export default function NewPostPage() {
         />
 
         {/* Upload / tags */}
-        <div className="flex gap-3">
-          <Link
-            href="/posts/new/photo"
-            className="flex items-center gap-1 rounded-full border border-border-default px-3 py-1.5 text-xs text-text-muted"
-          >
-            <span aria-hidden>🖼️</span> 上傳圖片
-          </Link>
-          <Link
-            href="/posts/new/tags"
-            className="flex items-center gap-1 rounded-full border border-border-default px-3 py-1.5 text-xs text-text-muted"
-          >
-            <span aria-hidden>🏷️</span> 選擇標籤
-          </Link>
+        <div className="flex flex-col gap-2.5">
+          <div>
+            <Link
+              href="/posts/new/photo"
+              className="flex w-fit items-center gap-1 rounded-full border border-border-default px-3 py-1.5 text-xs text-text-muted"
+            >
+              <span aria-hidden>🖼️</span> 上傳圖片
+            </Link>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {draftTags.length === 0 ? (
+              <Link
+                href="/posts/new/tags"
+                className="flex items-center gap-1 rounded-full border border-border-default px-3 py-1.5 text-xs text-text-muted"
+              >
+                <span aria-hidden>🏷️</span> 選擇標籤
+              </Link>
+            ) : (
+              <>
+                {draftTags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="flex items-center gap-1 rounded-full border border-border-default bg-surface-soft px-3 py-1.5 text-xs text-text-primary"
+                  >
+                    #{tag}
+                    <button
+                      type="button"
+                      onClick={() => removeDraftTag(tag)}
+                      aria-label={`移除標籤 ${tag}`}
+                      className="text-text-muted"
+                    >
+                      ✕
+                    </button>
+                  </span>
+                ))}
+                <Link
+                  href="/posts/new/tags"
+                  aria-label="新增標籤"
+                  className="flex h-7 w-7 items-center justify-center rounded-full border border-dashed border-border-default text-xs text-text-muted"
+                >
+                  +
+                </Link>
+              </>
+            )}
+          </div>
         </div>
 
         <hr className="border-border-default" />
