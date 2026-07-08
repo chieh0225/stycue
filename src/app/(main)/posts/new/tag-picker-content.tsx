@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const tagGroups = [
   { title: '場合', tags: ['上班', '日常', '約會', '面試', '婚禮'], allowCustom: true },
@@ -32,13 +32,17 @@ const popularTags = [
   { name: '大地', category: '色系' },
 ];
 
+const MAX_TAGS_PER_GROUP = 3;
+
 export default function TagPickerContent({ onClose }: { onClose: () => void }) {
   const [selected, setSelected] = useState<string[]>([]);
   const [customTags, setCustomTags] = useState<Record<string, string[]>>({});
   const [addingGroup, setAddingGroup] = useState<string | null>(null);
   const [newTagValue, setNewTagValue] = useState('');
+  const [tagError, setTagError] = useState<string | null>(null);
   const [searchActive, setSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetch('/api/posts/draft-tags')
@@ -56,21 +60,63 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
     onClose();
   }
 
-  function toggleTag(tag: string) {
-    setSelected((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
+  function findGroupTitle(tag: string) {
+    return tagGroups.find((group) =>
+      [...group.tags, ...(customTags[group.title] ?? [])].includes(tag),
+    )?.title;
   }
 
-  function confirmAddTag(groupTitle: string) {
+  function selectedCountInGroup(groupTitle: string) {
+    return selected.filter((tag) => findGroupTitle(tag) === groupTitle).length;
+  }
+
+  function toggleTag(tag: string) {
+    setSelected((prev) => {
+      if (prev.includes(tag)) return prev.filter((t) => t !== tag);
+      const groupTitle = findGroupTitle(tag);
+      if (
+        groupTitle &&
+        prev.filter((t) => findGroupTitle(t) === groupTitle).length >= MAX_TAGS_PER_GROUP
+      ) {
+        return prev;
+      }
+      return [...prev, tag];
+    });
+  }
+
+  function confirmAddTag(groupTitle: string, isBlur = false) {
     const value = newTagValue.trim();
-    if (value) {
+    if (!value) {
+      setAddingGroup(null);
+      setNewTagValue('');
+      setTagError(null);
+      return;
+    }
+
+    const existingGroupTitle = findGroupTitle(value);
+    if (existingGroupTitle && existingGroupTitle !== groupTitle) {
+      if (isBlur) {
+        // Blur means the user moved on rather than confirmed; drop it quietly
+        // instead of leaving an unfocused input stuck with an error.
+        setAddingGroup(null);
+        setNewTagValue('');
+        setTagError(null);
+        return;
+      }
+      setTagError(`「${value}」已屬於「${existingGroupTitle}」類別，換個名稱試試`);
+      return;
+    }
+
+    if (existingGroupTitle !== groupTitle) {
       setCustomTags((prev) => ({
         ...prev,
         [groupTitle]: [...(prev[groupTitle] ?? []), value],
       }));
-      setSelected((prev) => [...prev, value]);
     }
+    setSelected((prev) => (prev.includes(value) ? prev : [...prev, value]));
     setAddingGroup(null);
     setNewTagValue('');
+    setTagError(null);
   }
 
   function exitSearch() {
@@ -119,11 +165,13 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
         )}
 
         <div
-          className={`flex items-center gap-2 rounded-lg border bg-surface-soft px-3.5 py-3 ${
+          onClick={() => searchInputRef.current?.focus()}
+          className={`flex cursor-text items-center gap-2 rounded-lg border bg-surface-soft px-3.5 py-3 ${
             searchActive ? 'border-accent-amber' : 'border-border-default'
           }`}
         >
           <input
+            ref={searchInputRef}
             type="text"
             value={searchQuery}
             onFocus={() => setSearchActive(true)}
@@ -155,15 +203,21 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
           <div className="mb-6 flex flex-wrap gap-2.5">
             {recentTags.map((tag) => {
               const active = selected.includes(tag.name);
+              const groupTitle = findGroupTitle(tag.name);
+              const disabled =
+                !active && !!groupTitle && selectedCountInGroup(groupTitle) >= MAX_TAGS_PER_GROUP;
               return (
                 <button
                   key={tag.name}
                   type="button"
+                  disabled={disabled}
                   onClick={() => toggleTag(tag.name)}
                   className={
                     active
                       ? 'flex items-baseline gap-1.5 rounded-full border border-brand-primary bg-brand-primary px-3.5 py-2'
-                      : 'flex items-baseline gap-1.5 rounded-full border border-border-default bg-white px-3.5 py-2'
+                      : disabled
+                        ? 'flex items-baseline gap-1.5 rounded-full border border-border-default bg-white px-3.5 py-2 opacity-50'
+                        : 'flex items-baseline gap-1.5 rounded-full border border-border-default bg-white px-3.5 py-2'
                   }
                 >
                   <span className="text-sm font-bold text-text-muted">#</span>
@@ -178,15 +232,21 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
           <div className="flex flex-wrap gap-2.5">
             {popularTags.map((tag) => {
               const active = selected.includes(tag.name);
+              const groupTitle = findGroupTitle(tag.name);
+              const disabled =
+                !active && !!groupTitle && selectedCountInGroup(groupTitle) >= MAX_TAGS_PER_GROUP;
               return (
                 <button
                   key={tag.name}
                   type="button"
+                  disabled={disabled}
                   onClick={() => toggleTag(tag.name)}
                   className={
                     active
                       ? 'flex items-baseline gap-1.5 rounded-full border border-brand-primary bg-brand-primary px-3.5 py-2'
-                      : 'flex items-baseline gap-1.5 rounded-full bg-accent-amber/15 px-3.5 py-2'
+                      : disabled
+                        ? 'flex items-baseline gap-1.5 rounded-full border border-transparent bg-accent-amber/15 px-3.5 py-2 opacity-50'
+                        : 'flex items-baseline gap-1.5 rounded-full border border-transparent bg-accent-amber/15 px-3.5 py-2'
                   }
                 >
                   <span className="text-sm font-bold text-accent-amber">#</span>
@@ -218,61 +278,84 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
               <hr className="mt-5 border-border-default" />
             </div>
           )}
-          {tagGroups.map((group) => (
-            <div key={group.title} className="mb-5">
-              <h3 className="mb-3 text-base font-bold text-text-primary">{group.title}</h3>
-              <div className="flex flex-wrap gap-2.5">
-                {[...group.tags, ...(customTags[group.title] ?? [])].map((tag) => {
-                  const active = selected.includes(tag);
-                  return (
-                    <button
-                      key={tag}
-                      type="button"
-                      onClick={() => toggleTag(tag)}
-                      className={
-                        active
-                          ? 'rounded-full border border-brand-primary bg-brand-primary px-5 py-2.5 text-sm font-medium text-text-primary'
-                          : 'rounded-full border border-border-default bg-surface-soft px-5 py-2.5 text-sm font-medium text-text-primary'
-                      }
-                    >
-                      {tag}
-                    </button>
-                  );
-                })}
-                {group.allowCustom &&
-                  (addingGroup === group.title ? (
-                    <input
-                      autoFocus
-                      type="text"
-                      value={newTagValue}
-                      onChange={(e) => setNewTagValue(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') confirmAddTag(group.title);
-                        if (e.key === 'Escape') {
-                          setAddingGroup(null);
-                          setNewTagValue('');
+          {tagGroups.map((group) => {
+            const groupTags = [...group.tags, ...(customTags[group.title] ?? [])];
+            const selectedInGroup = groupTags.filter((tag) => selected.includes(tag)).length;
+            const limitReached = selectedInGroup >= MAX_TAGS_PER_GROUP;
+            return (
+              <div key={group.title} className="mb-5">
+                <div className="mb-3 flex items-baseline justify-between">
+                  <h3 className="text-base font-bold text-text-primary">{group.title}</h3>
+                  <span className="text-xs text-text-muted">
+                    {selectedInGroup}/{MAX_TAGS_PER_GROUP}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2.5">
+                  {groupTags.map((tag) => {
+                    const active = selected.includes(tag);
+                    const disabled = !active && limitReached;
+                    return (
+                      <button
+                        key={tag}
+                        type="button"
+                        disabled={disabled}
+                        onClick={() => toggleTag(tag)}
+                        className={
+                          active
+                            ? 'rounded-full border border-brand-primary bg-brand-primary px-5 py-2.5 text-sm font-medium text-text-primary'
+                            : disabled
+                              ? 'rounded-full border border-border-default bg-surface-soft px-5 py-2.5 text-sm font-medium text-text-muted opacity-50'
+                              : 'rounded-full border border-border-default bg-surface-soft px-5 py-2.5 text-sm font-medium text-text-primary'
                         }
-                      }}
-                      onBlur={() => confirmAddTag(group.title)}
-                      placeholder="輸入標籤"
-                      className="w-28 rounded-full border border-brand-primary bg-surface-soft px-4 py-2.5 text-sm text-text-primary outline-none"
-                    />
-                  ) : (
-                    <button
-                      type="button"
-                      aria-label={`新增${group.title}標籤`}
-                      onClick={() => {
-                        setAddingGroup(group.title);
-                        setNewTagValue('');
-                      }}
-                      className="flex h-10.25 w-11 items-center justify-center rounded-full border border-dashed border-border-default bg-white text-text-muted"
-                    >
-                      +
-                    </button>
-                  ))}
+                      >
+                        {tag}
+                      </button>
+                    );
+                  })}
+                  {group.allowCustom &&
+                    !limitReached &&
+                    (addingGroup === group.title ? (
+                      <input
+                        autoFocus
+                        type="text"
+                        value={newTagValue}
+                        onChange={(e) => {
+                          setNewTagValue(e.target.value);
+                          setTagError(null);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') confirmAddTag(group.title);
+                          if (e.key === 'Escape') {
+                            setAddingGroup(null);
+                            setNewTagValue('');
+                            setTagError(null);
+                          }
+                        }}
+                        onBlur={() => confirmAddTag(group.title, true)}
+                        placeholder="輸入標籤"
+                        className="w-28 rounded-full border border-brand-primary bg-surface-soft px-4 py-2.5 text-sm text-text-primary outline-none"
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        aria-label={`新增${group.title}標籤`}
+                        onClick={() => {
+                          setAddingGroup(group.title);
+                          setNewTagValue('');
+                          setTagError(null);
+                        }}
+                        className="flex h-10.25 w-11 items-center justify-center rounded-full border border-dashed border-border-default bg-white text-text-muted"
+                      >
+                        +
+                      </button>
+                    ))}
+                </div>
+                {addingGroup === group.title && tagError && (
+                  <p className="mt-2 text-xs text-red-500">{tagError}</p>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
