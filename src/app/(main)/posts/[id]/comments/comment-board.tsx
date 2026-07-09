@@ -4,16 +4,24 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import CommentComposer from '../comment-composer';
+import { categoryLabel } from '../image-categories';
 import { addPendingComment, addPendingReply, mergePendingComments } from '../pending-comments';
 
-export type CommentImage = { label?: string };
+// Shape returned by the (future) POST /uploads endpoint plus the category/brand
+// the user tagged it with — matches the backend's per-image record.
+export type CommentImage = {
+  imageId: number;
+  imageUrl: string;
+  category: number;
+  brand: string;
+};
 
 export type Reply = {
   replyId: string;
   nickName: string;
   content: string;
   isCommissioner?: boolean;
-  hasImage?: boolean;
+  images?: CommentImage[];
 };
 
 export type Comment = {
@@ -24,7 +32,6 @@ export type Comment = {
   content: string;
   likeCount: number;
   images?: CommentImage[];
-  imageLayout?: 'scroll' | 'single' | 'grid';
   replies?: Reply[];
 };
 
@@ -172,23 +179,39 @@ function ImageCell({ label, variant }: { label?: string; variant: 'lg' | 'grid' 
   );
 }
 
-function CommentImages({ comment }: { comment: Comment }) {
-  if (!comment.images || comment.images.length === 0) return null;
+// A labelled overlay only makes sense once a brand is attached — an untagged
+// category alone ("上衣" with nothing else) is not worth showing on the card.
+function imageLabel(image: CommentImage): string | undefined {
+  return image.brand ? `${categoryLabel(image.category)}：${image.brand}` : undefined;
+}
 
-  if (comment.imageLayout === 'grid') {
+// Layout is derived from the count rather than stored, so comments and
+// replies (which share this same image shape) render consistently.
+function pickImageLayout(count: number): 'scroll' | 'single' | 'grid' | undefined {
+  if (count === 0) return undefined;
+  if (count === 1) return 'single';
+  if (count >= 4) return 'grid';
+  return 'scroll';
+}
+
+function AttachedImages({ images }: { images?: CommentImage[] }) {
+  if (!images || images.length === 0) return null;
+  const layout = pickImageLayout(images.length);
+
+  if (layout === 'grid') {
     return (
       <div className="mt-2.5 grid grid-cols-3 gap-1.5">
-        {comment.images.map((image, i) => (
-          <ImageCell key={i} label={image.label} variant="grid" />
+        {images.map((image) => (
+          <ImageCell key={image.imageId} label={imageLabel(image)} variant="grid" />
         ))}
       </div>
     );
   }
 
-  if (comment.imageLayout === 'single') {
+  if (layout === 'single') {
     return (
       <div className="mt-2.5">
-        <ImageCell label={comment.images[0]?.label} variant="lg" />
+        <ImageCell label={imageLabel(images[0])} variant="lg" />
       </div>
     );
   }
@@ -196,8 +219,8 @@ function CommentImages({ comment }: { comment: Comment }) {
   // scroll strip
   return (
     <div className="mt-2.5 flex [scrollbar-width:none] gap-2 overflow-x-auto [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-      {comment.images.map((image, i) => (
-        <ImageCell key={i} label={image.label} variant="lg" />
+      {images.map((image) => (
+        <ImageCell key={image.imageId} label={imageLabel(image)} variant="lg" />
       ))}
     </div>
   );
@@ -388,11 +411,7 @@ function ReplyList({
                 <div className="mt-[3px] text-sm leading-[1.7] text-text-primary">
                   {reply.content}
                 </div>
-                {reply.hasImage ? (
-                  <div className="mt-2">
-                    <ImageCell variant="lg" />
-                  </div>
-                ) : null}
+                <AttachedImages images={reply.images} />
               </div>
             </li>
           ))}
@@ -628,7 +647,7 @@ function CommentItem({
           <div className="mt-1 text-[14.5px] leading-[1.7] text-text-primary">
             {comment.content}
           </div>
-          <CommentImages comment={comment} />
+          <AttachedImages images={comment.images} />
           <CommentActions
             likeCount={comment.likeCount}
             isLiked={isLiked}
@@ -746,7 +765,7 @@ export default function CommentBoard({
   // it survives navigation/reload within the session (no comments backend yet).
   function addComment(text: string) {
     const comment = {
-      commentId: `tmp_${Date.now()}`,
+      commentId: crypto.randomUUID(),
       nickName: '你',
       timeLabel: '剛剛',
       content: text,
@@ -763,7 +782,7 @@ export default function CommentBoard({
   // reply-aware full template instead (see ReplyComposer). No rollback — there
   // is no backend to reconcile against yet.
   function addReply(commentId: string, text: string) {
-    const reply = { replyId: `tmp_${Date.now()}`, nickName: '你', content: text };
+    const reply = { replyId: crypto.randomUUID(), nickName: '你', content: text };
     setComments((prev) =>
       prev.map((comment) =>
         comment.commentId === commentId

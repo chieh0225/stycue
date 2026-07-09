@@ -2,21 +2,19 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
-  addPendingComment,
-  addPendingReply,
-  buildCommentImages,
-  pickImageLayout,
-} from '../../pending-comments';
+  categoryLabel,
+  DEFAULT_IMAGE_CATEGORY_ID,
+  IMAGE_CATEGORIES,
+  type ImageCategoryId,
+} from '../../image-categories';
+import { addPendingComment, addPendingReply } from '../../pending-comments';
+import type { CommentImage } from '../comment-board';
 
 // Attachment limits mirror the design copy (最多可上傳 9 張圖片，單張 10MB).
 const MAX_IMAGES = 9;
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
-
-// Category tags offered per attached image (mirrors the Tag Dropdown design).
-const TAG_OPTIONS = ['上衣', '下身', '鞋子', '配件', '包包', '帽子', '其他'] as const;
-const DEFAULT_TAG = TAG_OPTIONS[0];
 
 // Each attachment carries its own category + optional brand, edited inline on
 // the rendered card. `url` is an object URL for the thumbnail, revoked on remove.
@@ -24,7 +22,7 @@ type Attachment = {
   id: string;
   file: File;
   url: string;
-  tag: string;
+  category: ImageCategoryId;
   brand: string;
 };
 
@@ -163,6 +161,24 @@ export default function AddCommentForm({
   const cancelHref = `/posts/${postId}/comments`;
   const canPublish = (text.trim().length > 0 || images.length > 0) && !submitting;
 
+  // Mirrors `images` so the unmount cleanup below can see the latest list
+  // without re-subscribing the effect (and thus re-registering the cleanup)
+  // on every add/remove. Updated in an effect, not during render, per the
+  // rules-of-hooks refs restriction.
+  const imagesRef = useRef(images);
+  useEffect(() => {
+    imagesRef.current = images;
+  }, [images]);
+
+  // Individual removals revoke their own object URL (see removeImage), but
+  // any still-attached previews (e.g. the user hits 取消 or navigates away)
+  // are only cleaned up here, on unmount.
+  useEffect(() => {
+    return () => {
+      imagesRef.current.forEach((image) => URL.revokeObjectURL(image.url));
+    };
+  }, []);
+
   function handleFiles(event: React.ChangeEvent<HTMLInputElement>) {
     const picked = Array.from(event.target.files ?? []);
     // Drop anything over the per-file size cap before counting toward the limit.
@@ -176,7 +192,7 @@ export default function AddCommentForm({
         id: crypto.randomUUID(),
         file,
         url: URL.createObjectURL(file),
-        tag: DEFAULT_TAG,
+        category: DEFAULT_IMAGE_CATEGORY_ID,
         brand: '',
       }));
     setImages((prev) => [...prev, ...added]);
@@ -195,8 +211,21 @@ export default function AddCommentForm({
     setDeleteTarget((current) => (current?.id === id ? null : current));
   }
 
-  function updateImage(id: string, patch: Partial<Pick<Attachment, 'tag' | 'brand'>>) {
+  function updateImage(id: string, patch: Partial<Pick<Attachment, 'category' | 'brand'>>) {
     setImages((prev) => prev.map((img) => (img.id === id ? { ...img, ...patch } : img)));
+  }
+
+  // No uploads backend exists yet, so this simulates POST /api/v1/uploads'
+  // response shape ({ imageId, imageUrl }) per attachment. Once that endpoint
+  // lands, this becomes a real upload call made per-attachment on publish,
+  // and only the returned imageId needs to travel to the comment/reply call.
+  function mockUploadImages(attachments: Attachment[]): CommentImage[] {
+    return attachments.map((attachment, index) => ({
+      imageId: Date.now() + index,
+      imageUrl: attachment.url,
+      category: attachment.category,
+      brand: attachment.brand.trim(),
+    }));
   }
 
   function publish() {
@@ -205,37 +234,38 @@ export default function AddCommentForm({
     const content = text.trim();
     // No comments backend exists yet, so the submission is stored optimistically
     // in the shared pending store (sessionStorage) and rendered by the board on
-    // its next mount. This is where the real two-step write would go once the API
-    // lands: create the comment/reply, then attach each image.
+    // its next mount. This is where the real write would go once the API lands:
     //   reply  (replyTo set): POST /api/v1/comments/{replyTo}/replies
-    //   top-level          : POST /api/v1/commisions/{postId}/comments
+    //   top-level          : POST /api/v1/commissions/{postId}/comments
+    //   body (both): { content, imageIds: number[] } — referencing the ids
+    //   returned by the per-attachment POST /api/v1/uploads call above.
     // `postId` here is the commission id (commissions are served under /posts/[id]).
     // Tell the board what to do once it re-mounts, via query params it reads and
     // then strips: ?focus={domId} scrolls the new item into view, and (for a
     // reply) ?expand={parentId} opens that comment's reply list so the reply is
     // not hidden behind the collapse toggle. Passing these only on submit keeps a
     // plain navigation in from auto-scrolling or auto-expanding.
+    const uploadedImages = mockUploadImages(images);
     const params = new URLSearchParams();
     if (replyTo) {
-      const replyId = `tmp_${Date.now()}`;
+      const replyId = crypto.randomUUID();
       addPendingReply(postId, replyTo, {
         replyId,
         nickName: '你',
         content,
-        hasImage: images.length > 0,
+        images: uploadedImages,
       });
       params.set('focus', `reply-${replyId}`);
       params.set('expand', replyTo);
     } else {
-      const commentId = `tmp_${Date.now()}`;
+      const commentId = crypto.randomUUID();
       addPendingComment(postId, {
         commentId,
         nickName: '你',
         timeLabel: '剛剛',
         content,
         likeCount: 0,
-        images: buildCommentImages(images),
-        imageLayout: pickImageLayout(images.length),
+        images: uploadedImages,
       });
       params.set('focus', `comment-${commentId}`);
     }
@@ -341,7 +371,9 @@ export default function AddCommentForm({
                   aria-expanded={openTagId === image.id}
                   className="flex h-[38px] w-full items-center justify-between px-2.5"
                 >
-                  <span className="text-[13px] font-semibold text-text-primary">{image.tag}</span>
+                  <span className="text-[13px] font-semibold text-text-primary">
+                    {categoryLabel(image.category)}
+                  </span>
                   <ChevronDownIcon
                     className={`h-3 w-3 text-text-muted transition-transform ${
                       openTagId === image.id ? 'rotate-180' : ''
@@ -353,21 +385,21 @@ export default function AddCommentForm({
                     role="listbox"
                     className="absolute inset-x-0 top-[calc(100%+4px)] z-20 overflow-hidden rounded-lg border border-border-default bg-surface-base shadow-[0_8px_20px_rgba(64,58,50,0.16)]"
                   >
-                    {TAG_OPTIONS.map((option) => {
-                      const selected = option === image.tag;
+                    {IMAGE_CATEGORIES.map((option) => {
+                      const selected = option.id === image.category;
                       return (
-                        <li key={option} role="option" aria-selected={selected}>
+                        <li key={option.id} role="option" aria-selected={selected}>
                           <button
                             type="button"
                             onClick={() => {
-                              updateImage(image.id, { tag: option });
+                              updateImage(image.id, { category: option.id });
                               setOpenTagId(null);
                             }}
                             className={`flex h-9 w-full items-center px-3 text-[13px] text-text-primary ${
                               selected ? 'bg-[#FCEFCB] font-bold' : 'font-normal'
                             }`}
                           >
-                            {option}
+                            {option.label}
                           </button>
                         </li>
                       );
