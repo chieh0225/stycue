@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
 const trendingItems = [
@@ -388,17 +389,11 @@ export default function Home() {
                       </div>
                     </div>
                   </div>
-                  {post.badge ? (
-                    <div className="rounded-full bg-surface-soft px-2.5 py-1 text-[11px] font-semibold text-accent-amber">
-                      {post.badge}
-                    </div>
-                  ) : null}
+                  {post.badge ? <Badge variant="gold">{post.badge}</Badge> : null}
                 </div>
 
                 <div className="mb-2 flex items-center gap-2">
-                  <span className="rounded-full bg-surface-soft px-2.5 py-1 text-[11px] font-semibold text-accent-amber">
-                    {post.tag}
-                  </span>
+                  <Badge variant="gold">{post.tag}</Badge>
                   <span className="text-[15px] font-bold text-text-primary">{post.title}</span>
                 </div>
                 <p className="mb-3 text-[13px] leading-5 text-text-muted">{post.body}</p>
@@ -423,12 +418,9 @@ export default function Home() {
 
                 <div className="flex flex-wrap gap-2">
                   {post.chips.map((chip) => (
-                    <span
-                      key={chip}
-                      className="rounded-full bg-surface-soft px-2.5 py-1 text-[11px] font-semibold text-text-primary"
-                    >
+                    <Badge key={chip} variant="neutral">
                       {chip}
-                    </span>
+                    </Badge>
                   ))}
                 </div>
               </Link>

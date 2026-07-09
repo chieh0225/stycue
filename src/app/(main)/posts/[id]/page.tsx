@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { getCreatedPost } from '@/app/api/posts/store';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import CommentLauncher from './comment-launcher';
 import HideScrollbar from './hide-scrollbar';
@@ -118,9 +119,9 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
       <article className="flex-1 px-4.5 pt-5 pb-5">
         {/* Title */}
         <div className="mb-4 flex items-center gap-2">
-          <span className="flex-shrink-0 rounded-md bg-[#FCEFDA] px-[9px] py-[3px] text-[13px] font-bold text-accent-amber">
+          <Badge variant="gold" className="shrink-0">
             {postTypeLabel}
-          </span>
+          </Badge>
           <h1 className="text-[19px] leading-[1.4] font-bold text-text-primary">{title}</h1>
         </div>
 
@@ -166,12 +167,9 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
         <h2 className="mb-3 text-base font-bold text-text-primary">穿搭標籤</h2>
         <div className="mb-6 flex flex-wrap gap-2">
           {tags.map((tag) => (
-            <div
-              key={tag}
-              className="rounded-full border border-border-default bg-[#FDF7E9] px-3.5 py-1.75 text-[13px] text-text-primary"
-            >
+            <Badge key={tag} variant="neutral">
               {tag}
-            </div>
+            </Badge>
           ))}
         </div>
 

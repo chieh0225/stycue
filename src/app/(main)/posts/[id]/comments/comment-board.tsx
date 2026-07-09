@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 import CommentComposer from '../comment-composer';
 import { addPendingComment, addPendingReply, mergePendingComments } from '../pending-comments';
 
@@ -379,11 +380,7 @@ function ReplyList({
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-[7px]">
                   <span className="text-sm font-bold text-text-primary">{reply.nickName}</span>
-                  {reply.isCommissioner ? (
-                    <span className="rounded-full bg-[#E7EDFA] px-[9px] py-0.5 text-[11px] font-bold text-[#5B7FBE]">
-                      委託人
-                    </span>
-                  ) : null}
+                  {reply.isCommissioner ? <Badge variant="blue">委託人</Badge> : null}
                 </div>
                 <div className="mt-[3px] text-sm leading-[1.7] text-text-primary">
                   {reply.content}
@@ -615,15 +612,17 @@ function CommentItem({
           <div className="flex items-center gap-2">
             <span className="text-[15px] font-bold text-text-primary">{comment.nickName}</span>
             {isAwarded ? (
-              <span className="flex items-center gap-1 rounded-full bg-[#FCEFDA] px-[9px] py-0.5 text-[11px] font-bold text-accent-amber">
+              <Badge variant="gold">
                 <StarIcon className="h-3 w-3 fill-current" />
                 最佳留言
-              </span>
+              </Badge>
             ) : null}
             <time className="ml-auto text-[12px] text-[#B8AF9E]">{comment.timeLabel}</time>
-            <span className="rounded-md bg-[rgba(169,184,142,0.15)] px-[7px] py-0.5 text-[11px] font-bold text-[#4E6B45]">
+            {/* Square corner (not the default pill) to read as a compact button
+                like 追蹤, distinguishing the floor number from the tag chips. */}
+            <Badge variant="green" className="rounded-lg">
               {comment.floor}
-            </span>
+            </Badge>
           </div>
           <div className="mt-1 text-[14.5px] leading-[1.7] text-text-primary">
             {comment.content}
