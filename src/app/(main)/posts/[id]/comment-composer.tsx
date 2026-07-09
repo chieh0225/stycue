@@ -54,38 +54,23 @@ function ImageIcon({ className = 'h-4 w-4' }: { className?: string }) {
 }
 
 export default function CommentComposer({
-  postId,
   onSubmit,
   templateHref,
 }: {
-  postId: string;
-  // When provided, the parent handles the optimistic UI update; the composer
-  // just clears itself and still fires the (mock) network write.
+  // The parent handles the optimistic UI update and persistence; the composer
+  // just clears itself after handing off the text.
   onSubmit?: (text: string) => void;
   // When provided, a hint row + button is shown above the input linking to the
   // dedicated commission-comment template (text + tagged outfit images).
   templateHref?: string;
 }) {
   const [text, setText] = useState('');
-  const [submitting, setSubmitting] = useState(false);
   const trimmed = text.trim();
 
   function submit() {
-    if (!trimmed || submitting) return;
-    const value = trimmed;
+    if (!trimmed) return;
+    onSubmit?.(trimmed);
     setText('');
-    onSubmit?.(value);
-    setSubmitting(true);
-    // Mock write — replace with the real comments API once it exists.
-    void fetch(`/api/posts/${postId}/comments`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: value }),
-    })
-      .catch(() => {})
-      .finally(() => {
-        setSubmitting(false);
-      });
   }
 
   return (
@@ -123,7 +108,7 @@ export default function CommentComposer({
       <button
         type="button"
         onClick={submit}
-        disabled={!trimmed || submitting}
+        disabled={!trimmed}
         aria-label="送出留言"
         className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-brand-primary text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.14)] disabled:opacity-40"
       >

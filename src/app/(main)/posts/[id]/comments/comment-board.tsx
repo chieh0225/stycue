@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import CommentComposer from '../comment-composer';
+import { addPendingComment, addPendingReply, mergePendingComments } from '../pending-comments';
 
 export type CommentImage = { label?: string };
 
@@ -675,6 +676,21 @@ export default function CommentBoard({
   const bottomRef = useRef<HTMLLIElement>(null);
   const isFirstRender = useRef(true);
 
+  // Merge any optimistically-added comments/replies from earlier in the session
+  // (e.g. submitted via the full-page template, which navigates away and back)
+  // onto the server mock data. Runs on mount only; `mergePendingComments` is pure
+  // in `initialComments`, so re-running would produce the same list.
+  //
+  // This deliberately syncs state after mount rather than in a lazy `useState`
+  // initializer: the pending store lives in sessionStorage (client-only), so
+  // reading it during render would mismatch the server-rendered HTML. That is
+  // exactly the client-only-external-store case the set-state-in-effect rule
+  // does not account for, hence the disable.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setComments(mergePendingComments(postId, initialComments));
+  }, [postId, initialComments]);
+
   // Scroll the newest comment into view after it is appended, but not on the
   // initial render (the board should open scrolled to the top).
   useEffect(() => {
@@ -685,47 +701,34 @@ export default function CommentBoard({
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [comments.length]);
 
-  // Optimistically append the new comment. The network write is handled by
-  // CommentComposer; we mirror the existing fire-and-forget pattern and do not
-  // roll back on failure until the real comments API is wired up.
+  // Optimistically append the new comment and persist it to the pending store so
+  // it survives navigation/reload within the session (no comments backend yet).
   function addComment(text: string) {
-    setComments((prev) => [
-      ...prev,
-      {
-        commentId: `tmp_${Date.now()}`,
-        floor: `B${prev.length + 1}`,
-        nickName: '你',
-        timeLabel: '剛剛',
-        content: text,
-        likeCount: 0,
-      },
-    ]);
+    const comment = {
+      commentId: `tmp_${Date.now()}`,
+      nickName: '你',
+      timeLabel: '剛剛',
+      content: text,
+      likeCount: 0,
+    };
+    setComments((prev) => [...prev, { ...comment, floor: `B${prev.length + 1}` }]);
+    addPendingComment(postId, comment);
   }
 
-  // Optimistically insert the reply into its parent comment, then fire the
-  // (mock) network write. This is the quick text-only path; a reply with images
-  // goes through the reply-aware full template instead (see ReplyComposer).
-  // Mirrors addComment: fire-and-forget, no rollback until POST
-  // /api/v1/comments/{commentId}/replies is wired up.
+  // Optimistically insert the reply into its parent comment and persist it. This
+  // is the quick text-only path; a reply with images goes through the
+  // reply-aware full template instead (see ReplyComposer). No rollback — there
+  // is no backend to reconcile against yet.
   function addReply(commentId: string, text: string) {
+    const reply = { replyId: `tmp_${Date.now()}`, nickName: '你', content: text };
     setComments((prev) =>
       prev.map((comment) =>
         comment.commentId === commentId
-          ? {
-              ...comment,
-              replies: [
-                ...(comment.replies ?? []),
-                { replyId: `tmp_${Date.now()}`, nickName: '你', content: text },
-              ],
-            }
+          ? { ...comment, replies: [...(comment.replies ?? []), reply] }
           : comment,
       ),
     );
-    void fetch(`/api/comments/${commentId}/replies`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: text }),
-    }).catch(() => {});
+    addPendingReply(postId, commentId, reply);
     // Collapse the composer now that the reply has been sent.
     setActiveReplyId(null);
   }
@@ -806,11 +809,7 @@ export default function CommentBoard({
       </ul>
 
       {/* Bottom comment bar — quick text inline, or the dedicated template */}
-      <CommentComposer
-        postId={postId}
-        onSubmit={addComment}
-        templateHref={`/posts/${postId}/comments/new`}
-      />
+      <CommentComposer onSubmit={addComment} templateHref={`/posts/${postId}/comments/new`} />
 
       {pointsTarget ? (
         <GivePointsModal

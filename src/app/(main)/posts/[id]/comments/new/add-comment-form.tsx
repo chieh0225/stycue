@@ -3,6 +3,12 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
+import {
+  addPendingComment,
+  addPendingReply,
+  buildCommentImages,
+  pickImageLayout,
+} from '../../pending-comments';
 
 // Attachment limits mirror the design copy (最多可上傳 9 張圖片，單張 10MB).
 const MAX_IMAGES = 9;
@@ -196,20 +202,32 @@ export default function AddCommentForm({
   function publish() {
     if (!canPublish) return;
     setSubmitting(true);
-    // Mock write — fire-and-forget, mirroring CommentComposer. Both flows are
-    // two steps (create, then attach each image via the shared comment image
-    // endpoint POST /api/v1/comments/{commentId}/images):
-    //   reply  (replyTo set): POST /api/v1/comments/{replyTo}/replies -> replyId
-    //   top-level          : POST /api/v1/commisions/{postId}/comments -> commentId
+    const content = text.trim();
+    // No comments backend exists yet, so the submission is stored optimistically
+    // in the shared pending store (sessionStorage) and rendered by the board on
+    // its next mount. This is where the real two-step write would go once the API
+    // lands: create the comment/reply, then attach each image.
+    //   reply  (replyTo set): POST /api/v1/comments/{replyTo}/replies
+    //   top-level          : POST /api/v1/commisions/{postId}/comments
     // `postId` here is the commission id (commissions are served under /posts/[id]).
-    const createUrl = replyTo
-      ? `/api/comments/${replyTo}/replies`
-      : `/api/commisions/${postId}/comments`;
-    void fetch(createUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: text.trim(), imageCount: images.length }),
-    }).catch(() => {});
+    if (replyTo) {
+      addPendingReply(postId, replyTo, {
+        replyId: `tmp_${Date.now()}`,
+        nickName: '你',
+        content,
+        hasImage: images.length > 0,
+      });
+    } else {
+      addPendingComment(postId, {
+        commentId: `tmp_${Date.now()}`,
+        nickName: '你',
+        timeLabel: '剛剛',
+        content,
+        likeCount: 0,
+        images: buildCommentImages(images),
+        imageLayout: pickImageLayout(images.length),
+      });
+    }
     router.push(cancelHref);
   }
 
