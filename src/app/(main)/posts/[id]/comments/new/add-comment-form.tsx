@@ -10,22 +10,64 @@ import {
   IMAGE_CATEGORIES,
   type ImageCategoryId,
 } from '../../image-categories';
-import { addPendingComment, addPendingReply } from '../../pending-comments';
+import {
+  addPendingComment,
+  addPendingReply,
+  getPendingComment,
+  getPendingReply,
+  updatePendingComment,
+  updatePendingReply,
+} from '../../pending-comments';
 import type { CommentImage } from '../comment-board';
 
 // Attachment limits mirror the design copy (最多可上傳 9 張圖片，單張 10MB).
 const MAX_IMAGES = 9;
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
-// Each attachment carries its own category + optional brand, edited inline on
-// the rendered card. `url` is an object URL for the thumbnail, revoked on remove.
-type Attachment = {
+// A freshly picked file, not uploaded yet — `url` is a local object URL,
+// revoked on remove/unmount.
+type NewAttachment = {
   id: string;
+  kind: 'new';
   file: File;
   url: string;
   category: ImageCategoryId;
   brand: string;
 };
+
+// An already-"uploaded" image from the item being edited — no File survives
+// navigation, only the stored record. Re-taggable/removable but not
+// re-uploadable.
+type ExistingAttachment = {
+  id: string;
+  kind: 'existing';
+  imageId: number;
+  url: string;
+  category: ImageCategoryId;
+  brand: string;
+};
+
+// Each attachment carries its own category + optional brand, edited inline on
+// the rendered card.
+type Attachment = NewAttachment | ExistingAttachment;
+
+function attachmentLabel(attachment: Attachment): string {
+  if (attachment.kind === 'new') return attachment.file.name;
+  return attachment.brand
+    ? `${categoryLabel(attachment.category)}・${attachment.brand}`
+    : categoryLabel(attachment.category);
+}
+
+function toExistingAttachments(images: CommentImage[] | undefined): ExistingAttachment[] {
+  return (images ?? []).map((image) => ({
+    id: String(image.imageId),
+    kind: 'existing',
+    imageId: image.imageId,
+    url: image.imageUrl,
+    category: image.category as ImageCategoryId,
+    brand: image.brand,
+  }));
+}
 
 function UserIcon({ className = 'h-[18px] w-[18px]' }: { className?: string }) {
   return (
@@ -61,6 +103,26 @@ function ImagePlusIcon({ className = 'h-[18px] w-[18px]' }: { className?: string
       <circle cx="8.5" cy="8.5" r="1.5" />
       <path d="M21 15l-5-5L5 21" />
       <path d="M17 3v6M14 6h6" />
+    </svg>
+  );
+}
+
+// Placeholder for an existing attachment's thumbnail — there is no real image
+// to preview (its object URL was revoked when the item it belongs to was
+// originally published), so this mirrors the board's own image-cell glyph.
+function ImagePlaceholderIcon({ className = 'h-6 w-6' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      aria-hidden="true"
+      className={className}
+    >
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <circle cx="8.5" cy="8.5" r="1.5" />
+      <path d="M21 15l-5-5L5 21" />
     </svg>
   );
 }
@@ -141,11 +203,20 @@ function TrashLinesIcon({ className = 'h-6 w-6' }: { className?: string }) {
 export default function AddCommentForm({
   postId,
   replyTo,
+  editCommentId,
+  editReplyId,
 }: {
   postId: string;
   // When set, this screen composes a reply under the given parent commentId
   // instead of a new top-level commission comment.
   replyTo?: string;
+  // When set, this screen edits the given existing top-level comment instead
+  // of composing a new one.
+  editCommentId?: string;
+  // When set (always alongside replyTo, which doubles as the parent comment
+  // id), this screen edits the given existing reply instead of composing a
+  // new one. Without a matching replyTo this collapses to non-edit behavior.
+  editReplyId?: string;
 }) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -161,6 +232,37 @@ export default function AddCommentForm({
 
   const cancelHref = `/posts/${postId}/comments`;
   const canPublish = (text.trim().length > 0 || images.length > 0) && !submitting;
+  const isEditingComment = Boolean(editCommentId);
+  const isEditingReply = Boolean(editReplyId && replyTo);
+  const isEdit = isEditingComment || isEditingReply;
+
+  // Prefill from the pending store when opened in edit mode. Editable content
+  // only ever lives in the pending store (see the ownership check that gates
+  // the 編輯 link in comment-board.tsx) — a missing/stale id (cleared
+  // sessionStorage, bad link) falls back to a plain cancel-navigation.
+  useEffect(() => {
+    if (isEditingComment) {
+      const pending = getPendingComment(postId, editCommentId!);
+      if (!pending) {
+        router.replace(cancelHref);
+        return;
+      }
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setText(pending.content);
+      setImages(toExistingAttachments(pending.images));
+    } else if (isEditingReply) {
+      const pending = getPendingReply(postId, replyTo!, editReplyId!);
+      if (!pending) {
+        router.replace(cancelHref);
+        return;
+      }
+      setText(pending.content);
+      setImages(toExistingAttachments(pending.images));
+    }
+    // Prefill runs once on mount only — the edit target doesn't change within
+    // a single visit to this screen.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Mirrors `images` so the unmount cleanup below can see the latest list
   // without re-subscribing the effect (and thus re-registering the cleanup)
@@ -173,10 +275,13 @@ export default function AddCommentForm({
 
   // Individual removals revoke their own object URL (see removeImage), but
   // any still-attached previews (e.g. the user hits 取消 or navigates away)
-  // are only cleaned up here, on unmount.
+  // are only cleaned up here, on unmount. Existing attachments' `url` isn't
+  // an object URL this mount owns, so only `kind === 'new'` is revoked.
   useEffect(() => {
     return () => {
-      imagesRef.current.forEach((image) => URL.revokeObjectURL(image.url));
+      imagesRef.current.forEach((image) => {
+        if (image.kind === 'new') URL.revokeObjectURL(image.url);
+      });
     };
   }, []);
 
@@ -191,6 +296,7 @@ export default function AddCommentForm({
       .slice(0, Math.max(0, room))
       .map((file) => ({
         id: crypto.randomUUID(),
+        kind: 'new',
         file,
         url: URL.createObjectURL(file),
         category: DEFAULT_IMAGE_CATEGORY_ID,
@@ -205,7 +311,7 @@ export default function AddCommentForm({
   function removeImage(id: string) {
     setImages((prev) => {
       const target = prev.find((img) => img.id === id);
-      if (target) URL.revokeObjectURL(target.url);
+      if (target?.kind === 'new') URL.revokeObjectURL(target.url);
       return prev.filter((img) => img.id !== id);
     });
     setOpenTagId((current) => (current === id ? null : current));
@@ -216,17 +322,28 @@ export default function AddCommentForm({
     setImages((prev) => prev.map((img) => (img.id === id ? { ...img, ...patch } : img)));
   }
 
-  // No uploads backend exists yet, so this simulates POST /api/v1/uploads'
-  // response shape ({ imageId, imageUrl }) per attachment. Once that endpoint
-  // lands, this becomes a real upload call made per-attachment on publish,
-  // and only the returned imageId needs to travel to the comment/reply call.
-  function mockUploadImages(attachments: Attachment[]): CommentImage[] {
-    return attachments.map((attachment, index) => ({
-      imageId: Date.now() + index,
-      imageUrl: attachment.url,
-      category: attachment.category,
-      brand: attachment.brand.trim(),
-    }));
+  // No uploads backend exists yet, so `kind === 'new'` attachments simulate
+  // POST /api/v1/uploads' response shape ({ imageId, imageUrl }) — once that
+  // endpoint lands, this becomes a real upload call made per-attachment on
+  // publish, and only the returned imageId needs to travel to the
+  // comment/reply call. `kind === 'existing'` attachments (from an edit) are
+  // already "uploaded" — passed through unchanged, possibly re-tagged.
+  function resolveImages(attachments: Attachment[]): CommentImage[] {
+    return attachments.map((attachment, index) =>
+      attachment.kind === 'existing'
+        ? {
+            imageId: attachment.imageId,
+            imageUrl: attachment.url,
+            category: attachment.category,
+            brand: attachment.brand.trim(),
+          }
+        : {
+            imageId: Date.now() + index,
+            imageUrl: attachment.url,
+            category: attachment.category,
+            brand: attachment.brand.trim(),
+          },
+    );
   }
 
   function publish() {
@@ -246,28 +363,53 @@ export default function AddCommentForm({
     // reply) ?expand={parentId} opens that comment's reply list so the reply is
     // not hidden behind the collapse toggle. Passing these only on submit keeps a
     // plain navigation in from auto-scrolling or auto-expanding.
-    const uploadedImages = mockUploadImages(images);
+    const resolvedImages = resolveImages(images);
     const params = new URLSearchParams();
-    if (replyTo) {
+    if (isEditingComment) {
+      const ok = updatePendingComment(postId, editCommentId!, {
+        content,
+        images: resolvedImages,
+      });
+      if (!ok) {
+        router.push(cancelHref);
+        return;
+      }
+      params.set('focus', `comment-${editCommentId}`);
+    } else if (isEditingReply) {
+      const ok = updatePendingReply(postId, replyTo!, editReplyId!, {
+        content,
+        images: resolvedImages,
+      });
+      if (!ok) {
+        router.push(cancelHref);
+        return;
+      }
+      params.set('focus', `reply-${editReplyId}`);
+      params.set('expand', replyTo!);
+    } else if (replyTo) {
+      const authedUser = getAuthedUser();
       const replyId = crypto.randomUUID();
       addPendingReply(postId, replyTo, {
         replyId,
-        nickName: getAuthedUser()?.nickName ?? '你',
+        nickName: authedUser?.nickName ?? '你',
         timeLabel: '剛剛',
         content,
-        images: uploadedImages,
+        images: resolvedImages,
+        authorEmail: authedUser?.email,
       });
       params.set('focus', `reply-${replyId}`);
       params.set('expand', replyTo);
     } else {
+      const authedUser = getAuthedUser();
       const commentId = crypto.randomUUID();
       addPendingComment(postId, {
         commentId,
-        nickName: getAuthedUser()?.nickName ?? '你',
+        nickName: authedUser?.nickName ?? '你',
         timeLabel: '剛剛',
         content,
         likeCount: 0,
-        images: uploadedImages,
+        images: resolvedImages,
+        authorEmail: authedUser?.email,
       });
       params.set('focus', `comment-${commentId}`);
     }
@@ -339,22 +481,36 @@ export default function AddCommentForm({
             key={image.id}
             className="mb-3.5 flex gap-3 rounded-xl border-[1.5px] border-border-default p-3.5"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element -- local object URL preview */}
-            <img
-              src={image.url}
-              alt={image.file.name}
-              className="h-20 w-20 flex-shrink-0 rounded-lg object-cover"
-            />
+            {image.kind === 'new' ? (
+              // eslint-disable-next-line @next/next/no-img-element -- local object URL preview
+              <img
+                src={image.url}
+                alt={image.file.name}
+                className="h-20 w-20 flex-shrink-0 rounded-lg object-cover"
+              />
+            ) : (
+              // Existing attachment from an edit — no live preview available
+              // (its object URL was revoked once the original post finished
+              // publishing), so this shows the same placeholder glyph the
+              // board itself renders for every comment image.
+              <div
+                role="img"
+                aria-label={attachmentLabel(image)}
+                className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-lg bg-[#EAE2CB] text-[#B8AF9E]"
+              >
+                <ImagePlaceholderIcon />
+              </div>
+            )}
             <div className="min-w-0 flex-1">
               {/* Filename + delete */}
               <div className="mb-2.5 flex items-center justify-between">
                 <span className="overflow-hidden text-sm font-semibold text-ellipsis whitespace-nowrap text-text-primary">
-                  {image.file.name}
+                  {attachmentLabel(image)}
                 </span>
                 <button
                   type="button"
                   onClick={() => setDeleteTarget(image)}
-                  aria-label={`移除 ${image.file.name}`}
+                  aria-label={`移除 ${attachmentLabel(image)}`}
                   className="ml-2 flex-shrink-0 rounded-md p-1 text-[#B8AF9E] hover:bg-[#F5EEDA]"
                 >
                   <TrashIcon />
@@ -417,7 +573,7 @@ export default function AddCommentForm({
                 value={image.brand}
                 onChange={(event) => updateImage(image.id, { brand: event.target.value })}
                 placeholder="輸入品牌..."
-                aria-label={`${image.file.name} 品牌名稱`}
+                aria-label={`${attachmentLabel(image)} 品牌名稱`}
                 className="h-[38px] w-full rounded-lg border-[1.5px] border-border-default px-2.5 text-[13px] font-semibold text-text-primary placeholder:font-normal placeholder:text-[#B8AF9E] focus:outline-none"
               />
             </div>
@@ -448,7 +604,7 @@ export default function AddCommentForm({
           disabled={!canPublish}
           className="flex h-13 flex-1 items-center justify-center rounded-lg bg-brand-primary text-base font-bold text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.14)] disabled:opacity-50"
         >
-          {replyTo ? '發佈回覆' : '發佈留言'}
+          {isEdit ? '儲存' : replyTo ? '發佈回覆' : '發佈留言'}
         </button>
       </div>
 
@@ -473,7 +629,7 @@ export default function AddCommentForm({
               刪除圖片？
             </span>
             <span className="mb-[22px] text-[13px] leading-[1.6] text-text-muted">
-              確定要刪除「{deleteTarget.file.name}」嗎？此操作無法復原。
+              確定要刪除「{attachmentLabel(deleteTarget)}」嗎？此操作無法復原。
             </span>
             <div className="flex w-full gap-2.5">
               <button

@@ -64,6 +64,53 @@ export function addPendingReply(postId: string, commentId: string, reply: Reply)
   write(postId, { ...store, replies: [...store.replies, { commentId, reply }] });
 }
 
+export function getPendingComment(postId: string, commentId: string): PendingComment | undefined {
+  return read(postId).comments.find((comment) => comment.commentId === commentId);
+}
+
+export function getPendingReply(
+  postId: string,
+  commentId: string,
+  replyId: string,
+): Reply | undefined {
+  return read(postId).replies.find(
+    (entry) => entry.commentId === commentId && entry.reply.replyId === replyId,
+  )?.reply;
+}
+
+// Returns false (no-op) if the id is no longer in the store — e.g. the entry
+// was created in a different tab/session. Callers fall back to a plain cancel.
+export function updatePendingComment(
+  postId: string,
+  commentId: string,
+  patch: Pick<PendingComment, 'content' | 'images'>,
+): boolean {
+  const store = read(postId);
+  const index = store.comments.findIndex((comment) => comment.commentId === commentId);
+  if (index === -1) return false;
+  const comments = [...store.comments];
+  comments[index] = { ...comments[index], ...patch };
+  write(postId, { ...store, comments });
+  return true;
+}
+
+export function updatePendingReply(
+  postId: string,
+  commentId: string,
+  replyId: string,
+  patch: Pick<Reply, 'content' | 'images'>,
+): boolean {
+  const store = read(postId);
+  const index = store.replies.findIndex(
+    (entry) => entry.commentId === commentId && entry.reply.replyId === replyId,
+  );
+  if (index === -1) return false;
+  const replies = [...store.replies];
+  replies[index] = { ...replies[index], reply: { ...replies[index].reply, ...patch } };
+  write(postId, { ...store, replies });
+  return true;
+}
+
 // Merge the stored pending items onto a base comment list: append pending
 // top-level comments (assigning floors after the base ones), then splice each
 // pending reply into its parent. Pure in `base` so it is safe to call on every
