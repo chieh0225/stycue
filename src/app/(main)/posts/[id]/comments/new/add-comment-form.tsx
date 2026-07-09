@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { getAuthedUser } from '../../../../../auth';
 import {
   categoryLabel,
   DEFAULT_IMAGE_CATEGORY_ID,
@@ -251,7 +252,7 @@ export default function AddCommentForm({
       const replyId = crypto.randomUUID();
       addPendingReply(postId, replyTo, {
         replyId,
-        nickName: '你',
+        nickName: getAuthedUser()?.nickName ?? '你',
         content,
         images: uploadedImages,
       });
@@ -261,7 +262,7 @@ export default function AddCommentForm({
       const commentId = crypto.randomUUID();
       addPendingComment(postId, {
         commentId,
-        nickName: '你',
+        nickName: getAuthedUser()?.nickName ?? '你',
         timeLabel: '剛剛',
         content,
         likeCount: 0,

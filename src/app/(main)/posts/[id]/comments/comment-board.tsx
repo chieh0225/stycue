@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { getAuthedUser } from '../../../../auth';
 import CommentComposer from '../comment-composer';
 import { categoryLabel } from '../image-categories';
 import { addPendingComment, addPendingReply, mergePendingComments } from '../pending-comments';
@@ -766,7 +767,7 @@ export default function CommentBoard({
   function addComment(text: string) {
     const comment = {
       commentId: crypto.randomUUID(),
-      nickName: '你',
+      nickName: getAuthedUser()?.nickName ?? '你',
       timeLabel: '剛剛',
       content: text,
       likeCount: 0,
@@ -782,7 +783,11 @@ export default function CommentBoard({
   // reply-aware full template instead (see ReplyComposer). No rollback — there
   // is no backend to reconcile against yet.
   function addReply(commentId: string, text: string) {
-    const reply = { replyId: crypto.randomUUID(), nickName: '你', content: text };
+    const reply = {
+      replyId: crypto.randomUUID(),
+      nickName: getAuthedUser()?.nickName ?? '你',
+      content: text,
+    };
     setComments((prev) =>
       prev.map((comment) =>
         comment.commentId === commentId
