@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
 
 const trendingItems = [
   {
@@ -527,13 +528,15 @@ export default function Home() {
             </div>
             <div className="mb-3 text-[20px] font-bold text-text-primary">簽到完成</div>
             <div className="mb-6 text-[16px] font-bold text-accent-amber">獲得積分 + 50</div>
-            <button
+            <Button
               type="button"
+              variant="primary"
+              size="lg"
               onClick={() => setCheckinOpen(false)}
-              className="w-full rounded-[10px] bg-brand-primary px-4 py-3 text-[15px] font-bold text-text-primary"
+              className="w-full"
             >
               知道了
-            </button>
+            </Button>
           </div>
         </div>
       ) : null}

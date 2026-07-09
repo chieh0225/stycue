@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { getCreatedPost } from '@/app/api/posts/store';
+import { Button } from '@/components/ui/button';
 import CommentLauncher from './comment-launcher';
 import HideScrollbar from './hide-scrollbar';
 import { MOCK_PUBLISH_POINTS } from './mock-commission';
@@ -134,12 +135,9 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
               {formatDate(createdAt)}
             </time>
           </div>
-          <button
-            type="button"
-            className="rounded-lg bg-brand-primary px-4.5 py-2 text-[13px] font-bold text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.18)]"
-          >
+          <Button type="button" size="sm">
             追蹤
-          </button>
+          </Button>
         </div>
 
         <div className="mb-[18px] h-px bg-border-default" />

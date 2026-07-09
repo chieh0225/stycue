@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import {
   addPendingComment,
   addPendingReply,
@@ -404,18 +406,20 @@ export default function AddCommentForm({
       <div className="flex flex-shrink-0 gap-3 border-t border-border-default bg-surface-base px-4.5 py-4">
         <Link
           href={cancelHref}
-          className="flex h-13 flex-1 items-center justify-center rounded-lg border-[1.5px] border-border-default text-base font-bold text-text-primary"
+          className={cn(buttonVariants({ variant: 'secondary', size: 'lg' }), 'flex-1')}
         >
           取消
         </Link>
-        <button
+        <Button
           type="button"
+          variant="primary"
+          size="lg"
           onClick={publish}
           disabled={!canPublish}
-          className="flex h-13 flex-1 items-center justify-center rounded-lg bg-brand-primary text-base font-bold text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.14)] disabled:opacity-50"
+          className="flex-1"
         >
           {replyTo ? '發佈回覆' : '發佈留言'}
-        </button>
+        </Button>
       </div>
 
       {/* Delete confirmation modal — the trash button stages an attachment here
@@ -442,20 +446,24 @@ export default function AddCommentForm({
               確定要刪除「{deleteTarget.file.name}」嗎？此操作無法復原。
             </span>
             <div className="flex w-full gap-2.5">
-              <button
+              <Button
                 type="button"
+                variant="secondary"
+                size="md"
                 onClick={() => setDeleteTarget(null)}
-                className="flex h-[46px] flex-1 items-center justify-center rounded-lg border-[1.5px] border-border-default text-sm font-bold text-text-primary hover:bg-[#F5EEDA]"
+                className="flex-1"
               >
                 取消
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="destructive"
+                size="md"
                 onClick={() => removeImage(deleteTarget.id)}
-                className="flex h-[46px] flex-1 items-center justify-center rounded-lg bg-[#C0564B] text-sm font-bold text-surface-base shadow-[0_4px_12px_rgba(192,86,75,0.28)] hover:bg-[#AB4B41]"
+                className="flex-1"
               >
                 刪除
-              </button>
+              </Button>
             </div>
           </div>
         </div>
