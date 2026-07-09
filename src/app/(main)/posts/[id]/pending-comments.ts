@@ -111,6 +111,26 @@ export function updatePendingReply(
   return true;
 }
 
+// Returns false (no-op) if the id is no longer in the store — same fallback
+// contract as the update* functions above.
+export function removePendingComment(postId: string, commentId: string): boolean {
+  const store = read(postId);
+  const comments = store.comments.filter((comment) => comment.commentId !== commentId);
+  if (comments.length === store.comments.length) return false;
+  write(postId, { ...store, comments });
+  return true;
+}
+
+export function removePendingReply(postId: string, commentId: string, replyId: string): boolean {
+  const store = read(postId);
+  const replies = store.replies.filter(
+    (entry) => !(entry.commentId === commentId && entry.reply.replyId === replyId),
+  );
+  if (replies.length === store.replies.length) return false;
+  write(postId, { ...store, replies });
+  return true;
+}
+
 // Merge the stored pending items onto a base comment list: append pending
 // top-level comments (assigning floors after the base ones), then splice each
 // pending reply into its parent. Pure in `base` so it is safe to call on every
