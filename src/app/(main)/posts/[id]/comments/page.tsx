@@ -88,8 +88,22 @@ function ChevronLeftIcon({ className = 'h-5 w-5' }: { className?: string }) {
   );
 }
 
-export default async function PostCommentsPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function PostCommentsPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ focus?: string | string[]; expand?: string | string[] }>;
+}) {
   const { id } = await params;
+  // The full-page template redirects back with ?focus={domId} to scroll the
+  // board to the just-posted item, and ?expand={parentId} when it was a reply so
+  // its reply list opens. Read them here (server) and hand them to the board as
+  // plain props so the client component avoids useSearchParams (which would
+  // force a Suspense boundary). Duplicated params (arrays) are ignored.
+  const { focus, expand } = await searchParams;
+  const focusId = typeof focus === 'string' ? focus : undefined;
+  const expandReplyId = typeof expand === 'string' ? expand : undefined;
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col bg-surface-base">
@@ -104,7 +118,13 @@ export default async function PostCommentsPage({ params }: { params: Promise<{ i
         </h1>
       </header>
 
-      <CommentBoard postId={id} initialComments={comments} publishPoints={MOCK_PUBLISH_POINTS} />
+      <CommentBoard
+        postId={id}
+        initialComments={comments}
+        publishPoints={MOCK_PUBLISH_POINTS}
+        focusId={focusId}
+        expandReplyId={expandReplyId}
+      />
     </div>
   );
 }

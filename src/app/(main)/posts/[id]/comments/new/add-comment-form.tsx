@@ -210,16 +210,26 @@ export default function AddCommentForm({
     //   reply  (replyTo set): POST /api/v1/comments/{replyTo}/replies
     //   top-level          : POST /api/v1/commisions/{postId}/comments
     // `postId` here is the commission id (commissions are served under /posts/[id]).
+    // Tell the board what to do once it re-mounts, via query params it reads and
+    // then strips: ?focus={domId} scrolls the new item into view, and (for a
+    // reply) ?expand={parentId} opens that comment's reply list so the reply is
+    // not hidden behind the collapse toggle. Passing these only on submit keeps a
+    // plain navigation in from auto-scrolling or auto-expanding.
+    const params = new URLSearchParams();
     if (replyTo) {
+      const replyId = `tmp_${Date.now()}`;
       addPendingReply(postId, replyTo, {
-        replyId: `tmp_${Date.now()}`,
+        replyId,
         nickName: '你',
         content,
         hasImage: images.length > 0,
       });
+      params.set('focus', `reply-${replyId}`);
+      params.set('expand', replyTo);
     } else {
+      const commentId = `tmp_${Date.now()}`;
       addPendingComment(postId, {
-        commentId: `tmp_${Date.now()}`,
+        commentId,
         nickName: '你',
         timeLabel: '剛剛',
         content,
@@ -227,8 +237,9 @@ export default function AddCommentForm({
         images: buildCommentImages(images),
         imageLayout: pickImageLayout(images.length),
       });
+      params.set('focus', `comment-${commentId}`);
     }
-    router.push(cancelHref);
+    router.push(`${cancelHref}?${params.toString()}`);
   }
 
   return (
