@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { getCreatedPost } from '@/app/api/posts/store';
-import CommentComposer from './comment-composer';
+import CommentLauncher from './comment-launcher';
 import HideScrollbar from './hide-scrollbar';
 import { MOCK_PUBLISH_POINTS } from './mock-commission';
 import PostInteractions from './post-interactions';
@@ -220,8 +220,8 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
         <PostInteractions postId={id} initialLikes={222} comments={50} />
       </article>
 
-      {/* Bottom comment bar */}
-      <CommentComposer postId={id} />
+      {/* Bottom bar — a launcher into the comments list, not an inline composer */}
+      <CommentLauncher postId={id} />
     </div>
   );
 }

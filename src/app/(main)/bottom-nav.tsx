@@ -97,12 +97,12 @@ function isActive(pathname: string, href: string) {
 }
 
 // The post detail page (/posts/{id}), its comment board
-// (/posts/{id}/comments), and the new-post preview page each have their own
-// fixed bottom bar, so the global nav is hidden there to avoid stacking two
-// bars.
+// (/posts/{id}/comments), the new-comment screen (/posts/{id}/comments/new),
+// and the new-post preview page each have their own fixed bottom bar, so the
+// global nav is hidden there to avoid stacking two bars.
 function hidesBottomNav(pathname: string) {
   if (pathname === '/posts/new/preview') return true;
-  return /^\/posts\/[^/]+(?:\/comments)?$/.test(pathname) && pathname !== '/posts/new';
+  return /^\/posts\/[^/]+(?:\/comments(?:\/new)?)?$/.test(pathname) && pathname !== '/posts/new';
 }
 
 export default function BottomNav() {

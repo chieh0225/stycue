@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import CommentComposer from '../comment-composer';
+import { addPendingComment, addPendingReply, mergePendingComments } from '../pending-comments';
 
 export type CommentImage = { label?: string };
 
@@ -269,42 +270,59 @@ function CommentActions({
 }
 
 function ReplyComposer({
-  targetName,
+  postId,
+  commentId,
   onSubmit,
 }: {
-  targetName?: string;
+  postId: string;
+  commentId: string;
   onSubmit: (text: string) => void;
 }) {
   const [text, setText] = useState('');
   const trimmed = text.trim();
-  const placeholder = targetName ? `回覆 @${targetName}...` : '加入討論...';
+  const canSend = trimmed.length > 0;
 
   function submit() {
-    if (!trimmed) return;
+    if (!canSend) return;
     setText('');
     onSubmit(trimmed);
   }
 
   return (
     <div className="flex items-center gap-2">
-      <input
-        type="text"
-        value={text}
-        onChange={(event) => setText(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter') {
-            event.preventDefault();
-            submit();
-          }
-        }}
-        placeholder={placeholder}
-        aria-label={placeholder}
-        className="h-9 flex-1 rounded-full border border-[#E5DDBF] bg-[#FDF7E9] px-3.5 text-[12.5px] text-text-primary placeholder:text-[#B8AF9E] focus:outline-none"
-      />
+      {/* Input pill — mirrors the main composer: quick text inline, plus an
+          image button that opens the full template. The template is
+          reply-aware via ?replyTo, so it posts to 回覆留言
+          (/comments/{commentId}/replies) with images attached through the
+          shared /comments/{commentId}/images endpoint, rather than creating a
+          new top-level commission comment. */}
+      <div className="flex h-9 min-w-0 flex-1 items-center gap-2 overflow-hidden rounded-full border border-[#E5DDBF] bg-[#FDF7E9] pr-2 pl-3.5">
+        <input
+          type="text"
+          value={text}
+          onChange={(event) => setText(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              submit();
+            }
+          }}
+          placeholder="加入討論，或附上圖片"
+          aria-label="回覆留言"
+          className="h-full min-w-0 flex-1 bg-transparent text-[12.5px] text-text-primary placeholder:text-[#B8AF9E] focus:outline-none"
+        />
+        <Link
+          href={`/posts/${postId}/comments/new?replyTo=${commentId}`}
+          aria-label="用整頁模板附上圖片回覆"
+          className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-text-muted"
+        >
+          <ImagePlaceholderIcon className="h-[15px] w-[15px]" />
+        </Link>
+      </div>
       <button
         type="button"
         onClick={submit}
-        disabled={!trimmed}
+        disabled={!canSend}
         aria-label="送出回覆"
         className="flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full bg-brand-primary text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.14)] disabled:opacity-40"
       >
@@ -315,14 +333,14 @@ function ReplyComposer({
 }
 
 function ReplyList({
+  postId,
   commentId,
-  targetName,
   replies,
   isReplyOpen,
   onReply,
 }: {
+  postId: string;
   commentId: string;
-  targetName: string;
   replies: Reply[];
   isReplyOpen: boolean;
   onReply: (commentId: string, text: string) => void;
@@ -378,7 +396,8 @@ function ReplyList({
 
       {expanded || isReplyOpen ? (
         <ReplyComposer
-          targetName={targetName}
+          postId={postId}
+          commentId={commentId}
           onSubmit={(text) => {
             setExpanded(true);
             onReply(commentId, text);
@@ -555,6 +574,7 @@ function InsufficientPointsModal({
 }
 
 function CommentItem({
+  postId,
   comment,
   isLiked,
   onLike,
@@ -566,6 +586,7 @@ function CommentItem({
   awardedAmount,
   canAward,
 }: {
+  postId: string;
   comment: Comment;
   isLiked: boolean;
   onLike: (commentId: string) => void;
@@ -617,8 +638,8 @@ function CommentItem({
 
       {(comment.replies && comment.replies.length > 0) || isReplyOpen ? (
         <ReplyList
+          postId={postId}
           commentId={comment.commentId}
-          targetName={comment.nickName}
           replies={comment.replies ?? []}
           isReplyOpen={isReplyOpen}
           onReply={onReply}
@@ -655,6 +676,21 @@ export default function CommentBoard({
   const bottomRef = useRef<HTMLLIElement>(null);
   const isFirstRender = useRef(true);
 
+  // Merge any optimistically-added comments/replies from earlier in the session
+  // (e.g. submitted via the full-page template, which navigates away and back)
+  // onto the server mock data. Runs on mount only; `mergePendingComments` is pure
+  // in `initialComments`, so re-running would produce the same list.
+  //
+  // This deliberately syncs state after mount rather than in a lazy `useState`
+  // initializer: the pending store lives in sessionStorage (client-only), so
+  // reading it during render would mismatch the server-rendered HTML. That is
+  // exactly the client-only-external-store case the set-state-in-effect rule
+  // does not account for, hence the disable.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setComments(mergePendingComments(postId, initialComments));
+  }, [postId, initialComments]);
+
   // Scroll the newest comment into view after it is appended, but not on the
   // initial render (the board should open scrolled to the top).
   useEffect(() => {
@@ -665,45 +701,34 @@ export default function CommentBoard({
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [comments.length]);
 
-  // Optimistically append the new comment. The network write is handled by
-  // CommentComposer; we mirror the existing fire-and-forget pattern and do not
-  // roll back on failure until the real comments API is wired up.
+  // Optimistically append the new comment and persist it to the pending store so
+  // it survives navigation/reload within the session (no comments backend yet).
   function addComment(text: string) {
-    setComments((prev) => [
-      ...prev,
-      {
-        commentId: `tmp_${Date.now()}`,
-        floor: `B${prev.length + 1}`,
-        nickName: '你',
-        timeLabel: '剛剛',
-        content: text,
-        likeCount: 0,
-      },
-    ]);
+    const comment = {
+      commentId: `tmp_${Date.now()}`,
+      nickName: '你',
+      timeLabel: '剛剛',
+      content: text,
+      likeCount: 0,
+    };
+    setComments((prev) => [...prev, { ...comment, floor: `B${prev.length + 1}` }]);
+    addPendingComment(postId, comment);
   }
 
-  // Optimistically insert the reply into its parent comment, then fire the
-  // (mock) network write. Mirrors addComment: fire-and-forget, no rollback
-  // until POST /api/v1/comments/{commentId}/replies is wired up.
+  // Optimistically insert the reply into its parent comment and persist it. This
+  // is the quick text-only path; a reply with images goes through the
+  // reply-aware full template instead (see ReplyComposer). No rollback — there
+  // is no backend to reconcile against yet.
   function addReply(commentId: string, text: string) {
+    const reply = { replyId: `tmp_${Date.now()}`, nickName: '你', content: text };
     setComments((prev) =>
       prev.map((comment) =>
         comment.commentId === commentId
-          ? {
-              ...comment,
-              replies: [
-                ...(comment.replies ?? []),
-                { replyId: `tmp_${Date.now()}`, nickName: '你', content: text },
-              ],
-            }
+          ? { ...comment, replies: [...(comment.replies ?? []), reply] }
           : comment,
       ),
     );
-    void fetch(`/api/comments/${commentId}/replies`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: text }),
-    }).catch(() => {});
+    addPendingReply(postId, commentId, reply);
     // Collapse the composer now that the reply has been sent.
     setActiveReplyId(null);
   }
@@ -763,6 +788,7 @@ export default function CommentBoard({
         {comments.map((comment, index) => (
           <li key={comment.commentId} className="flex flex-col gap-5">
             <CommentItem
+              postId={postId}
               comment={comment}
               isLiked={likedComments[comment.commentId] ?? false}
               onLike={toggleLike}
@@ -782,8 +808,8 @@ export default function CommentBoard({
         <li ref={bottomRef} aria-hidden="true" />
       </ul>
 
-      {/* Bottom comment bar */}
-      <CommentComposer postId={postId} onSubmit={addComment} />
+      {/* Bottom comment bar — quick text inline, or the dedicated template */}
+      <CommentComposer onSubmit={addComment} templateHref={`/posts/${postId}/comments/new`} />
 
       {pointsTarget ? (
         <GivePointsModal
