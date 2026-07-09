@@ -20,6 +20,7 @@ export type CommentImage = {
 export type Reply = {
   replyId: string;
   nickName: string;
+  timeLabel: string;
   content: string;
   isCommissioner?: boolean;
   images?: CommentImage[];
@@ -408,6 +409,7 @@ function ReplyList({
                       委託人
                     </span>
                   ) : null}
+                  <time className="ml-auto text-[12px] text-[#B8AF9E]">{reply.timeLabel}</time>
                 </div>
                 <div className="mt-[3px] text-sm leading-[1.7] text-text-primary">
                   {reply.content}
@@ -786,6 +788,7 @@ export default function CommentBoard({
     const reply = {
       replyId: crypto.randomUUID(),
       nickName: getAuthedUser()?.nickName ?? '你',
+      timeLabel: '剛剛',
       content: text,
     };
     setComments((prev) =>

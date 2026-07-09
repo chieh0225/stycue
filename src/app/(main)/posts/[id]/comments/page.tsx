@@ -22,12 +22,14 @@ const comments: Comment[] = [
       {
         replyId: 'rpl_b1_1',
         nickName: 'Maple',
+        timeLabel: '40 分前',
         isCommissioner: true,
         content: '謝謝！我最近剛好有看到 NET 的襯衫，之後會去試穿看看。',
       },
       {
         replyId: 'rpl_b1_2',
         nickName: 'GD',
+        timeLabel: '38 分前',
         content: '補充一下，NET 可以先買襯衫，褲子我比較推薦 GU 的版型。',
         images: [{ imageId: 4, imageUrl: '', category: 2, brand: 'GU' }],
       },

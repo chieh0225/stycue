@@ -253,6 +253,7 @@ export default function AddCommentForm({
       addPendingReply(postId, replyTo, {
         replyId,
         nickName: getAuthedUser()?.nickName ?? '你',
+        timeLabel: '剛剛',
         content,
         images: uploadedImages,
       });
