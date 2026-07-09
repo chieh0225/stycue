@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import CommentComposer from '../comment-composer';
 import { addPendingComment, addPendingReply, mergePendingComments } from '../pending-comments';
@@ -338,14 +339,18 @@ function ReplyList({
   replies,
   isReplyOpen,
   onReply,
+  defaultExpanded,
 }: {
   postId: string;
   commentId: string;
   replies: Reply[];
   isReplyOpen: boolean;
   onReply: (commentId: string, text: string) => void;
+  // Start expanded when the user just replied here via the template, so the new
+  // reply shows immediately instead of collapsed behind the toggle.
+  defaultExpanded: boolean;
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const hasReplies = replies.length > 0;
 
   return (
@@ -367,7 +372,7 @@ function ReplyList({
       {hasReplies && expanded ? (
         <ul className="flex flex-col gap-3.5">
           {replies.map((reply) => (
-            <li key={reply.replyId} className="flex gap-[9px]">
+            <li key={reply.replyId} id={`reply-${reply.replyId}`} className="flex gap-[9px]">
               <div className="flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full bg-text-primary text-surface-base">
                 <UserIcon className="h-3.5 w-3.5" />
               </div>
@@ -585,6 +590,7 @@ function CommentItem({
   isAwarded,
   awardedAmount,
   canAward,
+  defaultExpanded,
 }: {
   postId: string;
   comment: Comment;
@@ -597,6 +603,7 @@ function CommentItem({
   isAwarded: boolean;
   awardedAmount?: number;
   canAward: boolean;
+  defaultExpanded: boolean;
 }) {
   return (
     <article className="flex flex-col gap-2.5">
@@ -643,6 +650,7 @@ function CommentItem({
           replies={comment.replies ?? []}
           isReplyOpen={isReplyOpen}
           onReply={onReply}
+          defaultExpanded={defaultExpanded}
         />
       ) : null}
     </article>
@@ -653,10 +661,20 @@ export default function CommentBoard({
   postId,
   initialComments,
   publishPoints,
+  focusId,
+  expandReplyId,
 }: {
   postId: string;
   initialComments: Comment[];
   publishPoints: number;
+  // Set (from ?focus=) when the user just posted via the full-page template: the
+  // DOM id (`comment-{id}` / `reply-{id}`) to scroll into view once the pending
+  // merge brings it in. Undefined on a plain navigation in.
+  focusId?: string;
+  // Set (from ?expand=) when the user just replied via the template: the parent
+  // comment id whose reply list should open so the new reply is not hidden
+  // behind the collapse toggle.
+  expandReplyId?: string;
 }) {
   const giveAmounts = buildGivePointsAmounts(publishPoints);
   const [comments, setComments] = useState(initialComments);
@@ -673,8 +691,18 @@ export default function CommentBoard({
   // Only one comment's reply box is open at a time — cleaner on the mobile
   // width and keeps the composer focus unambiguous.
   const [activeReplyId, setActiveReplyId] = useState<string | null>(null);
-  const bottomRef = useRef<HTMLLIElement>(null);
-  const isFirstRender = useRef(true);
+
+  const router = useRouter();
+  const pathname = usePathname();
+  // We only ever auto-scroll when the user just posted: `focusId` (from the
+  // template's ?focus=) on arrival, or an inline add this session (below). A
+  // plain navigation in carries no focus, so the last browsed scroll position is
+  // left untouched/restored.
+  //
+  // Which item to scroll to once it is present in the list; consumed once, then
+  // cleared. Seeded from `focusId` so a return from the template scrolls after
+  // the pending merge brings the new comment in.
+  const scrollTargetRef = useRef<string | null>(focusId ?? null);
 
   // Merge any optimistically-added comments/replies from earlier in the session
   // (e.g. submitted via the full-page template, which navigates away and back)
@@ -691,15 +719,28 @@ export default function CommentBoard({
     setComments(mergePendingComments(postId, initialComments));
   }, [postId, initialComments]);
 
-  // Scroll the newest comment into view after it is appended, but not on the
-  // initial render (the board should open scrolled to the top).
+  // Scroll to the just-posted comment/reply once it appears in the list — either
+  // an inline add this session or a return from the full-page template (?focus=).
+  // `scrollTargetRef` holds the target's DOM id (`comment-{id}` or `reply-{id}`).
+  // Runs on every comments change but only acts while a target is pending, so a
+  // plain navigation in (no target) never scrolls and the last position stays.
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [comments.length]);
+    const targetId = scrollTargetRef.current;
+    if (!targetId) return;
+    const el = document.getElementById(targetId);
+    // Not rendered yet (awaiting the pending merge, or the parent's replies not
+    // expanded) — wait for the next comments change rather than clearing it.
+    if (!el) return;
+    scrollTargetRef.current = null;
+    // A new top-level comment lands at the bottom, so centre it clear of the
+    // sticky composer; a reply just needs to be nudged into view.
+    el.scrollIntoView({
+      behavior: 'smooth',
+      block: targetId.startsWith('reply-') ? 'nearest' : 'center',
+    });
+    // Drop the ?focus= param so a reload or back-navigation does not re-scroll.
+    if (focusId) router.replace(pathname, { scroll: false });
+  }, [comments, focusId, pathname, router]);
 
   // Optimistically append the new comment and persist it to the pending store so
   // it survives navigation/reload within the session (no comments backend yet).
@@ -713,6 +754,8 @@ export default function CommentBoard({
     };
     setComments((prev) => [...prev, { ...comment, floor: `B${prev.length + 1}` }]);
     addPendingComment(postId, comment);
+    // Scroll to it once it renders (the effect keyed on `comments` picks this up).
+    scrollTargetRef.current = `comment-${comment.commentId}`;
   }
 
   // Optimistically insert the reply into its parent comment and persist it. This
@@ -729,6 +772,9 @@ export default function CommentBoard({
       ),
     );
     addPendingReply(postId, commentId, reply);
+    // Scroll the new reply into view once it renders (its parent's reply list is
+    // expanded by the ReplyComposer's submit handler, so it is on screen).
+    scrollTargetRef.current = `reply-${reply.replyId}`;
     // Collapse the composer now that the reply has been sent.
     setActiveReplyId(null);
   }
@@ -786,7 +832,11 @@ export default function CommentBoard({
           sticky composer pinned to the bottom even when there are few comments. */}
       <ul className="flex flex-1 flex-col gap-5 px-4.5 pt-5 pb-5">
         {comments.map((comment, index) => (
-          <li key={comment.commentId} className="flex flex-col gap-5">
+          <li
+            key={comment.commentId}
+            id={`comment-${comment.commentId}`}
+            className="flex flex-col gap-5"
+          >
             <CommentItem
               postId={postId}
               comment={comment}
@@ -799,13 +849,13 @@ export default function CommentBoard({
               isAwarded={awarded?.commentId === comment.commentId}
               awardedAmount={awarded?.amount}
               canAward={awarded === null}
+              defaultExpanded={expandReplyId === comment.commentId}
             />
             {index < comments.length - 1 ? (
               <div className="h-px bg-[#E0D4AA]" aria-hidden="true" />
             ) : null}
           </li>
         ))}
-        <li ref={bottomRef} aria-hidden="true" />
       </ul>
 
       {/* Bottom comment bar — quick text inline, or the dedicated template */}
