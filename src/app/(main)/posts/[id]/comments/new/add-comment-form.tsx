@@ -227,6 +227,9 @@ export default function AddCommentForm({
   const [openTagId, setOpenTagId] = useState<string | null>(null);
   // Names of files rejected on the last pick (over 10MB), shown inline.
   const [rejected, setRejected] = useState<string[]>([]);
+  // Count of files dropped on the last pick because they exceeded the
+  // remaining room under the 9-image cap, shown inline.
+  const [overCapCount, setOverCapCount] = useState(0);
   // Attachment awaiting delete confirmation; drives the confirmation modal.
   const [deleteTarget, setDeleteTarget] = useState<Attachment | null>(null);
 
@@ -290,20 +293,19 @@ export default function AddCommentForm({
     // Drop anything over the per-file size cap before counting toward the limit.
     const tooBig = picked.filter((file) => file.size > MAX_FILE_BYTES);
     const room = MAX_IMAGES - images.length;
+    const withinSize = picked.filter((file) => file.size <= MAX_FILE_BYTES);
     // Enforce the 9-image cap; the surplus is simply dropped.
-    const added: Attachment[] = picked
-      .filter((file) => file.size <= MAX_FILE_BYTES)
-      .slice(0, Math.max(0, room))
-      .map((file) => ({
-        id: crypto.randomUUID(),
-        kind: 'new',
-        file,
-        url: URL.createObjectURL(file),
-        category: DEFAULT_IMAGE_CATEGORY_ID,
-        brand: '',
-      }));
+    const added: Attachment[] = withinSize.slice(0, Math.max(0, room)).map((file) => ({
+      id: crypto.randomUUID(),
+      kind: 'new',
+      file,
+      url: URL.createObjectURL(file),
+      category: DEFAULT_IMAGE_CATEGORY_ID,
+      brand: '',
+    }));
     setImages((prev) => [...prev, ...added]);
     setRejected(tooBig.map((file) => file.name));
+    setOverCapCount(Math.max(0, withinSize.length - added.length));
     // Reset so re-picking the same file still fires a change event.
     event.target.value = '';
   }
@@ -472,6 +474,19 @@ export default function AddCommentForm({
           >
             <AlertIcon className="mt-px h-4 w-4 flex-shrink-0" />
             <span>以下檔案超過 10MB，未加入：{rejected.join('、')}</span>
+          </div>
+        )}
+
+        {/* Files dropped on the last pick because they exceeded the 9-image cap */}
+        {overCapCount > 0 && (
+          <div
+            role="alert"
+            className="mb-[18px] flex items-start gap-2 rounded-lg bg-error-container px-3 py-2 text-xs leading-[1.6] text-on-error-container"
+          >
+            <AlertIcon className="mt-px h-4 w-4 flex-shrink-0" />
+            <span>
+              最多只能上傳 {MAX_IMAGES} 張圖片，超過的 {overCapCount} 張未加入
+            </span>
           </div>
         )}
 
