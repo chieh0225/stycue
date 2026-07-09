@@ -8,7 +8,7 @@ export default function TagPickerModal() {
   const close = () => router.back();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
+    <div className="fixed inset-0 left-1/2 z-50 flex w-full max-w-md -translate-x-1/2 items-end justify-center">
       <button
         type="button"
         aria-label="關閉"
