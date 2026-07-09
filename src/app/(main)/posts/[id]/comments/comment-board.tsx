@@ -3,17 +3,31 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { getAuthedUser } from '../../../../auth';
 import CommentComposer from '../comment-composer';
+import { categoryLabel } from '../image-categories';
 import { addPendingComment, addPendingReply, mergePendingComments } from '../pending-comments';
 
-export type CommentImage = { label?: string };
+// Shape returned by the (future) POST /uploads endpoint plus the category/brand
+// the user tagged it with — matches the backend's per-image record.
+export type CommentImage = {
+  imageId: number;
+  imageUrl: string;
+  category: number;
+  brand: string;
+};
 
 export type Reply = {
   replyId: string;
   nickName: string;
+  timeLabel: string;
   content: string;
   isCommissioner?: boolean;
-  hasImage?: boolean;
+  images?: CommentImage[];
+  // Captured from the author's login identity at creation time — never
+  // rendered. Used only to gate the 編輯 entry point to the actual author,
+  // since nickName alone could collide between two real users.
+  authorEmail?: string;
 };
 
 export type Comment = {
@@ -24,8 +38,9 @@ export type Comment = {
   content: string;
   likeCount: number;
   images?: CommentImage[];
-  imageLayout?: 'scroll' | 'single' | 'grid';
   replies?: Reply[];
+  // Same as Reply.authorEmail — never rendered.
+  authorEmail?: string;
 };
 
 function UserIcon({ className = 'h-[17px] w-[17px]' }: { className?: string }) {
@@ -172,23 +187,39 @@ function ImageCell({ label, variant }: { label?: string; variant: 'lg' | 'grid' 
   );
 }
 
-function CommentImages({ comment }: { comment: Comment }) {
-  if (!comment.images || comment.images.length === 0) return null;
+// A labelled overlay only makes sense once a brand is attached — an untagged
+// category alone ("上衣" with nothing else) is not worth showing on the card.
+function imageLabel(image: CommentImage): string | undefined {
+  return image.brand ? `${categoryLabel(image.category)}：${image.brand}` : undefined;
+}
 
-  if (comment.imageLayout === 'grid') {
+// Layout is derived from the count rather than stored, so comments and
+// replies (which share this same image shape) render consistently.
+function pickImageLayout(count: number): 'scroll' | 'single' | 'grid' | undefined {
+  if (count === 0) return undefined;
+  if (count === 1) return 'single';
+  if (count >= 4) return 'grid';
+  return 'scroll';
+}
+
+function AttachedImages({ images }: { images?: CommentImage[] }) {
+  if (!images || images.length === 0) return null;
+  const layout = pickImageLayout(images.length);
+
+  if (layout === 'grid') {
     return (
       <div className="mt-2.5 grid grid-cols-3 gap-1.5">
-        {comment.images.map((image, i) => (
-          <ImageCell key={i} label={image.label} variant="grid" />
+        {images.map((image) => (
+          <ImageCell key={image.imageId} label={imageLabel(image)} variant="grid" />
         ))}
       </div>
     );
   }
 
-  if (comment.imageLayout === 'single') {
+  if (layout === 'single') {
     return (
       <div className="mt-2.5">
-        <ImageCell label={comment.images[0]?.label} variant="lg" />
+        <ImageCell label={imageLabel(images[0])} variant="lg" />
       </div>
     );
   }
@@ -196,8 +227,8 @@ function CommentImages({ comment }: { comment: Comment }) {
   // scroll strip
   return (
     <div className="mt-2.5 flex [scrollbar-width:none] gap-2 overflow-x-auto [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-      {comment.images.map((image, i) => (
-        <ImageCell key={i} label={image.label} variant="lg" />
+      {images.map((image) => (
+        <ImageCell key={image.imageId} label={imageLabel(image)} variant="lg" />
       ))}
     </div>
   );
@@ -213,6 +244,7 @@ function CommentActions({
   isAwarded,
   awardedAmount,
   canAward,
+  editHref,
 }: {
   likeCount: number;
   isLiked: boolean;
@@ -223,6 +255,9 @@ function CommentActions({
   isAwarded: boolean;
   awardedAmount?: number;
   canAward: boolean;
+  // Set only when the current user authored this comment — links to the full
+  // template in edit mode.
+  editHref?: string;
 }) {
   // Base count plus an optimistic +1 while the current user's like is on.
   const displayLikeCount = likeCount + (isLiked ? 1 : 0);
@@ -247,6 +282,11 @@ function CommentActions({
         <ReplyIcon />
         <span className="text-[13px] font-semibold">回覆</span>
       </button>
+      {editHref ? (
+        <Link href={editHref} className="flex items-center gap-1.5 text-text-muted">
+          <span className="text-[13px] font-semibold">編輯</span>
+        </Link>
+      ) : null}
       {/* Once the commission's reward is awarded it is a one-time state
           (best-comment API 409s on a second call), so the give-points button
           only ever shows before an award — and afterwards only the winning
@@ -340,6 +380,7 @@ function ReplyList({
   isReplyOpen,
   onReply,
   defaultExpanded,
+  currentUserEmail,
 }: {
   postId: string;
   commentId: string;
@@ -349,6 +390,10 @@ function ReplyList({
   // Start expanded when the user just replied here via the template, so the new
   // reply shows immediately instead of collapsed behind the toggle.
   defaultExpanded: boolean;
+  // The logged-in user's email, used to gate the 編輯 entry point to only the
+  // current user's own replies (matched against Reply.authorEmail, not the
+  // displayed nickName — two real users could share a nickname).
+  currentUserEmail: string | null;
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const hasReplies = replies.length > 0;
@@ -384,15 +429,20 @@ function ReplyList({
                       委託人
                     </span>
                   ) : null}
+                  <time className="ml-auto text-[12px] text-[#B8AF9E]">{reply.timeLabel}</time>
+                  {reply.authorEmail !== undefined && reply.authorEmail === currentUserEmail ? (
+                    <Link
+                      href={`/posts/${postId}/comments/new?replyTo=${commentId}&editReplyId=${reply.replyId}`}
+                      className="text-[12px] font-semibold text-text-muted"
+                    >
+                      編輯
+                    </Link>
+                  ) : null}
                 </div>
                 <div className="mt-[3px] text-sm leading-[1.7] text-text-primary">
                   {reply.content}
                 </div>
-                {reply.hasImage ? (
-                  <div className="mt-2">
-                    <ImageCell variant="lg" />
-                  </div>
-                ) : null}
+                <AttachedImages images={reply.images} />
               </div>
             </li>
           ))}
@@ -591,6 +641,7 @@ function CommentItem({
   awardedAmount,
   canAward,
   defaultExpanded,
+  currentUserEmail,
 }: {
   postId: string;
   comment: Comment;
@@ -604,6 +655,10 @@ function CommentItem({
   awardedAmount?: number;
   canAward: boolean;
   defaultExpanded: boolean;
+  // The logged-in user's email, used to gate the 編輯 entry point to only the
+  // current user's own comment/replies (matched against authorEmail, not the
+  // displayed nickName — two real users could share a nickname).
+  currentUserEmail: string | null;
 }) {
   return (
     <article className="flex flex-col gap-2.5">
@@ -628,7 +683,7 @@ function CommentItem({
           <div className="mt-1 text-[14.5px] leading-[1.7] text-text-primary">
             {comment.content}
           </div>
-          <CommentImages comment={comment} />
+          <AttachedImages images={comment.images} />
           <CommentActions
             likeCount={comment.likeCount}
             isLiked={isLiked}
@@ -639,6 +694,11 @@ function CommentItem({
             isAwarded={isAwarded}
             awardedAmount={awardedAmount}
             canAward={canAward}
+            editHref={
+              comment.authorEmail !== undefined && comment.authorEmail === currentUserEmail
+                ? `/posts/${postId}/comments/new?editCommentId=${comment.commentId}`
+                : undefined
+            }
           />
         </div>
       </div>
@@ -651,6 +711,7 @@ function CommentItem({
           isReplyOpen={isReplyOpen}
           onReply={onReply}
           defaultExpanded={defaultExpanded}
+          currentUserEmail={currentUserEmail}
         />
       ) : null}
     </article>
@@ -691,6 +752,17 @@ export default function CommentBoard({
   // Only one comment's reply box is open at a time — cleaner on the mobile
   // width and keeps the composer focus unambiguous.
   const [activeReplyId, setActiveReplyId] = useState<string | null>(null);
+  // The logged-in user's email, used to gate the 編輯 entry point to only the
+  // current user's own comments/replies (matched against authorEmail, never
+  // the displayed nickName — two real users could share a nickname). Read in
+  // an effect (not inline during render) since it comes from localStorage and
+  // would otherwise mismatch between the server render and the client, same
+  // as the pending merge below.
+  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCurrentUserEmail(getAuthedUser()?.email ?? null);
+  }, []);
 
   const router = useRouter();
   const pathname = usePathname();
@@ -745,12 +817,14 @@ export default function CommentBoard({
   // Optimistically append the new comment and persist it to the pending store so
   // it survives navigation/reload within the session (no comments backend yet).
   function addComment(text: string) {
+    const authedUser = getAuthedUser();
     const comment = {
-      commentId: `tmp_${Date.now()}`,
-      nickName: '你',
+      commentId: crypto.randomUUID(),
+      nickName: authedUser?.nickName ?? '你',
       timeLabel: '剛剛',
       content: text,
       likeCount: 0,
+      authorEmail: authedUser?.email,
     };
     setComments((prev) => [...prev, { ...comment, floor: `B${prev.length + 1}` }]);
     addPendingComment(postId, comment);
@@ -763,7 +837,14 @@ export default function CommentBoard({
   // reply-aware full template instead (see ReplyComposer). No rollback — there
   // is no backend to reconcile against yet.
   function addReply(commentId: string, text: string) {
-    const reply = { replyId: `tmp_${Date.now()}`, nickName: '你', content: text };
+    const authedUser = getAuthedUser();
+    const reply = {
+      replyId: crypto.randomUUID(),
+      nickName: authedUser?.nickName ?? '你',
+      timeLabel: '剛剛',
+      content: text,
+      authorEmail: authedUser?.email,
+    };
     setComments((prev) =>
       prev.map((comment) =>
         comment.commentId === commentId
@@ -850,6 +931,7 @@ export default function CommentBoard({
               awardedAmount={awarded?.amount}
               canAward={awarded === null}
               defaultExpanded={expandReplyId === comment.commentId}
+              currentUserEmail={currentUserEmail}
             />
             {index < comments.length - 1 ? (
               <div className="h-px bg-[#E0D4AA]" aria-hidden="true" />
