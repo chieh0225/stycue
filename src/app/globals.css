@@ -2,6 +2,11 @@
 
 html {
   overflow-y: scroll;
+  /* Reserves space at the bottom for sticky bottom bars (e.g. the comment
+     composer, bottom nav) that would otherwise visually cover a target
+     scrolled into view — scrollIntoView only knows the viewport's geometry,
+     not that a sticky sibling overlaps part of it. */
+  scroll-padding-bottom: 5rem;
 }
 
 /* Toggled by <HideScrollbar> on full-screen post pages: keep document scroll
