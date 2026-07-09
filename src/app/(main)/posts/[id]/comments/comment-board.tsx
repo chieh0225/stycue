@@ -3,7 +3,9 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Divider } from '@/components/ui/divider';
 import CommentComposer from '../comment-composer';
 import { addPendingComment, addPendingReply, mergePendingComments } from '../pending-comments';
 
@@ -374,9 +376,9 @@ function ReplyList({
         <ul className="flex flex-col gap-3.5">
           {replies.map((reply) => (
             <li key={reply.replyId} id={`reply-${reply.replyId}`} className="flex gap-[9px]">
-              <div className="flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full bg-text-primary text-surface-base">
+              <Avatar size="sm">
                 <UserIcon className="h-3.5 w-3.5" />
-              </div>
+              </Avatar>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-[7px]">
                   <span className="text-sm font-bold text-text-primary">{reply.nickName}</span>
@@ -486,7 +488,7 @@ function GivePointsModal({
           })}
         </div>
 
-        <div className="mt-5 mb-4 h-px w-full bg-[#EFE7CE]" />
+        <Divider className="mt-5 mb-4" />
 
         <div className="flex w-full items-center gap-2.5">
           <button
@@ -553,7 +555,7 @@ function InsufficientPointsModal({
           您目前的積分不足以給予 {targetName} {amount} 積分，請前往儲值積分！
         </span>
 
-        <div className="mb-4 h-px w-full bg-[#EFE7CE]" />
+        <Divider className="mb-4" />
 
         <div className="flex w-full items-center gap-2.5">
           <button
@@ -605,9 +607,9 @@ function CommentItem({
   return (
     <article className="flex flex-col gap-2.5">
       <div className="flex gap-2.5">
-        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-text-primary text-surface-base">
+        <Avatar size="lg">
           <UserIcon />
-        </div>
+        </Avatar>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="text-[15px] font-bold text-text-primary">{comment.nickName}</span>
@@ -850,9 +852,7 @@ export default function CommentBoard({
               canAward={awarded === null}
               defaultExpanded={expandReplyId === comment.commentId}
             />
-            {index < comments.length - 1 ? (
-              <div className="h-px bg-[#E0D4AA]" aria-hidden="true" />
-            ) : null}
+            {index < comments.length - 1 ? <Divider aria-hidden="true" /> : null}
           </li>
         ))}
       </ul>

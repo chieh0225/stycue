@@ -65,3 +65,43 @@
 
 **驗證**：`tsc` 0 errors、`eslint` 0 errors、`npm run build` ✓ Compiled successfully。
 **Commit（建議）**：`feat(ui): adopt Badge primitive at static tag/label sites`
+
+### #3 Avatar + Divider（`src/components/ui/avatar.tsx`、`divider.tsx`）
+
+**元件定案**：
+
+- **Avatar**：cva，base `inline-flex shrink-0 items-center justify-center rounded-full bg-foreground text-sm text-background`；size `sm`(30px)/`md`(34px)/`lg`(36px)/`xl`(38px，預設)。內容（icon 或姓名縮寫文字）由呼叫端傳入 children，元件不內建圖示邏輯。
+- **Divider**：無 variant，`h-px w-full bg-border`，margin/寬度用 `className` override。
+
+**尺寸層級決策（依畫面情境分四階，非數值就近湊）**：
+
+- `xl`(38px)：主要作者列——單頁最主要的身分標示（post detail／preview／發表委託頁／comment 表單的作者列）。
+- `lg`(36px)：留言列表項目身分（comment-board 留言項目），與 xl 分開避免同畫面主從混淆。
+- `md`(34px)：緊湊列/操作列（composer 底部輸入列、feed 卡片作者色塊）。
+- `sm`(30px)：次要/巢狀情境（留言巢狀回覆、trending 小卡作者色塊——原 28px，因與回覆頭像同屬「全站最緊湊」層級收斂進來）。
+
+**採用點（8 處固定色頭像 + 2 處動態色頭像）**：
+
+| 檔案:行                                                             | 前                                                                             | 後                                                                             |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| `posts/[id]/page.tsx:130`（作者列）                                 | `h-[38px] w-[38px] … bg-text-primary text-surface-base`                        | `<Avatar size="xl"><UserIcon /></Avatar>`                                      |
+| `posts/new/preview/page.tsx:200`（作者列，文字 M）                  | `h-[38px] w-[38px] … bg-text-primary text-sm text-surface-base`                | `<Avatar size="xl">M</Avatar>`                                                 |
+| `posts/new/page.tsx:106`（作者列，文字 M）                          | 原 `h-9 w-9`（36px）→ 修正對齊其他作者列                                       | `<Avatar size="xl">M</Avatar>`                                                 |
+| `add-comment-form.tsx:257`（作者列）                                | `h-[38px] w-[38px] …`                                                          | `<Avatar size="xl"><UserIcon /></Avatar>`                                      |
+| `comment-board.tsx:610`（留言項目）                                 | `h-9 w-9 …`（維持 36px，不併入 xl）                                            | `<Avatar size="lg"><UserIcon /></Avatar>`                                      |
+| `comment-composer.tsx:78`、`comment-launcher.tsx:49`（composer 列） | `h-[34px] w-[34px] …`                                                          | `<Avatar size="md"><UserIcon className="h-4 w-4" /></Avatar>`                  |
+| `comment-board.tsx:379`（巢狀回覆）                                 | `h-[30px] w-[30px] …`                                                          | `<Avatar size="sm"><UserIcon className="h-3.5 w-3.5" /></Avatar>`              |
+| `page.tsx:271`（trending 小卡，動態色）                             | `h-7 w-7 rounded-full ${item.accent}`                                          | `<Avatar size="sm" className={item.accent} />`（twMerge 覆蓋 `bg-foreground`） |
+| `page.tsx:383`（feed 貼文作者，動態色+邊框）                        | `h-[34px] w-[34px] rounded-full border-2 border-border-default ${post.accent}` | `<Avatar size="md" className={cn('border-2 border-border', post.accent)} />`   |
+
+**Divider 採用點（11 處）**：`posts/[id]/page.tsx`×3、`preview/page.tsx`×3、`add-comment-form.tsx`×1、`comment-board.tsx`×3（`bg-[#EFE7CE]`/`bg-[#E0D4AA]` 依 §7-3 收斂 `bg-border`）、`login`/`register` 各 2（`h-px flex-1`→`<Divider className="w-auto flex-1" />`，避免 `w-full` 與 `flex-1` 在 flex row 內的寬度語意衝突，雖然 flex-basis:0 已足夠正確，仍保留 `w-auto` 讓行為與原始一致）。margin 全採 Track B B3 建議的原生 fraction（`mb-[18px]`→`mb-4.5`）。
+
+**收斂帶來的極輕微視覺位移**（已接受）：`posts/new/page.tsx` 作者列 36px→38px（對齊其他頁作者列）；trending 小卡 28px→30px（併入最緊湊層級）。
+
+**尚未採用（留待後續）**：
+
+- `preview/page.tsx:143`（分類下拉觸發器內的頭像佔位，若有）、`page.tsx:251`（trending 排名徽章）、`empty-notifications.tsx` skeleton 圓形——非本輪範圍。
+- `comment-board.tsx:360`（回覆串左側縱向分隔線 `border-l-2 border-[#EFE7CE]`）——非水平 Divider 用途（縱向 thread 線），色值收斂留給 Track B/Phase 3D 一併處理。
+
+**驗證**：`tsc` 0 errors、`eslint` 0 errors（同一既有 warning）、`npm run build` ✓ Compiled successfully；額外確認 Tailwind v4 原生 fraction（`h-7.5`/`h-8.5`/`h-9.5`）與 `border-2`/`bg-foreground`/`text-background` 皆正確生成於編譯後 CSS。
+**Commit（建議）**：`feat(ui): adopt Avatar and Divider primitives`

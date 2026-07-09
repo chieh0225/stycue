@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import { getCreatedPost } from '@/app/api/posts/store';
+import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Divider } from '@/components/ui/divider';
 import CommentLauncher from './comment-launcher';
 import HideScrollbar from './hide-scrollbar';
 import { MOCK_PUBLISH_POINTS } from './mock-commission';
@@ -127,9 +129,9 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
 
         {/* Author row */}
         <div className="mb-[18px] flex items-center gap-2.5">
-          <div className="flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-full bg-text-primary text-surface-base">
+          <Avatar size="xl">
             <UserIcon />
-          </div>
+          </Avatar>
           <div className="flex flex-1 flex-col">
             <span className="text-base font-bold text-text-primary">Maple</span>
             <time dateTime={createdAt} className="text-[12px] text-[#9A9080]">
@@ -141,7 +143,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
           </Button>
         </div>
 
-        <div className="mb-[18px] h-px bg-border-default" />
+        <Divider className="mb-4.5" />
 
         {/* Body text */}
         <div className="mb-[22px] text-[15.5px] leading-[1.8] whitespace-pre-line text-text-primary">
@@ -196,7 +198,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
               </dd>
             </div>
           </dl>
-          <div className="mx-3.5 mb-3 h-px bg-border-default" />
+          <Divider className="mx-3.5 mb-3 w-auto" />
           <dl className="flex items-center justify-between px-3.5">
             <dt className="text-[12.5px] text-[#9A9080]">預算範圍</dt>
             <dd className="text-sm font-bold text-text-primary">{budgetLabel}</dd>
@@ -210,7 +212,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
           委託者可給予青睞留言 {points} 積分
         </div>
 
-        <div className="mb-4 h-px bg-border-default" />
+        <Divider className="mb-4" />
 
         {/* 互動列 */}
         <PostInteractions postId={id} initialLikes={222} comments={50} />

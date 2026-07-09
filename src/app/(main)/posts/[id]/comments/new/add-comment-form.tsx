@@ -3,7 +3,9 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
+import { Avatar } from '@/components/ui/avatar';
 import { Button, buttonVariants } from '@/components/ui/button';
+import { Divider } from '@/components/ui/divider';
 import { cn } from '@/lib/utils';
 import {
   addPendingComment,
@@ -252,9 +254,9 @@ export default function AddCommentForm({
       <div className="no-scrollbar flex-1 overflow-y-auto px-4.5 pt-5 pb-6">
         {/* Author row */}
         <div className="mb-4 flex items-center gap-2.5">
-          <div className="flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-full bg-text-primary text-surface-base">
+          <Avatar size="xl">
             <UserIcon />
-          </div>
+          </Avatar>
           <span className="text-[12.5px] leading-[1.5] text-text-muted">
             發布後內容將依序顯示：文字內容 &gt; 附加圖片
           </span>
@@ -273,7 +275,7 @@ export default function AddCommentForm({
         <div className="mb-3">
           <span className="text-lg font-bold text-text-primary">附加圖片</span>
         </div>
-        <div className="mb-2.5 h-px bg-border-default" />
+        <Divider className="mb-2.5" />
         <div className="mb-[18px] text-xs text-[#9A9080]">
           最多可上傳 {MAX_IMAGES} 張圖片，單張檔案大小不可超過 10MB
         </div>

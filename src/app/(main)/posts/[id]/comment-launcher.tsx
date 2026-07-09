@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Avatar } from '@/components/ui/avatar';
 
 function UserIcon({ className = 'h-4 w-4' }: { className?: string }) {
   return (
@@ -46,9 +47,9 @@ export default function CommentLauncher({ postId }: { postId: string }) {
       aria-label="查看並加入留言討論"
       className="sticky bottom-0 z-10 flex items-center gap-2.5 border-t border-border-default bg-surface-base px-4.5 py-3.5"
     >
-      <div className="flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full bg-text-primary text-surface-base">
+      <Avatar size="md">
         <UserIcon className="h-4 w-4" />
-      </div>
+      </Avatar>
       <span className="min-w-0 flex-1 truncate text-[13.5px] text-text-muted">
         查看並加入留言討論…
       </span>

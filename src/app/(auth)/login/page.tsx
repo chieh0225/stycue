@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { Divider } from '@/components/ui/divider';
 import { setAuthed } from '../../auth';
 import { AlertIcon, GoogleIcon, LockIcon, LogoIcon, MailIcon } from '../icons';
 import { EMAIL_REGEX, PASSWORD_REGEX } from '../validation';
@@ -148,9 +149,9 @@ export default function LoginPage() {
 
       {/* Divider */}
       <div className="mb-5.5 flex items-center gap-3">
-        <div className="h-px flex-1 bg-border-default" />
+        <Divider className="w-auto flex-1" />
         <span className="text-xs text-text-muted">或使用以下方式登入</span>
-        <div className="h-px flex-1 bg-border-default" />
+        <Divider className="w-auto flex-1" />
       </div>
 
       {/* Google */}

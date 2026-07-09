@@ -2,8 +2,10 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 const trendingItems = [
   {
@@ -266,7 +268,7 @@ export default function Home() {
               </Link>
               <div className="flex items-center justify-between px-3 py-3">
                 <div className="flex items-center gap-2">
-                  <div className={`h-7 w-7 rounded-full ${item.accent}`} />
+                  <Avatar size="sm" className={item.accent} />
                   <div>
                     <div className="text-[13px] font-semibold text-text-primary">{item.author}</div>
                     <div className="text-[11px] text-text-muted">{item.meta}</div>
@@ -377,9 +379,7 @@ export default function Home() {
               <Link href={`/posts/${post.id}`} className="block p-4 pb-0">
                 <div className="mb-3 flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div
-                      className={`h-[34px] w-[34px] rounded-full border-2 border-border-default ${post.accent}`}
-                    />
+                    <Avatar size="md" className={cn('border-2 border-border', post.accent)} />
                     <div>
                       <div className="text-[14px] font-semibold text-text-primary">
                         {post.author}
