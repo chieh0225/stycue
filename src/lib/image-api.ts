@@ -15,7 +15,7 @@ export async function uploadImage(
   return (await res.json()) as ApiEnvelope<ImageResponse>;
 }
 
-export async function deleteImage(imageId: string): Promise<ApiEnvelope<unknown>> {
+export async function deleteImage(imageId: number): Promise<ApiEnvelope<unknown>> {
   const res = await fetch(`/api/images/${imageId}`, { method: 'DELETE' });
   return (await res.json()) as ApiEnvelope<unknown>;
 }
