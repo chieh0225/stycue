@@ -3,6 +3,14 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { deleteImage, uploadImage } from '@/lib/image-api';
 import {
   categoryLabel,
@@ -442,46 +450,42 @@ export default function NewPostPhotoPage() {
           上傳全部圖片
         </button>
 
-        {deleteTarget && (
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="delete-image-title"
-            onClick={() => setDeleteTarget(null)}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(64,58,50,0.42)] px-8"
-          >
-            <div
-              onClick={(event) => event.stopPropagation()}
-              className="flex w-full max-w-[300px] flex-col items-center rounded-2xl bg-surface-base px-[22px] pt-[26px] pb-5 text-center shadow-[0_12px_32px_rgba(64,58,50,0.28)]"
-            >
-              <div className="mb-4 flex h-13 w-13 items-center justify-center rounded-full bg-[#FBE8E4] text-[#C0564B]">
-                <TrashLinesIcon />
-              </div>
-              <span id="delete-image-title" className="mb-2 text-base font-bold text-text-primary">
-                刪除圖片？
-              </span>
-              <span className="mb-[22px] text-[13px] leading-[1.6] text-text-muted">
-                確定要刪除「{attachmentLabel(deleteTarget)}」嗎？此操作無法復原。
-              </span>
-              <div className="flex w-full gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setDeleteTarget(null)}
-                  className="flex h-[46px] flex-1 items-center justify-center rounded-lg border-[1.5px] border-border-default text-sm font-bold text-text-primary hover:bg-[#F5EEDA]"
-                >
-                  取消
-                </button>
-                <button
-                  type="button"
-                  onClick={() => removeImage(deleteTarget.id)}
-                  className="flex h-[46px] flex-1 items-center justify-center rounded-lg bg-[#C0564B] text-sm font-bold text-surface-base shadow-[0_4px_12px_rgba(192,86,75,0.28)] hover:bg-[#AB4B41]"
-                >
-                  刪除
-                </button>
-              </div>
+        <Dialog
+          open={deleteTarget !== null}
+          onOpenChange={(open) => {
+            if (!open) setDeleteTarget(null);
+          }}
+        >
+          <DialogContent className="flex flex-col items-center px-5.5 pt-6.5 pb-5 text-center">
+            <div className="mb-4 flex h-13 w-13 items-center justify-center rounded-full bg-destructive-bg text-destructive">
+              <TrashLinesIcon />
             </div>
-          </div>
-        )}
+            <DialogTitle className="mb-2 text-base">刪除圖片？</DialogTitle>
+            <DialogDescription className="mb-5.5">
+              確定要刪除「{deleteTarget ? attachmentLabel(deleteTarget) : ''}」嗎？此操作無法復原。
+            </DialogDescription>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="secondary"
+                size="md"
+                onClick={() => setDeleteTarget(null)}
+                className="flex-1"
+              >
+                取消
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                size="md"
+                onClick={() => deleteTarget && removeImage(deleteTarget.id)}
+                className="flex-1"
+              >
+                刪除
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
