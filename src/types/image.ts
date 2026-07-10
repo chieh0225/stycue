@@ -1,7 +1,7 @@
 export type ImagePurpose = 'commissions' | 'comments';
 
 export type ImageResponse = {
-  imageId: string; // wire value is a big-int-safe string; never coerce to number
+  imageId: number; // wire value is a plain JSON number, despite the OpenAPI schema allowing string|integer
   purpose: string;
   url: string;
   category: number | null;

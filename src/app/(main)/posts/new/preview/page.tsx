@@ -24,7 +24,8 @@ export default function NewPostPreviewPage() {
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const titleRef = useRef<HTMLTextAreaElement>(null);
 
-  const { title, description, height, weight, age, selectedBudget, postType, points } = form;
+  const { title, description, height, weight, age, selectedBudget, postType, points, photos } =
+    form;
 
   // Auto-grow to fit the full text when expanded so it never needs its own
   // scrollbar; collapsed mode keeps the fixed 3-row clamp instead.
@@ -109,6 +110,14 @@ export default function NewPostPreviewPage() {
       }),
     });
     const { id } = (await res.json()) as { id: string };
+
+    if (photos.length > 0) {
+      await fetch(`/api/posts/${id}/images`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ photos }),
+      });
+    }
 
     localStorage.removeItem(DRAFT_STORAGE_KEY);
     fetch('/api/posts/draft-tags', {
@@ -232,6 +241,21 @@ export default function NewPostPreviewPage() {
             </svg>
           </button>
         </div>
+
+        {/* 身形照片 */}
+        {photos.length > 0 ? (
+          <div className="mb-[22px] flex flex-wrap gap-2">
+            {photos.map((photo) => (
+              // eslint-disable-next-line @next/next/no-img-element -- uploaded photo URL from real backend
+              <img
+                key={photo.imageId}
+                src={photo.url}
+                alt="身形照片"
+                className="h-24 w-24 flex-shrink-0 rounded-xl object-cover"
+              />
+            ))}
+          </div>
+        ) : null}
 
         {/* 標籤 */}
         <h2 className="mb-3 text-base font-bold text-text-primary">標籤</h2>
