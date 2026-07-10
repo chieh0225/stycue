@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { deleteImage, uploadImage } from '@/lib/image-api';
 import {
@@ -163,6 +164,7 @@ function persistPhotos(images: Attachment[]) {
 }
 
 export default function NewPostPhotoPage() {
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [images, setImages] = useState<Attachment[]>([]);
   const [openTagId, setOpenTagId] = useState<string | null>(null);
@@ -271,6 +273,9 @@ export default function NewPostPhotoPage() {
       setImages(current);
     }
     persistPhotos(current);
+    if (current.every((image) => image.status !== 'error')) {
+      router.push('/posts/new');
+    }
   }
 
   return (
