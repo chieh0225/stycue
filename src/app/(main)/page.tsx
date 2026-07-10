@@ -6,6 +6,9 @@ import { PlaceholderAvatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
+import { Sheet, SheetClose, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { TopBar } from '@/components/ui/top-bar';
 
 const trendingItems = [
@@ -453,81 +456,70 @@ export default function Home() {
         })}
       </section>
 
-      {menuOpen ? (
-        <div
-          className="fixed inset-y-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 bg-[rgba(64,58,50,0.42)]"
-          onClick={() => setMenuOpen(false)}
+      <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+        <SheetContent
+          side="left"
+          className="gap-0 bg-secondary p-5 shadow-[4px_0_20px_rgba(64,58,50,0.18)] data-[side=left]:left-[max(0px,calc(50%-14rem))] data-[side=left]:w-65"
         >
-          <div
-            className="h-full w-[260px] bg-surface-soft p-5 shadow-[4px_0_20px_rgba(64,58,50,0.18)]"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="mb-5 flex items-center justify-between">
-              <div className="text-[17px] font-bold text-text-primary">快速瀏覽</div>
-              <button
-                type="button"
-                onClick={() => setMenuOpen(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-full"
-              >
-                <MenuIcon />
-              </button>
-            </div>
-            <div className="space-y-2">
-              {menuLinkGroups.map((group, groupIndex) => (
-                <div key={groupIndex}>
-                  {groupIndex > 0 ? <div className="my-3 border-t border-border-default" /> : null}
-                  {group.map((item) => (
-                    <Link
-                      key={item.label}
-                      href={item.href}
-                      className="flex w-full items-center gap-3 rounded-[10px] px-3 py-3 text-left text-[14.5px] font-medium text-text-primary hover:bg-white/80"
-                    >
-                      <span className="text-lg">{item.icon}</span>
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {checkinOpen ? (
-        <div
-          className="fixed inset-y-0 left-1/2 z-50 flex w-full max-w-md -translate-x-1/2 items-center justify-center bg-[rgba(64,58,50,0.45)] p-4"
-          onClick={() => setCheckinOpen(false)}
-        >
-          <div
-            className="w-[280px] rounded-[20px] bg-surface-base p-7 text-center shadow-[0_16px_40px_rgba(64,58,50,0.28)]"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <button
-              type="button"
-              onClick={() => setCheckinOpen(false)}
-              className="mb-4 ml-auto flex h-7 w-7 items-center justify-center rounded-full text-text-muted"
+          <div className="mb-5 flex items-center justify-between">
+            <SheetTitle className="text-[17px]">快速瀏覽</SheetTitle>
+            <SheetClose
+              render={
+                <button
+                  type="button"
+                  aria-label="關閉選單"
+                  className="flex h-8 w-8 items-center justify-center rounded-full"
+                />
+              }
             >
-              ✕
-            </button>
-            <div className="mb-7 flex justify-center">
-              <div className="flex h-[54px] w-[54px] items-center justify-center rounded-full border-[4px] border-accent-amber bg-brand-primary text-[20px] font-black text-text-primary">
-                簽
+              <MenuIcon />
+            </SheetClose>
+          </div>
+          <div className="space-y-2">
+            {menuLinkGroups.map((group, groupIndex) => (
+              <div key={groupIndex}>
+                {groupIndex > 0 ? <Separator className="my-3" /> : null}
+                {group.map((item) => (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className="flex w-full items-center gap-3 rounded-[10px] px-3 py-3 text-left text-[14.5px] font-medium text-foreground hover:bg-card/80"
+                  >
+                    <span className="text-lg">{item.icon}</span>
+                    {item.label}
+                  </Link>
+                ))}
               </div>
-            </div>
-            <div className="mb-3 text-[20px] font-bold text-text-primary">簽到完成</div>
-            <div className="mb-6 text-[16px] font-bold text-accent-amber">獲得積分 + 50</div>
-            <Button
-              type="button"
-              variant="primary"
-              size="lg"
-              onClick={() => setCheckinOpen(false)}
-              className="w-full"
-            >
-              知道了
-            </Button>
+            ))}
           </div>
-        </div>
-      ) : null}
+        </SheetContent>
+      </Sheet>
+
+      <Dialog
+        open={checkinOpen}
+        onOpenChange={(open) => {
+          if (!open) setCheckinOpen(false);
+        }}
+      >
+        <DialogContent showCloseButton className="p-7 text-center">
+          <div className="mb-7 flex justify-center">
+            <div className="flex h-13.5 w-13.5 items-center justify-center rounded-full border-4 border-gold bg-primary text-display font-black text-primary-foreground">
+              簽
+            </div>
+          </div>
+          <DialogTitle className="mb-3 text-display">簽到完成</DialogTitle>
+          <div className="mb-6 text-title font-bold text-gold">獲得積分 + 50</div>
+          <Button
+            type="button"
+            variant="primary"
+            size="lg"
+            onClick={() => setCheckinOpen(false)}
+            className="w-full"
+          >
+            知道了
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

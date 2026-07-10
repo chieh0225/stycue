@@ -258,3 +258,69 @@ A1 標準規格：`sticky top-0 z-10 border-b border-border-subtle bg-secondary 
 `top-bar.tsx` 元件本身的 padding 保持 `py-3`（首頁沿用，不特別覆寫），其餘 6 個呼叫點（`posts/[id]/page.tsx`、`posts/[id]/comments/page.tsx`、`posts/[id]/comments/new/page.tsx`、`posts/new/page.tsx`、`posts/new/preview/page.tsx`、`notifications/page.tsx`）逐一加上 `className="py-4"`，靠 `cn`/`twMerge` 覆寫元件預設值——這是 TopBar 系列調整中第一次出現「首頁跟其他頁不同」的分裂，之後若還有頁面差異化需求，同樣走 `className` 覆寫而非改元件預設。
 
 **驗證**：`tsc --noEmit` 0 errors；`eslint` 0 errors；`npm run build` ✓ 全站路由正常產出。
+
+---
+
+## Phase 3C — Dialog / Sheet（`src/components/ui/dialog.tsx`、`sheet.tsx`）
+
+延續 3A.5（修正版）做法：以官方 base-vega registry 原始碼為起點（`https://ui.shadcn.com/r/styles/base-vega/{dialog,sheet}.json`，皆用 `@base-ui/react/dialog` 子路徑，依賴已裝），直接編輯成品牌版；頁面直接 import，不設 `custom/` 邊界。Base UI Dialog/Sheet 免費提供 focus trap／ESC 關閉／scroll-lock／點擊遮罩關閉／`aria-*` 自動綁定，取代原本手寫 `{open ? <div role="dialog" aria-modal onClick=backdrop>...</div> : null}`。
+
+### 使用者決策（4 項，逐項詢問後定案）
+
+1. **遮罩範圍 → 統一只暗手機直欄**。`DialogOverlay`/`SheetOverlay` 的 `fixed inset-0` 改成 `fixed inset-y-0 left-1/2 w-full max-w-md -translate-x-1/2`——這組 class 會自我夾限：`fixed` 元素的 `w-full` 以視窗寬度為基準、`max-w-md` 封頂 28rem，`-translate-x-1/2` 位移量吃的是元素自身寬度，所以窄螢幕（實際手機，多數 <448px）自動等於 `left:0`、寬螢幕（桌機預覽）自動置中成 448px 欄，跟 `RootLayout`（`src/app/layout.tsx`）本身 `w-full max-w-md` 置中欄的算法完全一致，桌機灰底維持不變暗。
+   **副作用需額外修正**：側邊選單 `SheetContent` 的官方 `data-[side=left]:left-0` 是相對「視窗」左緣，不是「欄」左緣——遮罩改成只暗欄內後，若面板仍貼視窗左緣，桌機上會跟遮罩脫節（面板在暗區外）。呼叫端（`page.tsx`）加上 `data-[side=left]:left-[max(0px,calc(50%-14rem))]` override：`calc(50%-14rem)` 是欄左緣的位置（50% 視窗寬減半個 28rem 欄寬），但這個算式在窄螢幕會算出負值（面板被裁到螢幕外），所以外面再包一層 `max(0px, …)` 夾住下限，兩種螢幕寬度都能正確貼齊欄的左緣。
+2. **Dialog 寬度 → 統一 300px**（`max-w-75` 寫進 `DialogContent` base）。簽到 modal 由 280→300 略變寬。
+3. **側邊選單 → 用 Sheet 重寫、保留 260px**（`data-[side=left]:w-65` override 官方的 `w-3/4`）。
+4. **標籤選擇器底部 sheet（`@modal/(.)tags`，intercepting route）→ 先不改**。它由 `router.back()` 驅動開關（開關即路由），改成 Base UI Sheet 會動到互動流程/路由架構，本輪完全不碰。
+
+### 官方原始碼 → 品牌版的改動（`dialog.tsx`）
+
+- **移除 `IconPlaceholder` import**（官方 close 按鈕用的 lucide/tabler/… 抽象層，本專案無此路徑且違反「不導入 lucide、保留 inline SVG」）→ 改成檔內 inline `<XIcon>`（`M18 6L6 18M6 6l12 12`）。
+- **`DialogOverlay`**：`bg-black/10` → `bg-scrim-modal`（品牌 scrim token，rgba(64,58,50,0.42)，§7-5 收斂，原簽到 0.45 一併收斂）。保留官方 `supports-backdrop-filter:backdrop-blur-xs`（新增輕微背景模糊，原手寫版無）。
+- **`DialogContent`**：`ring-1 ring-foreground/10` → `shadow-modal`；寬度固定 `max-w-75`(300px)、拿掉官方 `sm:max-w-md`；圓角 `rounded-xl` → `rounded-2xl`（多數既有 modal 值，簽到原 `rounded-[20px]`→2xl 一併收斂）；拿掉官方 `grid gap-6 p-6` 內距（各 modal 有自己的置中排版，改由呼叫端 className 帶）。`showCloseButton` 預設改為 `false`（多數 modal 無角落 X）。
+- **`DialogTitle`**：拿掉官方 `cn-font-heading`（base-vega 專屬字型 class，本專案無）與 base 字級；base 只留 `font-bold text-foreground`，字級由各 modal 自帶（16/14.5/20px 不一，且 `twMerge` 無法對本專案自訂 `text-*` token 去重，base 不可寫死字級）。
+- **`DialogFooter`**：官方是「手機 `flex-col-reverse`／桌機 `sm:justify-end`」；改寫成本專案的等寬雙鈕橫排 `flex w-full items-center gap-2.5`（鈕各自帶 `flex-1`）。這是唯一真正重複（3 個 modal）的複合子結構才抽成元件；按鈕本身因 variant/文案各異，維持呼叫端 raw `<Button>`，不另包 `ModalCancelButton`/`ModalActionButton`（推翻規劃檔當初的暫定命名，理由：那些按鈕不是「同一顆重複」，只有「排版列」重複）。
+- **`data-open:animate-in`/`zoom-in-95` 等動畫 class 照官方保留但目前失效**（未裝 `tw-animate-css`）：modal 直接出現/消失、無進退場動畫——與被取代的手寫版行為一致，零回歸。若日後要動畫再裝該套件即可生效。
+
+### `sheet.tsx`（側欄 drawer，官方 Sheet = 同一 Dialog primitive 的側板變體）
+
+- 同樣移除 `IconPlaceholder` → inline `<XIcon>`；`SheetOverlay` `bg-black/10` → `bg-scrim-modal`。
+- `SheetContent` 官方側板 class（含 `data-[side=*]` 四方向變體）大致原樣保留；側邊選單呼叫端用 `data-[side=left]:w-65`(260px) override 官方 `w-3/4`、`bg-secondary` override `bg-popover`、`gap-0` override `gap-4`、自訂右向陰影 `shadow-[4px_0_20px_rgba(64,58,50,0.18)]` override `shadow-lg`（此為 §B2 標記的 drawer 專屬水平陰影，無對應 token 且方向獨特，維持為 §8 一次性值）。官方 `data-[side=left]:border-r` 的 1px 右緣 hairline 予以保留（原版無，差異極微）。
+
+### 採用點
+
+| 檔案:位置                                | 前                                                 | 後                                                                                                                                                                                                                                                                                                                                        |
+| ---------------------------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `add-comment-form.tsx`（刪除圖片 modal） | 手寫 `fixed inset-0` 遮罩 + `role=dialog` 面板     | `<Dialog open={deleteTarget!==null} onOpenChange>` + `<DialogContent>`；icon 圈 `bg-[#FBE8E4] text-[#C0564B]`→`bg-destructive-bg text-destructive`；標題/描述改 `DialogTitle`/`DialogDescription`；footer 改 `DialogFooter`（鈕本來就已是 `<Button>`）                                                                                    |
+| `page.tsx`（簽到 modal）                 | 手寫遮罩 + 面板，角落 ✕（`ml-auto` 佔一列）        | `<Dialog open={checkinOpen} onOpenChange>` + `<DialogContent showCloseButton>`（✕ 改為官方 `absolute top-4 right-4` 浮動角落鈕，內容因此略上移）；`bg-brand-primary`→`bg-primary`、`border-accent-amber`→`border-gold`、`text-accent-amber`→`text-gold`、寬 280→300                                                                       |
+| `page.tsx`（側邊選單 drawer）            | 手寫 `left-1/2 max-w-md` 遮罩 + 左側 260px 抽屜    | `<Sheet open={menuOpen} onOpenChange>` + `<SheetContent side="left">`；標題改 `SheetTitle`、關閉鈕改 `SheetClose`、群組分隔線 `border-t` div → `<Separator>`；保留 260px/`bg-secondary`/右向陰影（見上）                                                                                                                                  |
+| `comment-board.tsx`（給積分 modal）      | 手寫遮罩 + 面板，footer 取消/確認為 raw `<button>` | `<Dialog open onOpenChange>` + `<DialogContent>`；取消/確認改 `<Button variant="secondary"/"primary" size="md">`（Phase 3A 曾標「留待 Dialog 階段」的按鈕，此處補上）；icon 圈 `bg-[#FCEFDA] text-accent-amber`→`bg-gold-soft text-gold`；**給積分金額的分段選擇器（3 顆）維持 raw 不動**（屬 A6 分段控制，非 Dialog footer，非本輪範圍） |
+| `comment-board.tsx`（積分不足 modal）    | 手寫遮罩 + 面板                                    | `<Dialog open onOpenChange>` + `<DialogContent>`；icon 圈 `bg-[rgba(196,62,50,0.1)] text-[#C43E32]`→`bg-destructive/10 text-destructive`；取消改 `<Button variant="secondary">`、前往儲值（Link）改 `cn(buttonVariants({ variant:'goldDark', size:'md' }))`                                                                               |
+
+給積分/積分不足兩個 modal 維持「父層條件掛載 + `<Dialog open>` 恆真、關閉時由 `onOpenChange(false)` 呼叫既有 `onClose` 讓父層卸載」的最小改動寫法（不動父層的 `pointsTarget`/`insufficient` 狀態機）。
+
+### 明確未納入（維持現狀）
+
+- **標籤選擇器底部 sheet**（`@modal/(.)tags`，intercepting route）：使用者決定不改。
+- **各頁 dropdown 的 `fixed inset-0` 點擊外關閉層**（篩選/類型/積分下拉）：非 modal，屬未來 `Select`/`Popover` primitive。
+- **給積分金額分段選擇器**：屬 A6 分段控制，另行處理。
+
+### 驗證
+
+- `tsc --noEmit` 0 errors；`eslint src/app src/components` 0 errors（僅一個既有 `prefer-destructuring` warning，與本次無關；新檔 import 順序 warning 已 `--fix`）；`npm run build` ✓ 全站 35 條路由正常產出。
+- `npm run dev` 對首頁／貼文詳情／全部留言／新增留言各頁 curl 檢查伺服器渲染，皆 200、無 unhandled/hydration 錯誤標記；Base UI Dialog `Root` 在關閉狀態不渲染 DOM 元素，初始 SSR 不含 popup、無例外。
+- **未實測項（環境限制，據實記錄）**：focus trap／ESC 關閉／scroll-lock／點擊遮罩關閉／進場焦點移轉這些互動行為由 Base UI 提供，需真實瀏覽器點開 modal 才能驗證；本環境無法驅動瀏覽器，尚未逐項手動確認。建議 review 時於瀏覽器實際開關這 5 個 modal/drawer 各一次覆核。
+
+### Phase 3C 驗收後追加 — 安裝 `tw-animate-css`
+
+`ui/dialog.tsx`/`sheet.tsx` 保留的官方 `data-open:animate-in`/`zoom-in-95`/`data-closed:fade-out-0` 等 class 原本因未裝這個套件而失效（modal/drawer 直接出現/消失）。安裝並在 `globals.css` 補一行 `@import 'tw-animate-css';`（緊接在 `shadcn/tailwind.css` 之後）後，這些 class 開始生效——modal/drawer 現在有淡入+縮放（Dialog）/滑入（Sheet）的進退場動畫。
+
+純 CSS keyframes/utility 套件，不含元件邏輯，不影響 Base UI 的 focus trap/ESC/scroll-lock，不含任何顏色/主題 token（跟 `shadcn/tailwind.css` 同一類依賴）。
+
+**驗證**：`tsc`/`eslint` 0 errors（`globals.css` 非 eslint 掃描範圍，屬正常）；`npm run build` ✓；編譯後 CSS 確認 `@keyframes enter`/`exit`、`fade-in-0`/`zoom-in-95` utility 皆正確產出，`--primary:#f6d978` 等品牌色未被覆蓋。
+
+### Phase 3C 驗收後追加 — Sheet 右邊界顏色修正
+
+側邊選單抽屜（`Sheet`）的右邊界看起來偏黑：`ui/sheet.tsx` 的 `data-[side=left]:border-r` 是官方原始碼原樣保留的一行，**沒指定顏色**，Tailwind v4 邊框預設吃 `currentColor`，而 `SheetContent` 文字色是 `text-popover-foreground`(`#403a32`，深棕近黑)，邊框因此跟著繼承成近黑色。加上 `data-[side=left]:border-border`（品牌邊框 token，`#e5ddbf`）明確指定顏色，改成跟其他元件一致的淺色邊框。
+
+**驗證**：`tsc`/`eslint` 0 errors；`npm run build` ✓。

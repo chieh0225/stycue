@@ -7,6 +7,13 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { BottomBar } from '@/components/ui/bottom-bar';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
@@ -429,50 +436,42 @@ export default function AddCommentForm({
 
       {/* Delete confirmation modal — the trash button stages an attachment here
           instead of removing it outright, so the removal is opt-in. */}
-      {deleteTarget && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="delete-image-title"
-          onClick={() => setDeleteTarget(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(64,58,50,0.42)] px-8"
-        >
-          <div
-            onClick={(event) => event.stopPropagation()}
-            className="flex w-full max-w-[300px] flex-col items-center rounded-2xl bg-surface-base px-[22px] pt-[26px] pb-5 text-center shadow-[0_12px_32px_rgba(64,58,50,0.28)]"
-          >
-            <div className="mb-4 flex h-13 w-13 items-center justify-center rounded-full bg-[#FBE8E4] text-[#C0564B]">
-              <TrashLinesIcon />
-            </div>
-            <span id="delete-image-title" className="mb-2 text-base font-bold text-text-primary">
-              刪除圖片？
-            </span>
-            <span className="mb-[22px] text-[13px] leading-[1.6] text-text-muted">
-              確定要刪除「{deleteTarget.file.name}」嗎？此操作無法復原。
-            </span>
-            <div className="flex w-full gap-2.5">
-              <Button
-                type="button"
-                variant="secondary"
-                size="md"
-                onClick={() => setDeleteTarget(null)}
-                className="flex-1"
-              >
-                取消
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                size="md"
-                onClick={() => removeImage(deleteTarget.id)}
-                className="flex-1"
-              >
-                刪除
-              </Button>
-            </div>
+      <Dialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+      >
+        <DialogContent className="flex flex-col items-center px-5.5 pt-6.5 pb-5 text-center">
+          <div className="mb-4 flex h-13 w-13 items-center justify-center rounded-full bg-destructive-bg text-destructive">
+            <TrashLinesIcon />
           </div>
-        </div>
-      )}
+          <DialogTitle className="mb-2 text-base">刪除圖片？</DialogTitle>
+          <DialogDescription className="mb-5.5">
+            確定要刪除「{deleteTarget?.file.name}」嗎？此操作無法復原。
+          </DialogDescription>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="secondary"
+              size="md"
+              onClick={() => setDeleteTarget(null)}
+              className="flex-1"
+            >
+              取消
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              size="md"
+              onClick={() => deleteTarget && removeImage(deleteTarget.id)}
+              className="flex-1"
+            >
+              刪除
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
