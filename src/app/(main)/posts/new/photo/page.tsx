@@ -3,6 +3,15 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { deleteImage, uploadImage } from '@/lib/image-api';
 import {
   categoryLabel,
@@ -29,7 +38,7 @@ type Attachment = {
   response?: ApiEnvelope<ImageResponse> | ApiEnvelope<unknown>;
 };
 
-function ImagePlusIcon({ className = 'h-[18px] w-[18px]' }: { className?: string }) {
+function ImagePlusIcon({ className = 'h-4.5 w-4.5' }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -293,10 +302,10 @@ export default function NewPostPhotoPage() {
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={images.length >= MAX_IMAGES}
-          className="flex h-14 w-full items-center justify-center gap-2 rounded-xl border-[1.5px] border-dashed border-[#D9CFA9] bg-[#FDF7E9] disabled:opacity-50"
+          className="flex h-14 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border-dashed bg-muted disabled:opacity-50"
         >
-          <ImagePlusIcon className="h-[18px] w-[18px] text-text-muted" />
-          <span className="text-sm font-semibold text-[#5A5248]">
+          <ImagePlusIcon className="h-4.5 w-4.5 text-text-muted" />
+          <span className="text-sm font-semibold text-text-primary">
             新增圖片（{images.length}/{MAX_IMAGES}）
           </span>
         </button>
@@ -348,14 +357,14 @@ export default function NewPostPhotoPage() {
                     type="button"
                     onClick={() => setDeleteTarget(image)}
                     aria-label={`移除 ${attachmentLabel(image)}`}
-                    className="flex-shrink-0 rounded-md p-1 text-[#B8AF9E] hover:bg-[#F5EEDA]"
+                    className="flex-shrink-0 rounded-md p-1 text-text-placeholder hover:bg-accent"
                   >
                     <TrashIcon />
                   </button>
                 </div>
 
-                <div className="mb-[5px] text-[11.5px] text-[#9A9080]">分類標籤</div>
-                <div className="relative mb-2.5 cursor-pointer rounded-lg border-[1.5px] border-border-default bg-[#FDF7E9]">
+                <div className="mb-1.25 text-[11.5px] text-text-tertiary">分類標籤</div>
+                <div className="relative mb-2.5 cursor-pointer rounded-lg border border-border-default bg-muted">
                   <button
                     type="button"
                     disabled={!editable}
@@ -364,9 +373,9 @@ export default function NewPostPhotoPage() {
                     }
                     aria-haspopup="listbox"
                     aria-expanded={openTagId === image.id}
-                    className="flex h-[38px] w-full items-center justify-between px-2.5 disabled:opacity-60"
+                    className="flex h-9.5 w-full items-center justify-between px-2.5 disabled:opacity-60"
                   >
-                    <span className="text-[13px] font-semibold text-text-primary">
+                    <span className="text-meta font-semibold text-text-primary">
                       {categoryLabel(image.category)}
                     </span>
                     <ChevronDownIcon
@@ -378,7 +387,7 @@ export default function NewPostPhotoPage() {
                   {openTagId === image.id && (
                     <ul
                       role="listbox"
-                      className="absolute inset-x-0 top-[calc(100%+4px)] z-20 overflow-hidden rounded-lg border border-border-default bg-surface-base shadow-[0_8px_20px_rgba(64,58,50,0.16)]"
+                      className="absolute inset-x-0 top-[calc(100%+4px)] z-20 overflow-hidden rounded-lg border border-border-default bg-surface-base shadow-dropdown"
                     >
                       {IMAGE_CATEGORIES.map((option) => {
                         const selected = option.id === image.category;
@@ -390,8 +399,8 @@ export default function NewPostPhotoPage() {
                                 updateImage(image.id, { category: option.id });
                                 setOpenTagId(null);
                               }}
-                              className={`flex h-9 w-full items-center px-3 text-[13px] text-text-primary ${
-                                selected ? 'bg-[#FCEFCB] font-bold' : 'font-normal'
+                              className={`flex h-9 w-full items-center px-3 text-meta text-text-primary ${
+                                selected ? 'bg-gold-soft font-bold' : 'font-normal'
                               }`}
                             >
                               {option.label}
@@ -403,15 +412,15 @@ export default function NewPostPhotoPage() {
                   )}
                 </div>
 
-                <div className="mb-[5px] text-[11.5px] text-[#9A9080]">品牌名稱 (選填)</div>
-                <input
+                <div className="mb-1.25 text-[11.5px] text-text-tertiary">品牌名稱 (選填)</div>
+                <Input
                   type="text"
                   value={image.brand}
                   disabled={!editable}
                   onChange={(event) => updateImage(image.id, { brand: event.target.value })}
                   placeholder="輸入品牌..."
                   aria-label={`${attachmentLabel(image)} 品牌名稱`}
-                  className="h-[38px] w-full rounded-lg border-[1.5px] border-border-default px-2.5 text-[13px] font-semibold text-text-primary placeholder:font-normal placeholder:text-[#B8AF9E] focus:outline-none disabled:opacity-60"
+                  className="bg-transparent text-meta font-semibold placeholder:font-normal"
                 />
 
                 {image.response && !image.response.success ? (
@@ -437,51 +446,47 @@ export default function NewPostPhotoPage() {
           type="button"
           onClick={handleUploadAll}
           disabled={!canUploadAll}
-          className="flex h-13 w-full items-center justify-center rounded-lg bg-brand-primary text-base font-bold text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.14)] disabled:opacity-50"
+          className="flex h-13 w-full items-center justify-center rounded-lg bg-brand-primary text-base font-bold text-text-primary shadow-cta disabled:opacity-50"
         >
           上傳全部圖片
         </button>
 
-        {deleteTarget && (
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="delete-image-title"
-            onClick={() => setDeleteTarget(null)}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(64,58,50,0.42)] px-8"
-          >
-            <div
-              onClick={(event) => event.stopPropagation()}
-              className="flex w-full max-w-[300px] flex-col items-center rounded-2xl bg-surface-base px-[22px] pt-[26px] pb-5 text-center shadow-[0_12px_32px_rgba(64,58,50,0.28)]"
-            >
-              <div className="mb-4 flex h-13 w-13 items-center justify-center rounded-full bg-[#FBE8E4] text-[#C0564B]">
-                <TrashLinesIcon />
-              </div>
-              <span id="delete-image-title" className="mb-2 text-base font-bold text-text-primary">
-                刪除圖片？
-              </span>
-              <span className="mb-[22px] text-[13px] leading-[1.6] text-text-muted">
-                確定要刪除「{attachmentLabel(deleteTarget)}」嗎？此操作無法復原。
-              </span>
-              <div className="flex w-full gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setDeleteTarget(null)}
-                  className="flex h-[46px] flex-1 items-center justify-center rounded-lg border-[1.5px] border-border-default text-sm font-bold text-text-primary hover:bg-[#F5EEDA]"
-                >
-                  取消
-                </button>
-                <button
-                  type="button"
-                  onClick={() => removeImage(deleteTarget.id)}
-                  className="flex h-[46px] flex-1 items-center justify-center rounded-lg bg-[#C0564B] text-sm font-bold text-surface-base shadow-[0_4px_12px_rgba(192,86,75,0.28)] hover:bg-[#AB4B41]"
-                >
-                  刪除
-                </button>
-              </div>
+        <Dialog
+          open={deleteTarget !== null}
+          onOpenChange={(open) => {
+            if (!open) setDeleteTarget(null);
+          }}
+        >
+          <DialogContent className="flex flex-col items-center px-5.5 pt-6.5 pb-5 text-center">
+            <div className="mb-4 flex h-13 w-13 items-center justify-center rounded-full bg-destructive-bg text-destructive">
+              <TrashLinesIcon />
             </div>
-          </div>
-        )}
+            <DialogTitle className="mb-2 text-base">刪除圖片？</DialogTitle>
+            <DialogDescription className="mb-5.5">
+              確定要刪除「{deleteTarget ? attachmentLabel(deleteTarget) : ''}」嗎？此操作無法復原。
+            </DialogDescription>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="secondary"
+                size="md"
+                onClick={() => setDeleteTarget(null)}
+                className="flex-1"
+              >
+                取消
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                size="md"
+                onClick={() => deleteTarget && removeImage(deleteTarget.id)}
+                className="flex-1"
+              >
+                刪除
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

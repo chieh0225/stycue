@@ -249,7 +249,7 @@ export default function NewPostPage() {
                     type="button"
                     onClick={() => removePhoto(photo.imageId)}
                     aria-label="移除圖片"
-                    className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white"
+                    className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[rgba(64,58,50,0.55)] text-surface-base"
                   >
                     ✕
                   </button>
