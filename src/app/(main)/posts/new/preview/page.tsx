@@ -251,7 +251,7 @@ export default function NewPostPreviewPage() {
 
         {/* 身形照片 */}
         {photos.length > 0 ? (
-          <div className="mb-[22px] flex flex-wrap gap-2">
+          <div className="mb-5.5 flex flex-wrap gap-2">
             {photos.map((photo) => (
               // eslint-disable-next-line @next/next/no-img-element -- uploaded photo URL from real backend
               <img
