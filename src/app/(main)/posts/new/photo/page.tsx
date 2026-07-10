@@ -11,6 +11,7 @@ import {
   DialogFooter,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { deleteImage, uploadImage } from '@/lib/image-api';
 import {
   categoryLabel,
@@ -412,14 +413,14 @@ export default function NewPostPhotoPage() {
                 </div>
 
                 <div className="mb-[5px] text-[11.5px] text-[#9A9080]">品牌名稱 (選填)</div>
-                <input
+                <Input
                   type="text"
                   value={image.brand}
                   disabled={!editable}
                   onChange={(event) => updateImage(image.id, { brand: event.target.value })}
                   placeholder="輸入品牌..."
                   aria-label={`${attachmentLabel(image)} 品牌名稱`}
-                  className="h-[38px] w-full rounded-lg border-[1.5px] border-border-default px-2.5 text-[13px] font-semibold text-text-primary placeholder:font-normal placeholder:text-[#B8AF9E] focus:outline-none disabled:opacity-60"
+                  className="bg-transparent text-meta font-semibold placeholder:font-normal"
                 />
 
                 {image.response && !image.response.success ? (
