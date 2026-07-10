@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { Avatar } from '@/components/ui/avatar';
-import { Divider } from '@/components/ui/divider';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Separator } from '@/components/ui/separator';
 import {
   DRAFT_STORAGE_KEY,
   TITLE_MAX_LENGTH,
@@ -197,11 +197,13 @@ export default function NewPostPreviewPage() {
 
         {/* Author row (not part of the entered content — shown for context only) */}
         <div className="mb-[18px] flex items-center gap-2.5">
-          <Avatar size="xl">M</Avatar>
+          <Avatar size="xl">
+            <AvatarFallback>M</AvatarFallback>
+          </Avatar>
           <span className="text-base font-bold text-text-primary">Maple</span>
         </div>
 
-        <Divider className="mb-4.5" />
+        <Separator className="mb-4.5" />
 
         {/* Body text */}
         <div className="mb-[22px]">
@@ -316,7 +318,7 @@ export default function NewPostPreviewPage() {
               </span>
             </div>
           </div>
-          <Divider className="mx-3.5 mb-3 w-auto" />
+          <Separator className="mx-3.5 mb-3 w-auto" />
           <div className="px-3.5">
             <span className="text-[12.5px] text-[#9A9080]">預算範圍</span>
             <div className="mt-2 grid grid-cols-2 gap-2">
@@ -402,7 +404,7 @@ export default function NewPostPreviewPage() {
           委託者可給予青睞留言 {points} 積分
         </div>
 
-        <Divider className="mb-4" />
+        <Separator className="mb-4" />
 
         {/* Info box */}
         <div className="flex flex-col gap-2 rounded-lg bg-surface-soft p-4 text-xs text-text-muted">

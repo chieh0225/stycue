@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Avatar } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 function UserIcon({ className = 'h-4 w-4' }: { className?: string }) {
   return (
@@ -77,7 +77,9 @@ export default function CommentComposer({
   return (
     <footer className="sticky bottom-0 z-10 flex items-center gap-2.5 border-t border-border-default bg-surface-base px-4.5 py-3">
       <Avatar size="md">
-        <UserIcon className="h-4 w-4" />
+        <AvatarFallback>
+          <UserIcon className="h-4 w-4" />
+        </AvatarFallback>
       </Avatar>
       {/* Input pill — text field plus, when a template is available, an image
           button that opens the dedicated commission-comment template */}

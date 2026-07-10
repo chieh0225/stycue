@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Avatar } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 function UserIcon({ className = 'h-4 w-4' }: { className?: string }) {
   return (
@@ -48,7 +48,9 @@ export default function CommentLauncher({ postId }: { postId: string }) {
       className="sticky bottom-0 z-10 flex items-center gap-2.5 border-t border-border-default bg-surface-base px-4.5 py-3.5"
     >
       <Avatar size="md">
-        <UserIcon className="h-4 w-4" />
+        <AvatarFallback>
+          <UserIcon className="h-4 w-4" />
+        </AvatarFallback>
       </Avatar>
       <span className="min-w-0 flex-1 truncate text-[13.5px] text-text-muted">
         查看並加入留言討論…

@@ -3,9 +3,9 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { Avatar } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Divider } from '@/components/ui/divider';
+import { Separator } from '@/components/ui/separator';
 import CommentComposer from '../comment-composer';
 import { addPendingComment, addPendingReply, mergePendingComments } from '../pending-comments';
 
@@ -377,7 +377,9 @@ function ReplyList({
           {replies.map((reply) => (
             <li key={reply.replyId} id={`reply-${reply.replyId}`} className="flex gap-[9px]">
               <Avatar size="sm">
-                <UserIcon className="h-3.5 w-3.5" />
+                <AvatarFallback>
+                  <UserIcon className="h-3.5 w-3.5" />
+                </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-[7px]">
@@ -488,7 +490,7 @@ function GivePointsModal({
           })}
         </div>
 
-        <Divider className="mt-5 mb-4" />
+        <Separator className="mt-5 mb-4" />
 
         <div className="flex w-full items-center gap-2.5">
           <button
@@ -555,7 +557,7 @@ function InsufficientPointsModal({
           您目前的積分不足以給予 {targetName} {amount} 積分，請前往儲值積分！
         </span>
 
-        <Divider className="mb-4" />
+        <Separator className="mb-4" />
 
         <div className="flex w-full items-center gap-2.5">
           <button
@@ -608,7 +610,9 @@ function CommentItem({
     <article className="flex flex-col gap-2.5">
       <div className="flex gap-2.5">
         <Avatar size="lg">
-          <UserIcon />
+          <AvatarFallback>
+            <UserIcon />
+          </AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
@@ -852,7 +856,7 @@ export default function CommentBoard({
               canAward={awarded === null}
               defaultExpanded={expandReplyId === comment.commentId}
             />
-            {index < comments.length - 1 ? <Divider aria-hidden="true" /> : null}
+            {index < comments.length - 1 ? <Separator aria-hidden="true" /> : null}
           </li>
         ))}
       </ul>

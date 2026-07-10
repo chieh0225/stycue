@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { Avatar } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DRAFT_STORAGE_KEY,
   TITLE_MAX_LENGTH,
@@ -103,7 +103,9 @@ export default function NewPostPage() {
       <div className="flex flex-1 flex-col gap-6 px-4 py-4">
         {/* User row */}
         <div className="flex items-center gap-2">
-          <Avatar size="xl">M</Avatar>
+          <Avatar size="xl">
+            <AvatarFallback>M</AvatarFallback>
+          </Avatar>
           <span className="text-sm font-medium text-text-primary">Maple</span>
           <div className="relative">
             <button
