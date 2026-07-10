@@ -147,7 +147,7 @@ export default function NewPostPreviewPage() {
               type="button"
               onClick={() => setTypeMenuOpen((open) => !open)}
               aria-expanded={typeMenuOpen}
-              className="flex items-center gap-1 rounded-md bg-[#FCEFDA] px-[9px] py-[3px] text-[13px] font-bold text-accent-amber"
+              className="flex items-center gap-1 rounded-md bg-gold-soft px-2.25 py-0.75 text-meta font-bold text-accent-amber"
             >
               {postType}
               <svg
@@ -164,7 +164,7 @@ export default function NewPostPreviewPage() {
             {typeMenuOpen ? (
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setTypeMenuOpen(false)} />
-                <div className="absolute top-full left-0 z-40 mt-2 w-max overflow-hidden rounded-xl border border-border-default bg-white shadow-[0_4px_12px_rgba(217,154,61,0.12)]">
+                <div className="absolute top-full left-0 z-40 mt-2 w-max overflow-hidden rounded-xl border border-border-default bg-white shadow-card">
                   {postTypes.map((type) => (
                     <button
                       key={type}
@@ -201,7 +201,7 @@ export default function NewPostPreviewPage() {
         </div>
 
         {/* Author row (not part of the entered content — shown for context only) */}
-        <div className="mb-[18px] flex items-center gap-2.5">
+        <div className="mb-4.5 flex items-center gap-2.5">
           <Avatar size="xl">
             <AvatarFallback>M</AvatarFallback>
           </Avatar>
@@ -211,7 +211,7 @@ export default function NewPostPreviewPage() {
         <Separator className="mb-4.5" />
 
         {/* Body text */}
-        <div className="mb-[22px]">
+        <div className="mb-5.5">
           <textarea
             ref={descriptionRef}
             rows={3}
@@ -246,7 +246,7 @@ export default function NewPostPreviewPage() {
           {draftTags.length === 0 ? (
             <Link
               href="/posts/new/tags"
-              className="rounded-full border border-dashed border-border-default px-3.5 py-1.75 text-[13px] text-text-muted"
+              className="rounded-full border border-dashed border-border-default px-3.5 py-1.75 text-meta text-text-muted"
             >
               + 選擇標籤
             </Link>
@@ -255,7 +255,7 @@ export default function NewPostPreviewPage() {
               {draftTags.map((tag) => (
                 <span
                   key={tag}
-                  className="flex items-center gap-1 rounded-full border border-border-default bg-[#FDF7E9] px-3.5 py-1.75 text-[13px] text-text-primary"
+                  className="flex items-center gap-1 rounded-full border border-border-default bg-muted px-3.5 py-1.75 text-meta text-text-primary"
                 >
                   {tag}
                   <button
@@ -271,7 +271,7 @@ export default function NewPostPreviewPage() {
               <Link
                 href="/posts/new/tags"
                 aria-label="新增標籤"
-                className="flex items-center justify-center rounded-full border border-dashed border-border-default px-3 py-1.75 text-[13px] text-text-muted"
+                className="flex items-center justify-center rounded-full border border-dashed border-border-default px-3 py-1.75 text-meta text-text-muted"
               >
                 +
               </Link>
@@ -283,49 +283,49 @@ export default function NewPostPreviewPage() {
         <h2 className="mb-3 text-base font-bold text-text-primary">委託條件</h2>
         <Card variant="info" className="mb-5.5 px-1 py-3.5">
           <div className="mb-3.5 grid grid-cols-3">
-            <div className="flex flex-col items-center gap-[3px]">
-              <span className="text-[11px] text-[#9A9080]">身高</span>
+            <div className="flex flex-col items-center gap-0.75">
+              <span className="text-[11px] text-text-tertiary">身高</span>
               <span className="flex items-baseline gap-1">
                 <input
                   type="number"
                   min="1"
                   value={height}
                   onChange={(e) => setForm((prev) => ({ ...prev, height: e.target.value }))}
-                  className="w-12 bg-transparent text-center text-[15px] font-bold text-text-primary outline-none"
+                  className="w-12 bg-transparent text-center text-name font-bold text-text-primary outline-none"
                 />
-                <span className="text-[11px] font-medium text-[#9A9080]">cm</span>
+                <span className="text-[11px] font-medium text-text-tertiary">cm</span>
               </span>
             </div>
-            <div className="flex flex-col items-center gap-[3px] border-x border-border-default">
-              <span className="text-[11px] text-[#9A9080]">體重</span>
+            <div className="flex flex-col items-center gap-0.75 border-x border-border-default">
+              <span className="text-[11px] text-text-tertiary">體重</span>
               <span className="flex items-baseline gap-1">
                 <input
                   type="number"
                   min="1"
                   value={weight}
                   onChange={(e) => setForm((prev) => ({ ...prev, weight: e.target.value }))}
-                  className="w-12 bg-transparent text-center text-[15px] font-bold text-text-primary outline-none"
+                  className="w-12 bg-transparent text-center text-name font-bold text-text-primary outline-none"
                 />
-                <span className="text-[11px] font-medium text-[#9A9080]">kg</span>
+                <span className="text-[11px] font-medium text-text-tertiary">kg</span>
               </span>
             </div>
-            <div className="flex flex-col items-center gap-[3px]">
-              <span className="text-[11px] text-[#9A9080]">年齡</span>
+            <div className="flex flex-col items-center gap-0.75">
+              <span className="text-[11px] text-text-tertiary">年齡</span>
               <span className="flex items-baseline gap-1">
                 <input
                   type="number"
                   min="1"
                   value={age}
                   onChange={(e) => setForm((prev) => ({ ...prev, age: e.target.value }))}
-                  className="w-10 bg-transparent text-center text-[15px] font-bold text-text-primary outline-none"
+                  className="w-10 bg-transparent text-center text-name font-bold text-text-primary outline-none"
                 />
-                <span className="text-[11px] font-medium text-[#9A9080]">歲</span>
+                <span className="text-[11px] font-medium text-text-tertiary">歲</span>
               </span>
             </div>
           </div>
           <Separator className="mx-3.5 mb-3 w-auto" />
           <div className="px-3.5">
-            <span className="text-[12.5px] text-[#9A9080]">預算範圍</span>
+            <span className="text-[12.5px] text-text-tertiary">預算範圍</span>
             <div className="mt-2 grid grid-cols-2 gap-2">
               {budgetOptions.map((option) => {
                 const isSelected = option === selectedBudget;
@@ -349,7 +349,7 @@ export default function NewPostPreviewPage() {
         </Card>
 
         {/* 積分 */}
-        <div className="mb-[22px] flex flex-col gap-2">
+        <div className="mb-5.5 flex flex-col gap-2">
           <h2 className="text-sm font-semibold text-text-primary">本次委託發佈積分</h2>
           <div className="flex items-center gap-2">
             <span aria-hidden className="text-accent-amber">
@@ -377,7 +377,7 @@ export default function NewPostPreviewPage() {
               {pointsMenuOpen ? (
                 <>
                   <div className="fixed inset-0 z-30" onClick={() => setPointsMenuOpen(false)} />
-                  <div className="absolute top-full left-0 z-40 mt-2 w-full overflow-hidden rounded-xl border border-border-default bg-white shadow-[0_4px_12px_rgba(217,154,61,0.12)]">
+                  <div className="absolute top-full left-0 z-40 mt-2 w-full overflow-hidden rounded-xl border border-border-default bg-white shadow-card">
                     {pointsOptions.map((option) => (
                       <button
                         key={option}
@@ -403,7 +403,7 @@ export default function NewPostPreviewPage() {
         </div>
 
         {/* 截止資訊 */}
-        <div className="mb-[18px] text-[13px] leading-[1.7] text-[#B8AF9E]">
+        <div className="mb-4.5 text-meta leading-[1.7] text-text-placeholder">
           委託將於送出後開始計算，最長 7 天
           <br />
           委託者可給予青睞留言 {points} 積分

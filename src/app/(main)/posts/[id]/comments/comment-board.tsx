@@ -40,7 +40,7 @@ export type Comment = {
   replies?: Reply[];
 };
 
-function UserIcon({ className = 'h-[17px] w-[17px]' }: { className?: string }) {
+function UserIcon({ className = 'h-4.25 w-4.25' }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -58,7 +58,7 @@ function UserIcon({ className = 'h-[17px] w-[17px]' }: { className?: string }) {
   );
 }
 
-function ImagePlaceholderIcon({ className = 'h-[22px] w-[22px]' }: { className?: string }) {
+function ImagePlaceholderIcon({ className = 'h-5.5 w-5.5' }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -166,15 +166,15 @@ function ImageCell({ label, variant }: { label?: string; variant: 'lg' | 'grid' 
       aria-label={label ?? '穿搭參考圖'}
       className={
         isGrid
-          ? 'relative flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-[#EAE2CB] text-[#B8AF9E]'
-          : 'relative flex h-[114px] w-[114px] flex-shrink-0 items-center justify-center overflow-hidden rounded-[10px] bg-[#EAE2CB] text-[#B8AF9E]'
+          ? 'relative flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-[#EAE2CB] text-text-placeholder'
+          : 'relative flex h-28.5 w-28.5 flex-shrink-0 items-center justify-center overflow-hidden rounded-[10px] bg-[#EAE2CB] text-text-placeholder'
       }
     >
-      <ImagePlaceholderIcon className={isGrid ? 'h-[18px] w-[18px]' : 'h-[22px] w-[22px]'} />
+      <ImagePlaceholderIcon className={isGrid ? 'h-4.5 w-4.5' : 'h-5.5 w-5.5'} />
       {label ? (
         <span
           className={`absolute inset-x-0 bottom-0 bg-[rgba(64,58,50,0.55)] text-center font-semibold text-surface-base ${
-            isGrid ? 'px-1 py-[3px] text-[9px]' : 'px-1.5 py-1 text-[10.5px]'
+            isGrid ? 'px-1 py-0.75 text-[9px]' : 'px-1.5 py-1 text-[10.5px]'
           }`}
         >
           {label}
@@ -239,7 +239,7 @@ function CommentActions({
   // Base count plus an optimistic +1 while the current user's like is on.
   const displayLikeCount = likeCount + (isLiked ? 1 : 0);
   return (
-    <div className="mt-4 flex items-center gap-[18px]">
+    <div className="mt-4 flex items-center gap-4.5">
       <button
         type="button"
         onClick={onLike}
@@ -248,7 +248,7 @@ function CommentActions({
       >
         <HeartIcon className={isLiked ? 'h-4 w-4 fill-current' : 'h-4 w-4'} />
         <span className="sr-only">讚</span>
-        <span className="text-[13px]">{displayLikeCount}</span>
+        <span className="text-meta">{displayLikeCount}</span>
       </button>
       <button
         type="button"
@@ -257,7 +257,7 @@ function CommentActions({
         className="flex items-center gap-1.5 text-text-muted"
       >
         <ReplyIcon />
-        <span className="text-[13px] font-semibold">回覆</span>
+        <span className="text-meta font-semibold">回覆</span>
       </button>
       {/* Once the commission's reward is awarded it is a one-time state
           (best-comment API 409s on a second call), so the give-points button
@@ -266,7 +266,7 @@ function CommentActions({
       {isAwarded ? (
         <span className="flex items-center gap-1.5 text-accent-amber">
           <StarIcon className="h-4 w-4 fill-current" />
-          <span className="text-[13px] font-semibold">已給予 {awardedAmount} 積分</span>
+          <span className="text-meta font-semibold">已給予 {awardedAmount} 積分</span>
         </span>
       ) : canAward ? (
         <button
@@ -275,7 +275,7 @@ function CommentActions({
           className="flex items-center gap-1.5 text-accent-amber"
         >
           <StarIcon />
-          <span className="text-[13px] font-semibold">給予積分</span>
+          <span className="text-meta font-semibold">給予積分</span>
         </button>
       ) : null}
     </div>
@@ -309,7 +309,7 @@ function ReplyComposer({
           (/comments/{commentId}/replies) with images attached through the
           shared /comments/{commentId}/images endpoint, rather than creating a
           new top-level commission comment. */}
-      <div className="flex h-9 min-w-0 flex-1 items-center gap-2 overflow-hidden rounded-full border border-[#E5DDBF] bg-[#FDF7E9] pr-2 pl-3.5">
+      <div className="flex h-9 min-w-0 flex-1 items-center gap-2 overflow-hidden rounded-full border border-border bg-muted pr-2 pl-3.5">
         <input
           type="text"
           value={text}
@@ -322,14 +322,14 @@ function ReplyComposer({
           }}
           placeholder="加入討論，或附上圖片"
           aria-label="回覆留言"
-          className="h-full min-w-0 flex-1 bg-transparent text-[12.5px] text-text-primary placeholder:text-[#B8AF9E] focus:outline-none"
+          className="h-full min-w-0 flex-1 bg-transparent text-[12.5px] text-text-primary placeholder:text-text-placeholder focus:outline-none"
         />
         <Link
           href={`/posts/${postId}/comments/new?replyTo=${commentId}`}
           aria-label="用整頁模板附上圖片回覆"
           className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-text-muted"
         >
-          <ImagePlaceholderIcon className="h-[15px] w-[15px]" />
+          <ImagePlaceholderIcon className="h-3.75 w-3.75" />
         </Link>
       </div>
       <button
@@ -337,7 +337,7 @@ function ReplyComposer({
         onClick={submit}
         disabled={!canSend}
         aria-label="送出回覆"
-        className="flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full bg-brand-primary text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.14)] disabled:opacity-40"
+        className="flex h-7.5 w-7.5 flex-shrink-0 items-center justify-center rounded-full bg-brand-primary text-text-primary shadow-cta disabled:opacity-40"
       >
         <SendIcon />
       </button>
@@ -366,13 +366,13 @@ function ReplyList({
   const hasReplies = replies.length > 0;
 
   return (
-    <div className="mt-1.5 ml-[46px] flex flex-col gap-3.5 border-l-2 border-[#EFE7CE] pl-3.5">
+    <div className="mt-1.5 ml-11.5 flex flex-col gap-3.5 border-l-2 border-border-subtle pl-3.5">
       {hasReplies ? (
         <button
           type="button"
           onClick={() => setExpanded((prev) => !prev)}
           aria-expanded={expanded}
-          className="flex items-center gap-1 self-start text-[13px] font-semibold text-text-muted"
+          className="flex items-center gap-1 self-start text-meta font-semibold text-text-muted"
         >
           <span>{expanded ? '隱藏回覆' : `顯示回覆（${replies.length}）`}</span>
           <ChevronDownIcon
@@ -384,18 +384,18 @@ function ReplyList({
       {hasReplies && expanded ? (
         <ul className="flex flex-col gap-3.5">
           {replies.map((reply) => (
-            <li key={reply.replyId} id={`reply-${reply.replyId}`} className="flex gap-[9px]">
+            <li key={reply.replyId} id={`reply-${reply.replyId}`} className="flex gap-2.25">
               <Avatar size="sm">
                 <AvatarFallback>
                   <UserIcon className="h-3.5 w-3.5" />
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-[7px]">
+                <div className="flex items-center gap-1.75">
                   <span className="text-sm font-bold text-text-primary">{reply.nickName}</span>
                   {reply.isCommissioner ? <Badge variant="blue">委託人</Badge> : null}
                 </div>
-                <div className="mt-[3px] text-sm leading-[1.7] text-text-primary">
+                <div className="mt-0.75 text-sm leading-[1.7] text-text-primary">
                   {reply.content}
                 </div>
                 {reply.hasImage ? (
@@ -480,10 +480,10 @@ function GivePointsModal({
                 type="button"
                 onClick={() => onSelectAmount(amount)}
                 aria-pressed={isSelected}
-                className={`flex h-10 w-[72px] items-center justify-center rounded-full border-[1.5px] text-[15px] text-text-primary ${
+                className={`flex h-10 w-18 items-center justify-center rounded-full border text-name text-text-primary ${
                   isSelected
                     ? 'border-brand-primary bg-brand-primary font-bold'
-                    : 'border-[#E5DDBF] bg-[#FDF7E9] font-medium'
+                    : 'border-border bg-muted font-medium'
                 }`}
               >
                 {amount}
@@ -511,8 +511,8 @@ function AlertTriangleIcon({ className = 'h-4 w-4' }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
       <path d="M12 2.5 1.5 21h21L12 2.5Z" fill="currentColor" />
-      <rect x="11" y="9" width="2" height="6.2" rx="1" fill="#FFFDF7" />
-      <circle cx="12" cy="17.6" r="1.15" fill="#FFFDF7" />
+      <rect x="11" y="9" width="2" height="6.2" rx="1" fill="var(--background)" />
+      <circle cx="12" cy="17.6" r="1.15" fill="var(--background)" />
     </svg>
   );
 }
@@ -535,7 +535,7 @@ function InsufficientPointsModal({
     >
       <DialogContent className="flex flex-col items-center px-5.5 pt-6.5 pb-5 text-center">
         <div className="mb-4 flex size-13 items-center justify-center rounded-full bg-destructive/10 text-destructive">
-          <AlertTriangleIcon className="h-[26px] w-[26px]" />
+          <AlertTriangleIcon className="h-6.5 w-6.5" />
         </div>
         <DialogTitle className="mb-2 text-[14.5px] whitespace-nowrap">積分不足</DialogTitle>
         <DialogDescription className="mb-5">
@@ -597,14 +597,14 @@ function CommentItem({
         </Avatar>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="text-[15px] font-bold text-text-primary">{comment.nickName}</span>
+            <span className="text-name font-bold text-text-primary">{comment.nickName}</span>
             {isAwarded ? (
               <Badge variant="gold">
                 <StarIcon className="h-3 w-3 fill-current" />
                 最佳留言
               </Badge>
             ) : null}
-            <time className="ml-auto text-[12px] text-[#B8AF9E]">{comment.timeLabel}</time>
+            <time className="ml-auto text-caption text-text-placeholder">{comment.timeLabel}</time>
             {/* Square corner (not the default pill) to read as a compact button
                 like 追蹤, distinguishing the floor number from the tag chips. */}
             <Badge variant="green" className="rounded-lg">

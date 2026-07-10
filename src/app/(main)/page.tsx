@@ -247,19 +247,19 @@ export default function Home() {
       />
 
       <section className="px-4 pt-5 pb-7">
-        <div className="mb-3 text-[20px] font-bold text-text-primary">人氣穿搭</div>
+        <div className="mb-3 text-display font-bold text-text-primary">人氣穿搭</div>
         <div className="-mx-1 flex gap-3 overflow-x-auto pb-2">
           {trendingItems.map((item) => (
             <Card key={item.id} variant="trending" className="w-43 flex-none">
               <Link href={`/posts/${item.id}`} className="block">
                 <div className="relative">
                   <div
-                    className={`absolute top-2 left-2 z-10 flex h-6 w-6 items-center justify-center rounded-md text-[12px] font-bold text-white ${item.accent}`}
+                    className={`absolute top-2 left-2 z-10 flex h-6 w-6 items-center justify-center rounded-md text-caption font-bold text-white ${item.accent}`}
                   >
                     {item.rank}
                   </div>
                   <div
-                    className="flex h-[216px] items-center justify-center"
+                    className="flex h-54 items-center justify-center"
                     style={{ background: item.gradient }}
                   >
                     <span className="rounded-md bg-white/70 px-2 py-1 text-[11px] font-medium text-text-primary">
@@ -272,7 +272,7 @@ export default function Home() {
                 <div className="flex items-center gap-2">
                   <PlaceholderAvatar size="sm" accent={item.accent} />
                   <div>
-                    <div className="text-[13px] font-semibold text-text-primary">{item.author}</div>
+                    <div className="text-meta font-semibold text-text-primary">{item.author}</div>
                     <div className="text-[11px] text-text-muted">{item.meta}</div>
                   </div>
                 </div>
@@ -293,13 +293,13 @@ export default function Home() {
 
       <section className="px-4 pb-6">
         <div className="mb-4 flex items-center justify-between">
-          <div className="text-[20px] font-bold text-text-primary">全部文章</div>
+          <div className="text-display font-bold text-text-primary">全部文章</div>
           <div className="relative">
             <button
               type="button"
               onClick={() => setFilterOpen((open) => !open)}
               aria-expanded={filterOpen}
-              className="flex items-center gap-1 rounded-full border border-border-default bg-white px-3 py-2 text-[13px] font-medium text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.08)]"
+              className="flex items-center gap-1 rounded-full border border-border-default bg-white px-3 py-2 text-meta font-medium text-text-primary shadow-card"
             >
               {selectedFilter}
               <svg
@@ -316,7 +316,7 @@ export default function Home() {
             {filterOpen ? (
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setFilterOpen(false)} />
-                <div className="absolute top-full right-0 z-40 mt-2 w-max min-w-full overflow-hidden rounded-[12px] border border-border-default bg-white shadow-[0_4px_12px_rgba(217,154,61,0.12)]">
+                <div className="absolute top-full right-0 z-40 mt-2 w-max min-w-full overflow-hidden rounded-card border border-border-default bg-white shadow-card">
                   {postFilters.map((filter) => (
                     <button
                       key={filter}
@@ -325,7 +325,7 @@ export default function Home() {
                         setSelectedFilter(filter);
                         setFilterOpen(false);
                       }}
-                      className={`block w-full px-4 py-2.5 text-left text-[13px] font-medium ${
+                      className={`block w-full px-4 py-2.5 text-left text-meta font-medium ${
                         filter === selectedFilter
                           ? 'bg-surface-soft text-accent-amber'
                           : 'text-text-primary hover:bg-surface-soft'
@@ -340,7 +340,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mb-4 flex border-b border-border-default text-[15px]">
+        <div className="mb-4 flex border-b border-border-default text-name">
           <button
             type="button"
             onClick={() => setSortMode('hot')}
@@ -366,9 +366,7 @@ export default function Home() {
         </div>
 
         {filteredPosts.length === 0 ? (
-          <div className="py-10 text-center text-[13px] text-text-muted">
-            目前沒有這個分類的文章
-          </div>
+          <div className="py-10 text-center text-meta text-text-muted">目前沒有這個分類的文章</div>
         ) : null}
 
         {filteredPosts.map((post) => {
@@ -380,10 +378,8 @@ export default function Home() {
                   <div className="flex items-center gap-2.5">
                     <PlaceholderAvatar size="md" accent={post.accent} bordered />
                     <div>
-                      <div className="text-[14px] font-semibold text-text-primary">
-                        {post.author}
-                      </div>
-                      <div className="text-[12px] text-text-muted">
+                      <div className="text-body font-semibold text-text-primary">{post.author}</div>
+                      <div className="text-caption text-text-muted">
                         {formatRelativeTime(post.createdAt)}
                       </div>
                     </div>
@@ -393,9 +389,9 @@ export default function Home() {
 
                 <div className="mb-2 flex items-center gap-2">
                   <Badge variant="gold">{post.tag}</Badge>
-                  <span className="text-[15px] font-bold text-text-primary">{post.title}</span>
+                  <span className="text-name font-bold text-text-primary">{post.title}</span>
                 </div>
-                <p className="mb-3 text-[13px] leading-5 text-text-muted">{post.body}</p>
+                <p className="mb-3 text-meta leading-5 text-text-muted">{post.body}</p>
 
                 {post.photos.length > 0 ? (
                   <>
@@ -404,7 +400,7 @@ export default function Home() {
                       {post.photos.map((photo, index) => (
                         <div
                           key={index}
-                          className={`rounded-[12px] ${post.photos.length === 1 ? 'h-[164px] flex-1' : 'h-[96px] flex-1'}`}
+                          className={`rounded-card ${post.photos.length === 1 ? 'h-41 flex-1' : 'h-24 flex-1'}`}
                           style={{ background: photo }}
                         />
                       ))}
@@ -429,14 +425,14 @@ export default function Home() {
                   type="button"
                   onClick={() => toggleLike(post.id)}
                   aria-pressed={interaction.liked}
-                  className={`flex items-center gap-1 text-[13px] ${interaction.liked ? 'text-accent-amber' : ''}`}
+                  className={`flex items-center gap-1 text-meta ${interaction.liked ? 'text-accent-amber' : ''}`}
                 >
                   <HeartIcon filled={interaction.liked} />
                   {interaction.likes}
                 </button>
                 <Link
                   href={`/posts/${post.id}/comments`}
-                  className="flex items-center gap-1 text-[13px]"
+                  className="flex items-center gap-1 text-meta"
                 >
                   <CommentIcon />
                   {post.comments}

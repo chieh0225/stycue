@@ -123,7 +123,7 @@ export default function BottomNav() {
               className="mx-1 flex flex-1 justify-center"
               aria-label={item.label}
             >
-              <div className="flex h-14 w-14 -translate-y-2 items-center justify-center rounded-full border-[3px] border-surface-base bg-brand-primary text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.18)]">
+              <div className="flex h-14 w-14 -translate-y-2 items-center justify-center rounded-full border-[3px] border-surface-base bg-brand-primary text-text-primary shadow-cta-strong">
                 {item.icon}
               </div>
             </Link>

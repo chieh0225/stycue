@@ -22,7 +22,7 @@ export function MailIcon({ className = '' }: { className?: string }) {
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
-      className={`h-[18px] w-[18px] shrink-0 ${className}`}
+      className={`h-4.5 w-4.5 shrink-0 ${className}`}
     >
       <path d="M4 4h16v16H4z" />
       <path d="M4 6l8 7 8-7" />
@@ -37,7 +37,7 @@ export function LockIcon({ className = '' }: { className?: string }) {
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
-      className={`h-[18px] w-[18px] shrink-0 ${className}`}
+      className={`h-4.5 w-4.5 shrink-0 ${className}`}
     >
       <rect x="5" y="11" width="14" height="9" rx="2" />
       <path d="M8 11V7a4 4 0 0 1 8 0v4" />
@@ -52,7 +52,7 @@ export function PersonIcon({ className = '' }: { className?: string }) {
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
-      className={`h-[18px] w-[18px] shrink-0 ${className}`}
+      className={`h-4.5 w-4.5 shrink-0 ${className}`}
     >
       <circle cx="12" cy="8" r="4" />
       <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" />
@@ -69,7 +69,7 @@ export function AlertIcon({ className = '' }: { className?: string }) {
       strokeWidth="2.5"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={`h-[13px] w-[13px] shrink-0 ${className}`}
+      className={`h-3.25 w-3.25 shrink-0 ${className}`}
     >
       <circle cx="12" cy="12" r="10" />
       <path d="M12 16v-4M12 8h.01" />
@@ -79,7 +79,7 @@ export function AlertIcon({ className = '' }: { className?: string }) {
 
 export function GoogleIcon({ className = '' }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className={`h-[19px] w-[19px] shrink-0 ${className}`}>
+    <svg viewBox="0 0 24 24" className={`h-4.75 w-4.75 shrink-0 ${className}`}>
       <path
         fill="#4285F4"
         d="M23.49 12.27c0-.85-.08-1.67-.22-2.45H12v4.63h6.44a5.5 5.5 0 0 1-2.39 3.6v3h3.86c2.26-2.08 3.58-5.15 3.58-8.78z"

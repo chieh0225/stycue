@@ -51,42 +51,42 @@ export default function LoginPage() {
     <div className="flex flex-1 flex-col px-7 pt-16 pb-8">
       {/* Logo / brand */}
       <div className="mb-9 flex flex-col items-center">
-        <div className="mb-3.5 flex h-16 w-16 items-center justify-center rounded-full bg-brand-primary text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.18)]">
+        <div className="mb-3.5 flex h-16 w-16 items-center justify-center rounded-full bg-brand-primary text-text-primary shadow-cta-strong">
           <LogoIcon />
         </div>
         <h1 className="text-[22px] font-bold tracking-[0.5px] text-text-primary">StyCue</h1>
-        <p className="mt-1 text-[13px] text-text-muted">歡迎回來，加入穿搭討論</p>
+        <p className="mt-1 text-meta text-text-muted">歡迎回來，加入穿搭討論</p>
       </div>
 
       {/* Form card */}
       <form
         onSubmit={handleSubmit}
         noValidate
-        className="mb-5.5 rounded-2xl bg-white px-5 pt-5.5 pb-6 shadow-[0_4px_12px_rgba(217,154,61,0.08)]"
+        className="mb-5.5 rounded-2xl bg-white px-5 pt-5.5 pb-6 shadow-card"
       >
         <div className="mb-4">
-          <label htmlFor="email" className="mb-2 block text-[13px] font-semibold text-text-primary">
+          <label htmlFor="email" className="mb-2 block text-meta font-semibold text-text-primary">
             信箱
           </label>
           <div
             className={`flex items-center gap-2.5 rounded-lg border px-3.5 py-3.25 ${
               emailError
-                ? 'border-[1.5px] border-[#D64545] bg-[#FDF0EE]'
+                ? 'border border-destructive bg-destructive-bg'
                 : 'border-border-default bg-surface-soft'
             }`}
           >
-            <MailIcon className={emailError ? 'text-[#D64545]' : 'text-[#9A9080]'} />
+            <MailIcon className={emailError ? 'text-destructive' : 'text-text-tertiary'} />
             <input
               id="email"
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               placeholder="you@example.com"
-              className="flex-1 bg-transparent text-sm text-text-primary placeholder-[#B8AF9E] outline-none"
+              className="flex-1 bg-transparent text-sm text-text-primary placeholder-text-placeholder outline-none"
             />
           </div>
           {emailError && (
-            <div className="mt-1.75 flex items-center gap-1.25 text-xs font-semibold text-[#D64545]">
+            <div className="mt-1.75 flex items-center gap-1.25 text-xs font-semibold text-destructive">
               <AlertIcon />
               {emailError}
             </div>
@@ -96,29 +96,29 @@ export default function LoginPage() {
         <div className="mb-2">
           <label
             htmlFor="password"
-            className="mb-2 block text-[13px] font-semibold text-text-primary"
+            className="mb-2 block text-meta font-semibold text-text-primary"
           >
             密碼
           </label>
           <div
             className={`flex items-center gap-2.5 rounded-lg border px-3.5 py-3.25 ${
               passwordError
-                ? 'border-[1.5px] border-[#D64545] bg-[#FDF0EE]'
+                ? 'border border-destructive bg-destructive-bg'
                 : 'border-border-default bg-surface-soft'
             }`}
           >
-            <LockIcon className={passwordError ? 'text-[#D64545]' : 'text-[#9A9080]'} />
+            <LockIcon className={passwordError ? 'text-destructive' : 'text-text-tertiary'} />
             <input
               id="password"
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder="8 字元以上，只包含英文字母與數字"
-              className="flex-1 bg-transparent text-sm text-text-primary placeholder-[#B8AF9E] outline-none"
+              className="flex-1 bg-transparent text-sm text-text-primary placeholder-text-placeholder outline-none"
             />
           </div>
           {passwordError && (
-            <div className="mt-1.75 flex items-center gap-1.25 text-xs font-semibold text-[#D64545]">
+            <div className="mt-1.75 flex items-center gap-1.25 text-xs font-semibold text-destructive">
               <AlertIcon />
               {passwordError}
             </div>
@@ -132,7 +132,7 @@ export default function LoginPage() {
         </div>
 
         {apiError && (
-          <div className="mb-4 flex items-center gap-1.25 rounded-lg bg-[#FDF0EE] px-3.5 py-2.5 text-xs font-semibold text-[#D64545]">
+          <div className="mb-4 flex items-center gap-1.25 rounded-lg bg-destructive-bg px-3.5 py-2.5 text-xs font-semibold text-destructive">
             <AlertIcon />
             {apiError}
           </div>
@@ -141,7 +141,7 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="h-12.5 w-full rounded-lg bg-brand-primary text-[15px] font-bold text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.14)] disabled:opacity-60"
+          className="h-12.5 w-full rounded-lg bg-brand-primary text-name font-bold text-text-primary shadow-cta disabled:opacity-60"
         >
           {loading ? '登入中...' : '登入'}
         </button>
@@ -157,7 +157,7 @@ export default function LoginPage() {
       {/* Google */}
       <button
         type="button"
-        className="mb-7 flex h-12.5 w-full items-center justify-center gap-2.5 rounded-lg border border-border-default bg-white text-sm font-semibold text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.08)]"
+        className="mb-7 flex h-12.5 w-full items-center justify-center gap-2.5 rounded-lg border border-border-default bg-white text-sm font-semibold text-text-primary shadow-card"
       >
         <GoogleIcon />
         使用 Google 繼續

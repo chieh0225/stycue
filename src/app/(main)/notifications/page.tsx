@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function NotificationsPage() {
   return (
-    <div className="flex flex-1 flex-col bg-[#FDF7E9]">
+    <div className="flex flex-1 flex-col bg-muted">
       {/* Header */}
       <TopBar title="通知" className="py-4" />
 

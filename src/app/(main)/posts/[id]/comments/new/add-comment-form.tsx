@@ -43,7 +43,7 @@ type Attachment = {
   brand: string;
 };
 
-function UserIcon({ className = 'h-[18px] w-[18px]' }: { className?: string }) {
+function UserIcon({ className = 'h-4.5 w-4.5' }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -61,7 +61,7 @@ function UserIcon({ className = 'h-[18px] w-[18px]' }: { className?: string }) {
   );
 }
 
-function ImagePlusIcon({ className = 'h-[18px] w-[18px]' }: { className?: string }) {
+function ImagePlusIcon({ className = 'h-4.5 w-4.5' }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -289,7 +289,7 @@ export default function AddCommentForm({
           <span className="text-lg font-bold text-text-primary">附加圖片</span>
         </div>
         <Separator className="mb-2.5" />
-        <div className="mb-[18px] text-xs text-[#9A9080]">
+        <div className="mb-4.5 text-xs text-text-tertiary">
           最多可上傳 {MAX_IMAGES} 張圖片，單張檔案大小不可超過 10MB
         </div>
 
@@ -299,10 +299,10 @@ export default function AddCommentForm({
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={images.length >= MAX_IMAGES}
-          className="mb-[18px] flex h-14 w-full items-center justify-center gap-2 rounded-xl border-[1.5px] border-dashed border-[#D9CFA9] bg-[#FDF7E9] disabled:opacity-50"
+          className="mb-4.5 flex h-14 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border-dashed bg-muted disabled:opacity-50"
         >
-          <ImagePlusIcon className="h-[18px] w-[18px] text-text-muted" />
-          <span className="text-sm font-semibold text-[#5A5248]">
+          <ImagePlusIcon className="h-4.5 w-4.5 text-text-muted" />
+          <span className="text-sm font-semibold text-foreground">
             新增圖片（{images.length}/{MAX_IMAGES}）
           </span>
         </button>
@@ -311,7 +311,7 @@ export default function AddCommentForm({
         {rejected.length > 0 && (
           <div
             role="alert"
-            className="mb-[18px] flex items-start gap-2 rounded-lg bg-error-container px-3 py-2 text-xs leading-[1.6] text-on-error-container"
+            className="mb-4.5 flex items-start gap-2 rounded-lg bg-error-container px-3 py-2 text-xs leading-[1.6] text-on-error-container"
           >
             <AlertIcon className="mt-px h-4 w-4 flex-shrink-0" />
             <span>以下檔案超過 10MB，未加入：{rejected.join('、')}</span>
@@ -337,15 +337,15 @@ export default function AddCommentForm({
                   type="button"
                   onClick={() => setDeleteTarget(image)}
                   aria-label={`移除 ${image.file.name}`}
-                  className="ml-2 flex-shrink-0 rounded-md p-1 text-[#B8AF9E] hover:bg-[#F5EEDA]"
+                  className="ml-2 flex-shrink-0 rounded-md p-1 text-text-placeholder hover:bg-accent"
                 >
                   <TrashIcon />
                 </button>
               </div>
 
               {/* 分類標籤 dropdown */}
-              <div className="mb-[5px] text-[11.5px] text-[#9A9080]">分類標籤</div>
-              <div className="relative mb-2.5 cursor-pointer rounded-lg border-[1.5px] border-border-default bg-[#FDF7E9]">
+              <div className="mb-1.25 text-[11.5px] text-text-tertiary">分類標籤</div>
+              <div className="relative mb-2.5 cursor-pointer rounded-lg border border-border-default bg-muted">
                 <button
                   type="button"
                   onClick={() =>
@@ -353,9 +353,9 @@ export default function AddCommentForm({
                   }
                   aria-haspopup="listbox"
                   aria-expanded={openTagId === image.id}
-                  className="flex h-[38px] w-full items-center justify-between px-2.5"
+                  className="flex h-9.5 w-full items-center justify-between px-2.5"
                 >
-                  <span className="text-[13px] font-semibold text-text-primary">{image.tag}</span>
+                  <span className="text-meta font-semibold text-text-primary">{image.tag}</span>
                   <ChevronDownIcon
                     className={`h-3 w-3 text-text-muted transition-transform ${
                       openTagId === image.id ? 'rotate-180' : ''
@@ -365,7 +365,7 @@ export default function AddCommentForm({
                 {openTagId === image.id && (
                   <ul
                     role="listbox"
-                    className="absolute inset-x-0 top-[calc(100%+4px)] z-20 overflow-hidden rounded-lg border border-border-default bg-surface-base shadow-[0_8px_20px_rgba(64,58,50,0.16)]"
+                    className="absolute inset-x-0 top-[calc(100%+4px)] z-20 overflow-hidden rounded-lg border border-border-default bg-surface-base shadow-dropdown"
                   >
                     {TAG_OPTIONS.map((option) => {
                       const selected = option === image.tag;
@@ -377,8 +377,8 @@ export default function AddCommentForm({
                               updateImage(image.id, { tag: option });
                               setOpenTagId(null);
                             }}
-                            className={`flex h-9 w-full items-center px-3 text-[13px] text-text-primary ${
-                              selected ? 'bg-[#FCEFCB] font-bold' : 'font-normal'
+                            className={`flex h-9 w-full items-center px-3 text-meta text-text-primary ${
+                              selected ? 'bg-gold-soft font-bold' : 'font-normal'
                             }`}
                           >
                             {option}
@@ -391,7 +391,7 @@ export default function AddCommentForm({
               </div>
 
               {/* 品牌名稱 (選填) */}
-              <div className="mb-[5px] text-[11.5px] text-[#9A9080]">品牌名稱 (選填)</div>
+              <div className="mb-1.25 text-[11.5px] text-text-tertiary">品牌名稱 (選填)</div>
               <Input
                 type="text"
                 value={image.brand}

@@ -324,3 +324,75 @@ A1 標準規格：`sticky top-0 z-10 border-b border-border-subtle bg-secondary 
 側邊選單抽屜（`Sheet`）的右邊界看起來偏黑：`ui/sheet.tsx` 的 `data-[side=left]:border-r` 是官方原始碼原樣保留的一行，**沒指定顏色**，Tailwind v4 邊框預設吃 `currentColor`，而 `SheetContent` 文字色是 `text-popover-foreground`(`#403a32`，深棕近黑)，邊框因此跟著繼承成近黑色。加上 `data-[side=left]:border-border`（品牌邊框 token，`#e5ddbf`）明確指定顏色，改成跟其他元件一致的淺色邊框。
 
 **驗證**：`tsc`/`eslint` 0 errors；`npm run build` ✓。
+
+---
+
+## Phase 3D — Track B 處置對照表（重新掃描，取代規劃檔內的舊清單）
+
+切回 `refactor/apply-design-tokens` 後重跑全域掃描（`src/app` + `src/components`），非元件層殘留共 202 行、176 個 magic-number（`-[Npx]`）token。**本節只列處置決策，尚未執行取代**——這是 Phase 3D 開工前的規格，等使用者確認範圍再動手。
+
+### B1 — 對得到既有 token，直接替換（依出現次數排序）
+
+| 現值                    | 次數 | → utility                                         |
+| ----------------------- | ---- | ------------------------------------------------- |
+| `#9A9080`               | 24   | `text-text-tertiary`                              |
+| `#D64545`               | 20   | `text-destructive`/`border-destructive`           |
+| `#B8AF9E`               | 14   | `text-text-placeholder`                           |
+| `#FDF0EE`               | 8    | `bg-destructive-bg`                               |
+| `#FDF7E9`               | 7    | `bg-muted`                                        |
+| `#E5DDBF`               | 6    | `border-border`                                   |
+| `rgba(217,154,61,0.08)` | 5    | `shadow-card`                                     |
+| `rgba(217,154,61,0.14)` | 4    | `shadow-cta`                                      |
+| `rgba(217,154,61,0.18)` | 3    | `shadow-cta-strong`                               |
+| `rgba(64,58,50,0.16)`   | 1    | `shadow-dropdown`                                 |
+| `rgba(64,58,50,0.14)`   | 1    | `shadow-float`                                    |
+| `#FCEFDA`               | 1    | `bg-gold-soft`                                    |
+| `#D9CFA9`               | 1    | `border-border-dashed`                            |
+| `#835500`               | 1    | `bg-gold-dark`                                    |
+| `#EFE7CE`               | 1    | `border-border-subtle`（跟 `#F0E4C0` 極近，收斂） |
+
+### B2 — 自創值，需決策（沿用既定原則：優先收斂到最近 token，理由不足才保留一次性）
+
+| 現值                                                                                      | 位置                                                     | 決策                                                                                     |
+| ----------------------------------------------------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `rgba(217,154,61,0.12)` ×5                                                                | 下拉/篩選面板陰影                                        | 收斂 `shadow-card`（沿用先前決策，不新增 `--shadow-panel`）                              |
+| `rgba(131,85,0,0.3)` ×1                                                                   | `empty-notifications.tsx` 搜尋徽章                       | 收斂 `shadow-gold-dark`(`.24`)                                                           |
+| `#FCEFCB` ×1                                                                              | 分類下拉選中態                                           | 收斂 `bg-gold-soft`（跟 `#FCEFDA` 幾乎同色，判定為手誤）                                 |
+| `#F5EEDA` ×1                                                                              | `add-comment-form.tsx` ghost 按鈕 hover                  | 收斂 `hover:bg-accent`（沿用先前決策）                                                   |
+| `#5A5248` ×1                                                                              | `add-comment-form.tsx` 新增圖片按鈕文字                  | 收斂 `text-foreground`（沿用先前決策）                                                   |
+| `rgba(64,58,50,0.18)` ×1                                                                  | `page.tsx` 側邊選單陰影                                  | **保留一次性**——方向獨特（水平投影），已是 `Sheet` 呼叫端的 className override，非重複值 |
+| `#EAE2CB` ×1                                                                              | `comment-board.tsx` 圖片佔位底色                         | **保留一次性**——圖片佔位色塊，非 UI chrome                                               |
+| `rgba(64,58,50,0.55)` ×1                                                                  | `comment-board.tsx` 圖片標籤浮層底                       | **保留一次性**——圖片浮層，同上理由                                                       |
+| `#D9D2C0` ×1                                                                              | `posts/[id]/page.tsx` 身形照片佔位                       | **保留一次性**——同上理由                                                                 |
+| `#F3E8C8` ×1                                                                              | `empty-notifications.tsx` 插圖底                         | **保留一次性**（§8 插圖白名單，沿用先前決策）                                            |
+| `#e9c89a`/`#deb985`/`#d9cdb8`/`#cbbe9f`/`#d7a55f`/`#7e8a5f`/`#4a5a6b`/`#3f3b37`/`#8a7f6e` | `page.tsx` trending/feed 卡片 mock 照片漸層與色塊        | **保留一次性**——這些代表「假照片」內容資料，不是介面色，§8 白名單                        |
+| `#FBBC05`/`#EA4335`/`#4285F4`/`#34A853`                                                   | `auth/icons.tsx` GoogleIcon                              | **保留，永久白名單**——Google 官方品牌識別色，禁止 tokenize                               |
+| `#FFFDF7` ×2                                                                              | 待查（疑似圖示 fill，需個別確認是否等於 `--background`） | 逐一核對後決定                                                                           |
+
+### B3 — 魔法數字（176 個 `-[Npx]` 形式，Tailwind v4 原生 fraction 一律零視覺置換）
+
+| 形式                                   | 次數 |
+| -------------------------------------- | ---- |
+| `text-[Npx]`                           | 87   |
+| `h-[Npx]`                              | 22   |
+| `w-[Npx]`                              | 19   |
+| `mb-[Npx]`                             | 13   |
+| `border-[Npx]`                         | 11   |
+| `gap-[Npx]`                            | 10   |
+| `rounded-[Npx]`                        | 7    |
+| 其餘（`tracking`/`py`/`px`/`mt`/`ml`） | 7    |
+
+`text-[Npx]` 佔比最高（87／176），多數是先前規劃裡就記錄過的字級 token（`text-caption/meta/body/name/title/heading/display`）尚未套用到的頁面層級文字，換算規則已在 `design-tokens.md` §5 定義，屬機械式取代。`border-[Npx]` 11 處主要是 Phase 3B 已收斂過 `ui/` 元件內部的殘留，页面層級仍有 `border-[1.5px]` 等待收斂成單一 `border`。
+
+### Phase 3D 執行結果
+
+用 `perl -pi -e` 對 `src/app` 做批次字面取代（每條規則對應處置表的一行，非 regex 猜測，全部是精確比對）：
+
+- **B1（15 種值，~92 處）**：全部替換為對應 token（`text-text-tertiary`/`text-destructive`/`text-text-placeholder`/`bg-destructive-bg`/`bg-muted`/`bg-border`/`border-border`/`border-destructive`/`bg-gold-dark`/`bg-gold-soft`/`border-border-dashed`/`border-border-subtle`/`shadow-card`/`shadow-cta`/`shadow-cta-strong`/`shadow-dropdown`/`shadow-float`）。
+- **B2 收斂項**：`rgba(217,154,61,0.12)`×5→`shadow-card`、`rgba(131,85,0,0.3)`→`shadow-gold-dark`、`#FCEFCB`→`bg-gold-soft`、`#F5EEDA`→`hover:bg-accent`、`#5A5248`→`text-foreground`；另外 `comment-board.tsx` 的 `fill="#FFFDF7"`(×2，SVG 屬性非 class) 順手改成 `fill="var(--background)"`，跟 `--background` token 掛勾。
+- **B2 保留項**（如處置表所列）：一律未動，跟表格一致——mock 照片色/漸層、GoogleIcon 品牌色、圖片佔位色（`#EAE2CB`/`#D9D2C0`/`rgba(64,58,50,0.55)`）、插圖底（`#F3E8C8`）、側邊選單 drawer 陰影（`rgba(64,58,50,0.18)`）。
+- **B3（176 個 `-[Npx]`）**：`h`/`w`/`mb`/`gap`/`py`/`px`/`mt`/`ml` 共 34 種精確值換算成 Tailwind v4 原生 fraction（如 `h-[38px]`→`h-9.5`、`w-[114px]`→`w-28.5`）；`text-[13/12/14/15/20px]` 這 5 種**剛好等於**現有字級 token 的值換成 token 名稱；`border-[1.5px]`（10 處）收斂成 `border`；`rounded-[12px]`（2 處）換成 `rounded-card`（跟 `--radius-card` 精確相等）。**沒有精確對應的值一律保留原樣不猜**（`text-[11/12.5/13.5/14.5/15.5/19/22/9/10/10.5px]`、`rounded-[3px]`/`[10px]`、`border-[3px]`、`tracking-[0.5px]`、`leading-[…]`），因為這些是自創小數值，收斂目標不明確，貿然歸類到最近 token 風險比保留高。
+
+**驗證**：`tsc --noEmit` 0 errors；`eslint src/app` 0 errors（同一既有 `prefer-destructuring` warning）；`npm run build` ✓ 全站路由正常產出。全域殘留計數從 202 降到 61，剩下的 61 筆逐一核對，全部落在處置表標記「保留」的項目，沒有漏網的可收斂值。
+
+**尚未處理（刻意，非本輪範圍）**：15 處 `text-[11px]` 等自創字級小數值——數量夠多（尤其 `text-[11px]` 15 處）值得評估是否該提案新增 token，但這是「要不要擴充 design token 規模」的決策，不屬於「收斂到既有值」的機械執行，留給使用者決定是否要開一輪新 token 提案。
