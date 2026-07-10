@@ -1,8 +1,18 @@
+import type { ImageCategoryId } from '@/lib/image-categories';
+
 export const DRAFT_STORAGE_KEY = 'stycue:commission-post-draft';
 export const TITLE_MAX_LENGTH = 40;
 export const budgetOptions = ['1000 - 3000', '3000 - 5000', '5000 - 10000', '10000 以上'];
 export const postTypes = ['委託', '提問', '分享'] as const;
 export const pointsOptions = ['50', '75', '100'];
+
+// Already-uploaded image (real backend imageId/url), not a local file preview.
+export type DraftPhoto = {
+  imageId: number;
+  url: string;
+  category: ImageCategoryId;
+  brand: string;
+};
 
 export type Draft = {
   title: string;
@@ -13,6 +23,7 @@ export type Draft = {
   selectedBudget: string;
   postType: string;
   points: string;
+  photos: DraftPhoto[];
 };
 
 export const emptyDraft: Draft = {
@@ -24,4 +35,5 @@ export const emptyDraft: Draft = {
   selectedBudget: budgetOptions[0],
   postType: postTypes[0],
   points: pointsOptions[0],
+  photos: [],
 };

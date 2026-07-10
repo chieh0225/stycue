@@ -4,7 +4,7 @@ import CommentBoard, { type Comment } from './comment-board';
 import HideScrollbar from '../hide-scrollbar';
 import { MOCK_PUBLISH_POINTS } from '../mock-commission';
 
-// Mock data shaped after GET /api/v1/commisions/{id}/comments — swap for the
+// Mock data shaped after GET /api/v1/commissions/{id}/comments — swap for the
 // real comments API once it exists.
 const comments: Comment[] = [
   {
@@ -14,20 +14,25 @@ const comments: Comment[] = [
     timeLabel: '43 分前',
     content: '181cm 身高很有優勢，推薦 NET 寬鬆襯衫搭配直筒褲，簡單又有韓系感。',
     likeCount: 100,
-    imageLayout: 'scroll',
-    images: [{ label: '上衣：NET' }, { label: '下著：NET' }, {}],
+    images: [
+      { imageId: 1, imageUrl: '', category: 1, brand: 'NET' },
+      { imageId: 2, imageUrl: '', category: 2, brand: 'NET' },
+      { imageId: 3, imageUrl: '', category: 1, brand: '' },
+    ],
     replies: [
       {
         replyId: 'rpl_b1_1',
         nickName: 'Maple',
+        timeLabel: '40 分前',
         isCommissioner: true,
         content: '謝謝！我最近剛好有看到 NET 的襯衫，之後會去試穿看看。',
       },
       {
         replyId: 'rpl_b1_2',
         nickName: 'GD',
+        timeLabel: '38 分前',
         content: '補充一下，NET 可以先買襯衫，褲子我比較推薦 GU 的版型。',
-        hasImage: true,
+        images: [{ imageId: 4, imageUrl: '', category: 2, brand: 'GU' }],
       },
     ],
   },
@@ -38,8 +43,7 @@ const comments: Comment[] = [
     timeLabel: '5 分前',
     content: '身形比例不錯，可以試試白 T 加 GU 寬版西裝褲的 Clean 韓系穿搭。',
     likeCount: 20,
-    imageLayout: 'single',
-    images: [{}],
+    images: [{ imageId: 5, imageUrl: '', category: 1, brand: '' }],
   },
   {
     commentId: 'cmt_b3',
@@ -57,17 +61,16 @@ const comments: Comment[] = [
     content:
       '這裡分享一套完整的九宮格穿搭提案，建議可以嘗試大地色系的疊穿，增加層次感而不顯得雜亂。',
     likeCount: 0,
-    imageLayout: 'grid',
     images: [
-      { label: '外套：ORIVOE' },
-      { label: '毛衣：L.L.Bean' },
-      { label: '上衣/褲子：MUJI' },
-      {},
-      { label: '配件：Leather' },
-      { label: '鞋款：Clarks' },
-      { label: '下著：UNIQLO' },
-      { label: '圍巾：Wool' },
-      { label: '其他：ORIVOE' },
+      { imageId: 6, imageUrl: '', category: 6, brand: 'ORIVOE' },
+      { imageId: 7, imageUrl: '', category: 1, brand: 'L.L.Bean' },
+      { imageId: 8, imageUrl: '', category: 1, brand: 'MUJI' },
+      { imageId: 9, imageUrl: '', category: 1, brand: '' },
+      { imageId: 10, imageUrl: '', category: 4, brand: 'Leather' },
+      { imageId: 11, imageUrl: '', category: 3, brand: 'Clarks' },
+      { imageId: 12, imageUrl: '', category: 2, brand: 'UNIQLO' },
+      { imageId: 13, imageUrl: '', category: 4, brand: 'Wool' },
+      { imageId: 14, imageUrl: '', category: 99, brand: 'ORIVOE' },
     ],
   },
 ];

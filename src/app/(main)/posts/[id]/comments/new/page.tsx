@@ -29,10 +29,18 @@ export default async function NewCommentPage({
 }) {
   const { id } = await params;
   // `?replyTo={commentId}` switches this screen from composing a new top-level
-  // commission comment to composing a reply under that comment. A string[] (a
-  // repeated param) is not a valid single target, so treat it as no target.
-  const replyToParam = (await searchParams).replyTo;
+  // commission comment to composing a reply under that comment. `?editCommentId=`/
+  // `?editReplyId=` switch it to editing an existing comment/reply instead of
+  // composing a new one (editReplyId is always paired with replyTo, which
+  // doubles as the parent comment id). A string[] (a repeated param) is not a
+  // valid single target, so treat it as no target.
+  const resolvedSearchParams = await searchParams;
+  const replyToParam = resolvedSearchParams.replyTo;
+  const editCommentIdParam = resolvedSearchParams.editCommentId;
+  const editReplyIdParam = resolvedSearchParams.editReplyId;
   const replyTo = typeof replyToParam === 'string' ? replyToParam : undefined;
+  const editCommentId = typeof editCommentIdParam === 'string' ? editCommentIdParam : undefined;
+  const editReplyId = typeof editReplyIdParam === 'string' ? editReplyIdParam : undefined;
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col bg-surface-base">
@@ -44,11 +52,18 @@ export default async function NewCommentPage({
             <CloseIcon />
           </Link>
         }
-        title={replyTo ? '回覆留言' : '新增留言'}
+        title={
+          editReplyId ? '編輯回覆' : editCommentId ? '編輯留言' : replyTo ? '回覆留言' : '新增留言'
+        }
         className="py-4"
       />
 
-      <AddCommentForm postId={id} replyTo={replyTo} />
+      <AddCommentForm
+        postId={id}
+        replyTo={replyTo}
+        editCommentId={editCommentId}
+        editReplyId={editReplyId}
+      />
     </div>
   );
 }

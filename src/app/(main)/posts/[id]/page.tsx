@@ -160,17 +160,28 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
 
         {/* Body images: 身形照片 */}
         <div className="mb-5.5 flex gap-2">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              role="img"
-              aria-label={`身形照片 ${i + 1}`}
-              className="flex flex-1 items-center justify-center rounded-xl bg-[#D9D2C0] text-text-primary"
-              style={{ aspectRatio: '1 / 1.2' }}
-            >
-              <ImagePlaceholderIcon />
-            </div>
-          ))}
+          {created && created.photos.length > 0
+            ? created.photos.map((photo, i) => (
+                // eslint-disable-next-line @next/next/no-img-element -- uploaded photo URL from real backend
+                <img
+                  key={photo.imageId}
+                  src={photo.url}
+                  alt={`身形照片 ${i + 1}`}
+                  className="flex-1 rounded-xl object-cover"
+                  style={{ aspectRatio: '1 / 1.2' }}
+                />
+              ))
+            : [0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  role="img"
+                  aria-label={`身形照片 ${i + 1}`}
+                  className="flex flex-1 items-center justify-center rounded-xl bg-[#D9D2C0] text-text-primary"
+                  style={{ aspectRatio: '1 / 1.2' }}
+                >
+                  <ImagePlaceholderIcon />
+                </div>
+              ))}
         </div>
 
         {/* 穿搭標籤 */}

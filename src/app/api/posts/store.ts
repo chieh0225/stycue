@@ -1,3 +1,5 @@
+import type { DraftPhoto } from '@/app/(main)/posts/new/draft';
+
 export type CreatedPost = {
   postType: string;
   title: string;
@@ -8,6 +10,7 @@ export type CreatedPost = {
   budget: string;
   points: string;
   tags: string[];
+  photos: DraftPhoto[];
   createdAt: string;
 };
 
@@ -25,12 +28,19 @@ declare global {
 const createdPosts = globalThis.__stycueCreatedPosts ?? new Map<string, CreatedPost>();
 globalThis.__stycueCreatedPosts = createdPosts;
 
-export function createPost(data: Omit<CreatedPost, 'createdAt'>): string {
+export function createPost(data: Omit<CreatedPost, 'createdAt' | 'photos'>): string {
   const id = `post-${Date.now().toString(36)}`;
-  createdPosts.set(id, { ...data, createdAt: new Date().toISOString() });
+  createdPosts.set(id, { ...data, photos: [], createdAt: new Date().toISOString() });
   return id;
 }
 
 export function getCreatedPost(id: string): CreatedPost | undefined {
   return createdPosts.get(id);
+}
+
+export function addPostImages(id: string, photos: DraftPhoto[]): boolean {
+  const post = createdPosts.get(id);
+  if (!post) return false;
+  post.photos.push(...photos);
+  return true;
 }
