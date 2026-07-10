@@ -1,4 +1,4 @@
-import type { Comment, CommentImage, Reply } from './comments/comment-board';
+import type { Comment, Reply } from './comments/comment-board';
 
 // Client-side optimistic store for comments/replies added without a backend.
 //
@@ -8,9 +8,9 @@ import type { Comment, CommentImage, Reply } from './comments/comment-board';
 // reload within the tab), we stash pending items in sessionStorage keyed by the
 // commission id. The board merges them onto the server mock data on mount.
 //
-// Only serialisable display data is stored — labels and text, never File blobs.
-// The board renders images as labelled placeholder cells, so the original files
-// are not needed to reproduce the card.
+// Image attachments are stored as the already-"uploaded" { imageId, imageUrl,
+// category, brand } records (see add-comment-form's publish()) — never the
+// original File blobs.
 
 // A pending top-level comment carries everything a rendered Comment needs except
 // `floor`, which is recomputed at merge time from the comment's position.
@@ -64,6 +64,73 @@ export function addPendingReply(postId: string, commentId: string, reply: Reply)
   write(postId, { ...store, replies: [...store.replies, { commentId, reply }] });
 }
 
+export function getPendingComment(postId: string, commentId: string): PendingComment | undefined {
+  return read(postId).comments.find((comment) => comment.commentId === commentId);
+}
+
+export function getPendingReply(
+  postId: string,
+  commentId: string,
+  replyId: string,
+): Reply | undefined {
+  return read(postId).replies.find(
+    (entry) => entry.commentId === commentId && entry.reply.replyId === replyId,
+  )?.reply;
+}
+
+// Returns false (no-op) if the id is no longer in the store — e.g. the entry
+// was created in a different tab/session. Callers fall back to a plain cancel.
+export function updatePendingComment(
+  postId: string,
+  commentId: string,
+  patch: Pick<PendingComment, 'content' | 'images'>,
+): boolean {
+  const store = read(postId);
+  const index = store.comments.findIndex((comment) => comment.commentId === commentId);
+  if (index === -1) return false;
+  const comments = [...store.comments];
+  comments[index] = { ...comments[index], ...patch };
+  write(postId, { ...store, comments });
+  return true;
+}
+
+export function updatePendingReply(
+  postId: string,
+  commentId: string,
+  replyId: string,
+  patch: Pick<Reply, 'content' | 'images'>,
+): boolean {
+  const store = read(postId);
+  const index = store.replies.findIndex(
+    (entry) => entry.commentId === commentId && entry.reply.replyId === replyId,
+  );
+  if (index === -1) return false;
+  const replies = [...store.replies];
+  replies[index] = { ...replies[index], reply: { ...replies[index].reply, ...patch } };
+  write(postId, { ...store, replies });
+  return true;
+}
+
+// Returns false (no-op) if the id is no longer in the store — same fallback
+// contract as the update* functions above.
+export function removePendingComment(postId: string, commentId: string): boolean {
+  const store = read(postId);
+  const comments = store.comments.filter((comment) => comment.commentId !== commentId);
+  if (comments.length === store.comments.length) return false;
+  write(postId, { ...store, comments });
+  return true;
+}
+
+export function removePendingReply(postId: string, commentId: string, replyId: string): boolean {
+  const store = read(postId);
+  const replies = store.replies.filter(
+    (entry) => !(entry.commentId === commentId && entry.reply.replyId === replyId),
+  );
+  if (replies.length === store.replies.length) return false;
+  write(postId, { ...store, replies });
+  return true;
+}
+
 // Merge the stored pending items onto a base comment list: append pending
 // top-level comments (assigning floors after the base ones), then splice each
 // pending reply into its parent. Pure in `base` so it is safe to call on every
@@ -88,24 +155,4 @@ export function mergePendingComments(postId: string, base: Comment[]): Comment[]
       ? { ...comment, replies: [...(comment.replies ?? []), ...extra] }
       : comment;
   });
-}
-
-// Build the labelled placeholder images for a set of attachments. A label reads
-// "分類：品牌" when a brand was given, otherwise just the category — mirroring the
-// existing mock comment image labels (e.g. 上衣：NET).
-export function buildCommentImages(attachments: { tag: string; brand: string }[]): CommentImage[] {
-  return attachments.map(({ tag, brand }) => {
-    const trimmedBrand = brand.trim();
-    return { label: trimmedBrand ? `${tag}：${trimmedBrand}` : tag };
-  });
-}
-
-// Pick a layout from the attachment count, matching how the board lays out the
-// existing mock comments: one image spans full width, a handful scroll
-// horizontally, and a larger set tiles into the 3-column grid.
-export function pickImageLayout(count: number): Comment['imageLayout'] | undefined {
-  if (count === 0) return undefined;
-  if (count === 1) return 'single';
-  if (count >= 4) return 'grid';
-  return 'scroll';
 }
