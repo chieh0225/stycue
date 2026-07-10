@@ -33,21 +33,21 @@ export default function EmptyNotifications() {
         {/* Decorative accents */}
         <SparkleIcon className="absolute -top-1 left-1 h-5.5 w-5.5 text-support-sage" />
         <div className="absolute top-9 left-18.5 h-1 w-1 rounded-full bg-accent-amber" />
-        <div className="absolute bottom-11.5 left-4 h-2.25 w-2.25 rounded-full border-[1.5px] border-accent-amber" />
+        <div className="absolute bottom-11.5 left-4 h-2.25 w-2.25 rounded-full border border-accent-amber" />
         <div className="absolute right-8.5 bottom-5.5 h-1.25 w-1.25 rounded-full bg-accent-amber" />
 
         {/* Notification card skeleton */}
-        <div className="absolute flex h-20.5 w-58 items-center gap-3 rounded-xl bg-surface-base px-4 py-3.5 shadow-[0_10px_24px_rgba(64,58,50,0.14)]">
-          <div className="h-13.5 w-13.5 shrink-0 rounded-xl bg-[#E5DDBF]" />
+        <div className="absolute flex h-20.5 w-58 items-center gap-3 rounded-xl bg-surface-base px-4 py-3.5 shadow-float">
+          <div className="h-13.5 w-13.5 shrink-0 rounded-xl bg-border" />
           <div className="flex flex-1 flex-col gap-1.75">
-            <div className="h-1.75 w-full rounded-[3px] bg-[#E5DDBF]" />
-            <div className="h-1.75 w-[65%] rounded-[3px] bg-[#E5DDBF]" />
-            <div className="h-1.75 w-[65%] rounded-[3px] bg-[#E5DDBF]" />
+            <div className="h-1.75 w-full rounded-[3px] bg-border" />
+            <div className="h-1.75 w-[65%] rounded-[3px] bg-border" />
+            <div className="h-1.75 w-[65%] rounded-[3px] bg-border" />
           </div>
         </div>
 
         {/* Search badge */}
-        <div className="absolute -right-4.5 bottom-4.5 flex h-12 w-12 items-center justify-center rounded-full bg-[#835500] text-surface-base shadow-[0_4px_10px_rgba(131,85,0,0.3)]">
+        <div className="absolute -right-4.5 bottom-4.5 flex h-12 w-12 items-center justify-center rounded-full bg-gold-dark text-surface-base shadow-gold-dark">
           <SearchIcon className="h-5.5 w-5.5" />
         </div>
       </div>

@@ -2,6 +2,14 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { PlaceholderAvatar } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
+import { Sheet, SheetClose, SheetContent, SheetTitle } from '@/components/ui/sheet';
+import { TopBar } from '@/components/ui/top-bar';
 
 const trendingItems = [
   {
@@ -224,36 +232,34 @@ export default function Home() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <header className="sticky top-0 z-20 border-b border-border-default bg-surface-soft px-4 py-4">
-        <div className="flex items-center justify-center">
+      <TopBar
+        left={
           <button
             type="button"
             onClick={() => setMenuOpen(true)}
-            className="absolute left-4 flex h-8 w-8 items-center justify-center rounded-full text-text-primary"
+            aria-label="開啟選單"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-foreground"
           >
             <MenuIcon />
           </button>
-          <div className="text-[19px] font-bold tracking-[0.5px] text-text-primary">StyCue</div>
-        </div>
-      </header>
+        }
+        title="StyCue"
+      />
 
       <section className="px-4 pt-5 pb-7">
-        <div className="mb-3 text-[20px] font-bold text-text-primary">人氣穿搭</div>
+        <div className="mb-3 text-display font-bold text-text-primary">人氣穿搭</div>
         <div className="-mx-1 flex gap-3 overflow-x-auto pb-2">
           {trendingItems.map((item) => (
-            <article
-              key={item.id}
-              className="w-[172px] flex-none overflow-hidden rounded-[16px] bg-white shadow-[0_4px_12px_rgba(217,154,61,0.08)]"
-            >
+            <Card key={item.id} variant="trending" className="w-43 flex-none">
               <Link href={`/posts/${item.id}`} className="block">
                 <div className="relative">
                   <div
-                    className={`absolute top-2 left-2 z-10 flex h-6 w-6 items-center justify-center rounded-md text-[12px] font-bold text-white ${item.accent}`}
+                    className={`absolute top-2 left-2 z-10 flex h-6 w-6 items-center justify-center rounded-md text-caption font-bold text-white ${item.accent}`}
                   >
                     {item.rank}
                   </div>
                   <div
-                    className="flex h-[216px] items-center justify-center"
+                    className="flex h-54 items-center justify-center"
                     style={{ background: item.gradient }}
                   >
                     <span className="rounded-md bg-white/70 px-2 py-1 text-[11px] font-medium text-text-primary">
@@ -264,9 +270,9 @@ export default function Home() {
               </Link>
               <div className="flex items-center justify-between px-3 py-3">
                 <div className="flex items-center gap-2">
-                  <div className={`h-7 w-7 rounded-full ${item.accent}`} />
+                  <PlaceholderAvatar size="sm" accent={item.accent} />
                   <div>
-                    <div className="text-[13px] font-semibold text-text-primary">{item.author}</div>
+                    <div className="text-meta font-semibold text-text-primary">{item.author}</div>
                     <div className="text-[11px] text-text-muted">{item.meta}</div>
                   </div>
                 </div>
@@ -280,20 +286,20 @@ export default function Home() {
                   <BookmarkIcon filled={trendingBookmarks[item.id]} />
                 </button>
               </div>
-            </article>
+            </Card>
           ))}
         </div>
       </section>
 
       <section className="px-4 pb-6">
         <div className="mb-4 flex items-center justify-between">
-          <div className="text-[20px] font-bold text-text-primary">全部文章</div>
+          <div className="text-display font-bold text-text-primary">全部文章</div>
           <div className="relative">
             <button
               type="button"
               onClick={() => setFilterOpen((open) => !open)}
               aria-expanded={filterOpen}
-              className="flex items-center gap-1 rounded-full border border-border-default bg-white px-3 py-2 text-[13px] font-medium text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.08)]"
+              className="flex items-center gap-1 rounded-full border border-border-default bg-white px-3 py-2 text-meta font-medium text-text-primary shadow-card"
             >
               {selectedFilter}
               <svg
@@ -310,7 +316,7 @@ export default function Home() {
             {filterOpen ? (
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setFilterOpen(false)} />
-                <div className="absolute top-full right-0 z-40 mt-2 w-max min-w-full overflow-hidden rounded-[12px] border border-border-default bg-white shadow-[0_4px_12px_rgba(217,154,61,0.12)]">
+                <div className="absolute top-full right-0 z-40 mt-2 w-max min-w-full overflow-hidden rounded-card border border-border-default bg-white shadow-card">
                   {postFilters.map((filter) => (
                     <button
                       key={filter}
@@ -319,7 +325,7 @@ export default function Home() {
                         setSelectedFilter(filter);
                         setFilterOpen(false);
                       }}
-                      className={`block w-full px-4 py-2.5 text-left text-[13px] font-medium ${
+                      className={`block w-full px-4 py-2.5 text-left text-meta font-medium ${
                         filter === selectedFilter
                           ? 'bg-surface-soft text-accent-amber'
                           : 'text-text-primary hover:bg-surface-soft'
@@ -334,7 +340,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mb-4 flex border-b border-border-default text-[15px]">
+        <div className="mb-4 flex border-b border-border-default text-name">
           <button
             type="button"
             onClick={() => setSortMode('hot')}
@@ -360,47 +366,32 @@ export default function Home() {
         </div>
 
         {filteredPosts.length === 0 ? (
-          <div className="py-10 text-center text-[13px] text-text-muted">
-            目前沒有這個分類的文章
-          </div>
+          <div className="py-10 text-center text-meta text-text-muted">目前沒有這個分類的文章</div>
         ) : null}
 
         {filteredPosts.map((post) => {
           const interaction = postInteractions[post.id];
           return (
-            <article
-              key={post.id}
-              className="mb-4 overflow-hidden rounded-[18px] border border-border-default bg-white shadow-[0_4px_12px_rgba(217,154,61,0.08)]"
-            >
+            <Card key={post.id} variant="post" className="mb-4">
               <Link href={`/posts/${post.id}`} className="block p-4 pb-0">
                 <div className="mb-3 flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div
-                      className={`h-[34px] w-[34px] rounded-full border-2 border-border-default ${post.accent}`}
-                    />
+                    <PlaceholderAvatar size="md" accent={post.accent} bordered />
                     <div>
-                      <div className="text-[14px] font-semibold text-text-primary">
-                        {post.author}
-                      </div>
-                      <div className="text-[12px] text-text-muted">
+                      <div className="text-body font-semibold text-text-primary">{post.author}</div>
+                      <div className="text-caption text-text-muted">
                         {formatRelativeTime(post.createdAt)}
                       </div>
                     </div>
                   </div>
-                  {post.badge ? (
-                    <div className="rounded-full bg-surface-soft px-2.5 py-1 text-[11px] font-semibold text-accent-amber">
-                      {post.badge}
-                    </div>
-                  ) : null}
+                  {post.badge ? <Badge variant="gold">{post.badge}</Badge> : null}
                 </div>
 
                 <div className="mb-2 flex items-center gap-2">
-                  <span className="rounded-full bg-surface-soft px-2.5 py-1 text-[11px] font-semibold text-accent-amber">
-                    {post.tag}
-                  </span>
-                  <span className="text-[15px] font-bold text-text-primary">{post.title}</span>
+                  <Badge variant="gold">{post.tag}</Badge>
+                  <span className="text-name font-bold text-text-primary">{post.title}</span>
                 </div>
-                <p className="mb-3 text-[13px] leading-5 text-text-muted">{post.body}</p>
+                <p className="mb-3 text-meta leading-5 text-text-muted">{post.body}</p>
 
                 {post.photos.length > 0 ? (
                   <>
@@ -409,7 +400,7 @@ export default function Home() {
                       {post.photos.map((photo, index) => (
                         <div
                           key={index}
-                          className={`rounded-[12px] ${post.photos.length === 1 ? 'h-[164px] flex-1' : 'h-[96px] flex-1'}`}
+                          className={`rounded-card ${post.photos.length === 1 ? 'h-41 flex-1' : 'h-24 flex-1'}`}
                           style={{ background: photo }}
                         />
                       ))}
@@ -422,12 +413,9 @@ export default function Home() {
 
                 <div className="flex flex-wrap gap-2">
                   {post.chips.map((chip) => (
-                    <span
-                      key={chip}
-                      className="rounded-full bg-surface-soft px-2.5 py-1 text-[11px] font-semibold text-text-primary"
-                    >
+                    <Badge key={chip} variant="neutral">
                       {chip}
-                    </span>
+                    </Badge>
                   ))}
                 </div>
               </Link>
@@ -437,14 +425,14 @@ export default function Home() {
                   type="button"
                   onClick={() => toggleLike(post.id)}
                   aria-pressed={interaction.liked}
-                  className={`flex items-center gap-1 text-[13px] ${interaction.liked ? 'text-accent-amber' : ''}`}
+                  className={`flex items-center gap-1 text-meta ${interaction.liked ? 'text-accent-amber' : ''}`}
                 >
                   <HeartIcon filled={interaction.liked} />
                   {interaction.likes}
                 </button>
                 <Link
                   href={`/posts/${post.id}/comments`}
-                  className="flex items-center gap-1 text-[13px]"
+                  className="flex items-center gap-1 text-meta"
                 >
                   <CommentIcon />
                   {post.comments}
@@ -459,84 +447,75 @@ export default function Home() {
                   <BookmarkIcon filled={interaction.bookmarked} />
                 </button>
               </div>
-            </article>
+            </Card>
           );
         })}
       </section>
 
-      {menuOpen ? (
-        <div
-          className="fixed inset-y-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 bg-[rgba(64,58,50,0.42)]"
-          onClick={() => setMenuOpen(false)}
+      <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+        <SheetContent
+          side="left"
+          className="gap-0 bg-secondary p-5 shadow-[4px_0_20px_rgba(64,58,50,0.18)] data-[side=left]:left-[max(0px,calc(50%-14rem))] data-[side=left]:w-65"
         >
-          <div
-            className="h-full w-[260px] bg-surface-soft p-5 shadow-[4px_0_20px_rgba(64,58,50,0.18)]"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="mb-5 flex items-center justify-between">
-              <div className="text-[17px] font-bold text-text-primary">快速瀏覽</div>
-              <button
-                type="button"
-                onClick={() => setMenuOpen(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-full"
-              >
-                <MenuIcon />
-              </button>
-            </div>
-            <div className="space-y-2">
-              {menuLinkGroups.map((group, groupIndex) => (
-                <div key={groupIndex}>
-                  {groupIndex > 0 ? <div className="my-3 border-t border-border-default" /> : null}
-                  {group.map((item) => (
-                    <Link
-                      key={item.label}
-                      href={item.href}
-                      className="flex w-full items-center gap-3 rounded-[10px] px-3 py-3 text-left text-[14.5px] font-medium text-text-primary hover:bg-white/80"
-                    >
-                      <span className="text-lg">{item.icon}</span>
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {checkinOpen ? (
-        <div
-          className="fixed inset-y-0 left-1/2 z-50 flex w-full max-w-md -translate-x-1/2 items-center justify-center bg-[rgba(64,58,50,0.45)] p-4"
-          onClick={() => setCheckinOpen(false)}
-        >
-          <div
-            className="w-[280px] rounded-[20px] bg-surface-base p-7 text-center shadow-[0_16px_40px_rgba(64,58,50,0.28)]"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <button
-              type="button"
-              onClick={() => setCheckinOpen(false)}
-              className="mb-4 ml-auto flex h-7 w-7 items-center justify-center rounded-full text-text-muted"
+          <div className="mb-5 flex items-center justify-between">
+            <SheetTitle className="text-[17px]">快速瀏覽</SheetTitle>
+            <SheetClose
+              render={
+                <button
+                  type="button"
+                  aria-label="關閉選單"
+                  className="flex h-8 w-8 items-center justify-center rounded-full"
+                />
+              }
             >
-              ✕
-            </button>
-            <div className="mb-7 flex justify-center">
-              <div className="flex h-[54px] w-[54px] items-center justify-center rounded-full border-[4px] border-accent-amber bg-brand-primary text-[20px] font-black text-text-primary">
-                簽
+              <MenuIcon />
+            </SheetClose>
+          </div>
+          <div className="space-y-2">
+            {menuLinkGroups.map((group, groupIndex) => (
+              <div key={groupIndex}>
+                {groupIndex > 0 ? <Separator className="my-3" /> : null}
+                {group.map((item) => (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className="flex w-full items-center gap-3 rounded-[10px] px-3 py-3 text-left text-[14.5px] font-medium text-foreground hover:bg-card/80"
+                  >
+                    <span className="text-lg">{item.icon}</span>
+                    {item.label}
+                  </Link>
+                ))}
               </div>
-            </div>
-            <div className="mb-3 text-[20px] font-bold text-text-primary">簽到完成</div>
-            <div className="mb-6 text-[16px] font-bold text-accent-amber">獲得積分 + 50</div>
-            <button
-              type="button"
-              onClick={() => setCheckinOpen(false)}
-              className="w-full rounded-[10px] bg-brand-primary px-4 py-3 text-[15px] font-bold text-text-primary"
-            >
-              知道了
-            </button>
+            ))}
           </div>
-        </div>
-      ) : null}
+        </SheetContent>
+      </Sheet>
+
+      <Dialog
+        open={checkinOpen}
+        onOpenChange={(open) => {
+          if (!open) setCheckinOpen(false);
+        }}
+      >
+        <DialogContent showCloseButton className="p-7 text-center">
+          <div className="mb-7 flex justify-center">
+            <div className="flex h-13.5 w-13.5 items-center justify-center rounded-full border-4 border-gold bg-primary text-display font-black text-primary-foreground">
+              簽
+            </div>
+          </div>
+          <DialogTitle className="mb-3 text-display">簽到完成</DialogTitle>
+          <div className="mb-6 text-title font-bold text-gold">獲得積分 + 50</div>
+          <Button
+            type="button"
+            variant="primary"
+            size="lg"
+            onClick={() => setCheckinOpen(false)}
+            className="w-full"
+          >
+            知道了
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

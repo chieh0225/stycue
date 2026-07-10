@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { BottomBar } from '@/components/ui/bottom-bar';
 
 function UserIcon({ className = 'h-4 w-4' }: { className?: string }) {
   return (
@@ -74,13 +76,15 @@ export default function CommentComposer({
   }
 
   return (
-    <footer className="sticky bottom-0 z-10 flex items-center gap-2.5 border-t border-border-default bg-surface-base px-4.5 py-3">
-      <div className="flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full bg-text-primary text-surface-base">
-        <UserIcon className="h-4 w-4" />
-      </div>
+    <BottomBar className="items-center gap-2.5 py-3">
+      <Avatar size="md">
+        <AvatarFallback>
+          <UserIcon className="h-4 w-4" />
+        </AvatarFallback>
+      </Avatar>
       {/* Input pill — text field plus, when a template is available, an image
           button that opens the dedicated commission-comment template */}
-      <div className="flex h-10 min-w-0 flex-1 items-center gap-2 overflow-hidden rounded-full border border-border-default bg-[#FDF7E9] pr-2 pl-4">
+      <div className="flex h-10 min-w-0 flex-1 items-center gap-2 overflow-hidden rounded-full border border-border-default bg-muted pr-2 pl-4">
         <input
           type="text"
           value={text}
@@ -93,7 +97,7 @@ export default function CommentComposer({
           }}
           placeholder={templateHref ? '加入討論，或附上圖片' : '加入討論...'}
           aria-label="加入討論"
-          className="h-full min-w-0 flex-1 bg-transparent text-[13px] text-text-primary placeholder:text-[#B8AF9E] focus:outline-none"
+          className="h-full min-w-0 flex-1 bg-transparent text-meta text-text-primary placeholder:text-text-placeholder focus:outline-none"
         />
         {templateHref ? (
           <Link
@@ -101,7 +105,7 @@ export default function CommentComposer({
             aria-label="用穿搭推薦模板附上圖片"
             className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-text-muted"
           >
-            <ImageIcon className="h-[17px] w-[17px]" />
+            <ImageIcon className="h-4.25 w-4.25" />
           </Link>
         ) : null}
       </div>
@@ -110,10 +114,10 @@ export default function CommentComposer({
         onClick={submit}
         disabled={!trimmed}
         aria-label="送出留言"
-        className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-brand-primary text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.14)] disabled:opacity-40"
+        className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-brand-primary text-text-primary shadow-cta disabled:opacity-40"
       >
         <SendIcon />
       </button>
-    </footer>
+    </BottomBar>
   );
 }
