@@ -3,6 +3,21 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { BottomBar } from '@/components/ui/bottom-bar';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
 import { getAuthedUser } from '../../../../../auth';
 import {
   categoryLabel,
@@ -69,7 +84,7 @@ function toExistingAttachments(images: CommentImage[] | undefined): ExistingAtta
   }));
 }
 
-function UserIcon({ className = 'h-[18px] w-[18px]' }: { className?: string }) {
+function UserIcon({ className = 'h-4.5 w-4.5' }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -87,7 +102,7 @@ function UserIcon({ className = 'h-[18px] w-[18px]' }: { className?: string }) {
   );
 }
 
-function ImagePlusIcon({ className = 'h-[18px] w-[18px]' }: { className?: string }) {
+function ImagePlusIcon({ className = 'h-4.5 w-4.5' }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -426,29 +441,31 @@ export default function AddCommentForm({
       <div className="no-scrollbar flex-1 overflow-y-auto px-4.5 pt-5 pb-6">
         {/* Author row */}
         <div className="mb-4 flex items-center gap-2.5">
-          <div className="flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-full bg-text-primary text-surface-base">
-            <UserIcon />
-          </div>
+          <Avatar size="xl">
+            <AvatarFallback>
+              <UserIcon />
+            </AvatarFallback>
+          </Avatar>
           <span className="text-[12.5px] leading-[1.5] text-text-muted">
             發布後內容將依序顯示：文字內容 &gt; 附加圖片
           </span>
         </div>
 
         {/* Text input */}
-        <textarea
+        <Textarea
           value={text}
           onChange={(event) => setText(event.target.value)}
           placeholder="分享你的穿搭見解..."
           aria-label="留言內容"
-          className="mb-[26px] min-h-[120px] w-full resize-none rounded-lg border-[1.5px] border-border-default bg-white p-3.5 text-sm leading-[1.7] text-text-primary placeholder:text-[#B8AF9E] focus:outline-none"
+          className="mb-6.5"
         />
 
         {/* 附加圖片 */}
         <div className="mb-3">
           <span className="text-lg font-bold text-text-primary">附加圖片</span>
         </div>
-        <div className="mb-2.5 h-px bg-border-default" />
-        <div className="mb-[18px] text-xs text-[#9A9080]">
+        <Separator className="mb-2.5" />
+        <div className="mb-4.5 text-xs text-text-tertiary">
           最多可上傳 {MAX_IMAGES} 張圖片，單張檔案大小不可超過 10MB
         </div>
 
@@ -458,10 +475,10 @@ export default function AddCommentForm({
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={images.length >= MAX_IMAGES}
-          className="mb-[18px] flex h-14 w-full items-center justify-center gap-2 rounded-xl border-[1.5px] border-dashed border-[#D9CFA9] bg-[#FDF7E9] disabled:opacity-50"
+          className="mb-4.5 flex h-14 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border-dashed bg-muted disabled:opacity-50"
         >
-          <ImagePlusIcon className="h-[18px] w-[18px] text-text-muted" />
-          <span className="text-sm font-semibold text-[#5A5248]">
+          <ImagePlusIcon className="h-4.5 w-4.5 text-text-muted" />
+          <span className="text-sm font-semibold text-foreground">
             新增圖片（{images.length}/{MAX_IMAGES}）
           </span>
         </button>
@@ -470,7 +487,7 @@ export default function AddCommentForm({
         {rejected.length > 0 && (
           <div
             role="alert"
-            className="mb-[18px] flex items-start gap-2 rounded-lg bg-error-container px-3 py-2 text-xs leading-[1.6] text-on-error-container"
+            className="mb-4.5 flex items-start gap-2 rounded-lg bg-error-container px-3 py-2 text-xs leading-[1.6] text-on-error-container"
           >
             <AlertIcon className="mt-px h-4 w-4 flex-shrink-0" />
             <span>以下檔案超過 10MB，未加入：{rejected.join('、')}</span>
@@ -492,10 +509,7 @@ export default function AddCommentForm({
 
         {/* Rendered cards — one per attached image */}
         {images.map((image) => (
-          <div
-            key={image.id}
-            className="mb-3.5 flex gap-3 rounded-xl border-[1.5px] border-border-default p-3.5"
-          >
+          <Card key={image.id} variant="outline" className="mb-3.5 flex gap-3 p-3.5">
             {image.kind === 'new' ? (
               // eslint-disable-next-line @next/next/no-img-element -- local object URL preview
               <img
@@ -526,15 +540,15 @@ export default function AddCommentForm({
                   type="button"
                   onClick={() => setDeleteTarget(image)}
                   aria-label={`移除 ${attachmentLabel(image)}`}
-                  className="ml-2 flex-shrink-0 rounded-md p-1 text-[#B8AF9E] hover:bg-[#F5EEDA]"
+                  className="ml-2 flex-shrink-0 rounded-md p-1 text-text-placeholder hover:bg-accent"
                 >
                   <TrashIcon />
                 </button>
               </div>
 
               {/* 分類標籤 dropdown */}
-              <div className="mb-[5px] text-[11.5px] text-[#9A9080]">分類標籤</div>
-              <div className="relative mb-2.5 cursor-pointer rounded-lg border-[1.5px] border-border-default bg-[#FDF7E9]">
+              <div className="mb-1.25 text-[11.5px] text-text-tertiary">分類標籤</div>
+              <div className="relative mb-2.5 cursor-pointer rounded-lg border border-border-default bg-muted">
                 <button
                   type="button"
                   onClick={() =>
@@ -542,9 +556,9 @@ export default function AddCommentForm({
                   }
                   aria-haspopup="listbox"
                   aria-expanded={openTagId === image.id}
-                  className="flex h-[38px] w-full items-center justify-between px-2.5"
+                  className="flex h-9.5 w-full items-center justify-between px-2.5"
                 >
-                  <span className="text-[13px] font-semibold text-text-primary">
+                  <span className="text-meta font-semibold text-text-primary">
                     {categoryLabel(image.category)}
                   </span>
                   <ChevronDownIcon
@@ -556,7 +570,7 @@ export default function AddCommentForm({
                 {openTagId === image.id && (
                   <ul
                     role="listbox"
-                    className="absolute inset-x-0 top-[calc(100%+4px)] z-20 overflow-hidden rounded-lg border border-border-default bg-surface-base shadow-[0_8px_20px_rgba(64,58,50,0.16)]"
+                    className="absolute inset-x-0 top-[calc(100%+4px)] z-20 overflow-hidden rounded-lg border border-border-default bg-surface-base shadow-dropdown"
                   >
                     {IMAGE_CATEGORIES.map((option) => {
                       const selected = option.id === image.category;
@@ -568,8 +582,8 @@ export default function AddCommentForm({
                               updateImage(image.id, { category: option.id });
                               setOpenTagId(null);
                             }}
-                            className={`flex h-9 w-full items-center px-3 text-[13px] text-text-primary ${
-                              selected ? 'bg-[#FCEFCB] font-bold' : 'font-normal'
+                            className={`flex h-9 w-full items-center px-3 text-meta text-text-primary ${
+                              selected ? 'bg-gold-soft font-bold' : 'font-normal'
                             }`}
                           >
                             {option.label}
@@ -582,17 +596,17 @@ export default function AddCommentForm({
               </div>
 
               {/* 品牌名稱 (選填) */}
-              <div className="mb-[5px] text-[11.5px] text-[#9A9080]">品牌名稱 (選填)</div>
-              <input
+              <div className="mb-1.25 text-[11.5px] text-text-tertiary">品牌名稱 (選填)</div>
+              <Input
                 type="text"
                 value={image.brand}
                 onChange={(event) => updateImage(image.id, { brand: event.target.value })}
                 placeholder="輸入品牌..."
                 aria-label={`${attachmentLabel(image)} 品牌名稱`}
-                className="h-[38px] w-full rounded-lg border-[1.5px] border-border-default px-2.5 text-[13px] font-semibold text-text-primary placeholder:font-normal placeholder:text-[#B8AF9E] focus:outline-none"
+                className="bg-transparent text-meta font-semibold placeholder:font-normal"
               />
             </div>
-          </div>
+          </Card>
         ))}
 
         <input
@@ -606,65 +620,63 @@ export default function AddCommentForm({
       </div>
 
       {/* Bottom action bar */}
-      <div className="flex flex-shrink-0 gap-3 border-t border-border-default bg-surface-base px-4.5 py-4">
+      <BottomBar className="py-4">
         <Link
           href={cancelHref}
-          className="flex h-13 flex-1 items-center justify-center rounded-lg border-[1.5px] border-border-default text-base font-bold text-text-primary"
+          className={cn(buttonVariants({ variant: 'secondary', size: 'lg' }), 'flex-1')}
         >
           取消
         </Link>
-        <button
+        <Button
           type="button"
+          variant="primary"
+          size="lg"
           onClick={publish}
           disabled={!canPublish}
-          className="flex h-13 flex-1 items-center justify-center rounded-lg bg-brand-primary text-base font-bold text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.14)] disabled:opacity-50"
+          className="flex-1"
         >
           {isEdit ? '儲存' : replyTo ? '發佈回覆' : '發佈留言'}
-        </button>
-      </div>
+        </Button>
+      </BottomBar>
 
       {/* Delete confirmation modal — the trash button stages an attachment here
           instead of removing it outright, so the removal is opt-in. */}
-      {deleteTarget && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="delete-image-title"
-          onClick={() => setDeleteTarget(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(64,58,50,0.42)] px-8"
-        >
-          <div
-            onClick={(event) => event.stopPropagation()}
-            className="flex w-full max-w-[300px] flex-col items-center rounded-2xl bg-surface-base px-[22px] pt-[26px] pb-5 text-center shadow-[0_12px_32px_rgba(64,58,50,0.28)]"
-          >
-            <div className="mb-4 flex h-13 w-13 items-center justify-center rounded-full bg-[#FBE8E4] text-[#C0564B]">
-              <TrashLinesIcon />
-            </div>
-            <span id="delete-image-title" className="mb-2 text-base font-bold text-text-primary">
-              刪除圖片？
-            </span>
-            <span className="mb-[22px] text-[13px] leading-[1.6] text-text-muted">
-              確定要刪除「{attachmentLabel(deleteTarget)}」嗎？此操作無法復原。
-            </span>
-            <div className="flex w-full gap-2.5">
-              <button
-                type="button"
-                onClick={() => setDeleteTarget(null)}
-                className="flex h-[46px] flex-1 items-center justify-center rounded-lg border-[1.5px] border-border-default text-sm font-bold text-text-primary hover:bg-[#F5EEDA]"
-              >
-                取消
-              </button>
-              <button
-                type="button"
-                onClick={() => removeImage(deleteTarget.id)}
-                className="flex h-[46px] flex-1 items-center justify-center rounded-lg bg-[#C0564B] text-sm font-bold text-surface-base shadow-[0_4px_12px_rgba(192,86,75,0.28)] hover:bg-[#AB4B41]"
-              >
-                刪除
-              </button>
-            </div>
+      <Dialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+      >
+        <DialogContent className="flex flex-col items-center px-5.5 pt-6.5 pb-5 text-center">
+          <div className="mb-4 flex h-13 w-13 items-center justify-center rounded-full bg-destructive-bg text-destructive">
+            <TrashLinesIcon />
           </div>
-        </div>
-      )}
+          <DialogTitle className="mb-2 text-base">刪除圖片？</DialogTitle>
+          <DialogDescription className="mb-5.5">
+            確定要刪除「{deleteTarget ? attachmentLabel(deleteTarget) : ''}」嗎？此操作無法復原。
+          </DialogDescription>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="secondary"
+              size="md"
+              onClick={() => setDeleteTarget(null)}
+              className="flex-1"
+            >
+              取消
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              size="md"
+              onClick={() => deleteTarget && removeImage(deleteTarget.id)}
+              className="flex-1"
+            >
+              刪除
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

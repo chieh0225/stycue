@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+@import 'shadcn/tailwind.css';
+@import 'tw-animate-css';
 
 html {
   overflow-y: scroll;
@@ -18,15 +20,9 @@ html.hide-native-scrollbar::-webkit-scrollbar {
   display: none;
 }
 
-/* Keep a container scrollable but hide its scrollbar — used where a transient
-   overflow (e.g. an open dropdown extending past the bottom) would otherwise
-   flash a vertical scrollbar. Applied via the .no-scrollbar utility class. */
-.no-scrollbar {
-  scrollbar-width: none;
-}
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
+/* .no-scrollbar utility (container-level, e.g. an open dropdown's transient
+   overflow) now comes from shadcn/tailwind.css above — no longer redeclared
+   here. */
 
 /* ---------------------------------------------------------------------------
    Design tokens — single source of truth, aligned to the Claude Design project

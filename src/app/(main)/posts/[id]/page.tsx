@@ -1,5 +1,11 @@
 import Link from 'next/link';
 import { getCreatedPost } from '@/app/api/posts/store';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { TopBar } from '@/components/ui/top-bar';
 import CommentLauncher from './comment-launcher';
 import HideScrollbar from './hide-scrollbar';
 import { MOCK_PUBLISH_POINTS } from './mock-commission';
@@ -50,7 +56,7 @@ function ChevronLeftIcon({ className = 'h-5 w-5' }: { className?: string }) {
   );
 }
 
-function UserIcon({ className = 'h-[18px] w-[18px]' }: { className?: string }) {
+function UserIcon({ className = 'h-4.5 w-4.5' }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -105,52 +111,55 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col bg-surface-base">
       <HideScrollbar />
       {/* Header — sticky so it stays pinned to the top while the page scrolls */}
-      <header className="sticky top-0 z-10 flex flex-shrink-0 items-center gap-3.5 border-b border-border-default bg-surface-soft px-4.5 pt-5 pb-3.5 shadow-[0_4px_12px_rgba(217,154,61,0.08)]">
-        <Link href="/" aria-label="返回全部文章" className="text-text-primary">
-          <ChevronLeftIcon />
-        </Link>
-        <span className="text-lg font-bold text-text-primary">全部文章</span>
-      </header>
+      <TopBar
+        center={false}
+        left={
+          <Link href="/" aria-label="返回全部文章" className="text-foreground">
+            <ChevronLeftIcon />
+          </Link>
+        }
+        title="全部文章"
+        className="py-4"
+      />
 
       {/* Article body — grows with the page (document scroll) between the
           sticky header and the sticky comment bar. */}
       <article className="flex-1 px-4.5 pt-5 pb-5">
         {/* Title */}
         <div className="mb-4 flex items-center gap-2">
-          <span className="flex-shrink-0 rounded-md bg-[#FCEFDA] px-[9px] py-[3px] text-[13px] font-bold text-accent-amber">
+          <Badge variant="gold" className="shrink-0">
             {postTypeLabel}
-          </span>
+          </Badge>
           <h1 className="text-[19px] leading-[1.4] font-bold text-text-primary">{title}</h1>
         </div>
 
         {/* Author row */}
-        <div className="mb-[18px] flex items-center gap-2.5">
-          <div className="flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-full bg-text-primary text-surface-base">
-            <UserIcon />
-          </div>
+        <div className="mb-4.5 flex items-center gap-2.5">
+          <Avatar size="xl">
+            <AvatarFallback>
+              <UserIcon />
+            </AvatarFallback>
+          </Avatar>
           <div className="flex flex-1 flex-col">
             <span className="text-base font-bold text-text-primary">Maple</span>
-            <time dateTime={createdAt} className="text-[12px] text-[#9A9080]">
+            <time dateTime={createdAt} className="text-caption text-text-tertiary">
               {formatDate(createdAt)}
             </time>
           </div>
-          <button
-            type="button"
-            className="rounded-lg bg-brand-primary px-4.5 py-2 text-[13px] font-bold text-text-primary shadow-[0_4px_12px_rgba(217,154,61,0.18)]"
-          >
+          <Button type="button" size="sm">
             追蹤
-          </button>
+          </Button>
         </div>
 
-        <div className="mb-[18px] h-px bg-border-default" />
+        <Separator className="mb-4.5" />
 
         {/* Body text */}
-        <div className="mb-[22px] text-[15.5px] leading-[1.8] whitespace-pre-line text-text-primary">
+        <div className="mb-5.5 text-[15.5px] leading-[1.8] whitespace-pre-line text-text-primary">
           {bodyText}
         </div>
 
         {/* Body images: 身形照片 */}
-        <div className="mb-[22px] flex gap-2">
+        <div className="mb-5.5 flex gap-2">
           {[0, 1, 2].map((i) => (
             <div
               key={i}
@@ -168,53 +177,50 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
         <h2 className="mb-3 text-base font-bold text-text-primary">穿搭標籤</h2>
         <div className="mb-6 flex flex-wrap gap-2">
           {tags.map((tag) => (
-            <div
-              key={tag}
-              className="rounded-full border border-border-default bg-[#FDF7E9] px-3.5 py-1.75 text-[13px] text-text-primary"
-            >
+            <Badge key={tag} variant="neutral">
               {tag}
-            </div>
+            </Badge>
           ))}
         </div>
 
         {/* 委託條件 */}
         <h2 className="mb-3 text-base font-bold text-text-primary">委託條件</h2>
-        <div className="mb-[22px] rounded-[14px] border border-border-default bg-[#FDF7E9] px-1 py-3.5">
+        <Card variant="info" className="mb-5.5 px-1 py-3.5">
           <dl className="mb-3.5 grid grid-cols-3">
-            <div className="flex flex-col items-center gap-[3px]">
-              <dt className="text-[11px] text-[#9A9080]">身高</dt>
-              <dd className="text-[15px] font-bold text-text-primary">
-                {height} <span className="text-[11px] font-medium text-[#9A9080]">cm</span>
+            <div className="flex flex-col items-center gap-0.75">
+              <dt className="text-[11px] text-text-tertiary">身高</dt>
+              <dd className="text-name font-bold text-text-primary">
+                {height} <span className="text-[11px] font-medium text-text-tertiary">cm</span>
               </dd>
             </div>
-            <div className="flex flex-col items-center gap-[3px] border-x border-border-default">
-              <dt className="text-[11px] text-[#9A9080]">體重</dt>
-              <dd className="text-[15px] font-bold text-text-primary">
-                {weight} <span className="text-[11px] font-medium text-[#9A9080]">kg</span>
+            <div className="flex flex-col items-center gap-0.75 border-x border-border-default">
+              <dt className="text-[11px] text-text-tertiary">體重</dt>
+              <dd className="text-name font-bold text-text-primary">
+                {weight} <span className="text-[11px] font-medium text-text-tertiary">kg</span>
               </dd>
             </div>
-            <div className="flex flex-col items-center gap-[3px]">
-              <dt className="text-[11px] text-[#9A9080]">年齡</dt>
-              <dd className="text-[15px] font-bold text-text-primary">
-                {age} <span className="text-[11px] font-medium text-[#9A9080]">歲</span>
+            <div className="flex flex-col items-center gap-0.75">
+              <dt className="text-[11px] text-text-tertiary">年齡</dt>
+              <dd className="text-name font-bold text-text-primary">
+                {age} <span className="text-[11px] font-medium text-text-tertiary">歲</span>
               </dd>
             </div>
           </dl>
-          <div className="mx-3.5 mb-3 h-px bg-border-default" />
+          <Separator className="mx-3.5 mb-3 w-auto" />
           <dl className="flex items-center justify-between px-3.5">
-            <dt className="text-[12.5px] text-[#9A9080]">預算範圍</dt>
+            <dt className="text-[12.5px] text-text-tertiary">預算範圍</dt>
             <dd className="text-sm font-bold text-text-primary">{budgetLabel}</dd>
           </dl>
-        </div>
+        </Card>
 
         {/* 截止資訊 */}
-        <div className="mb-[18px] text-[13px] leading-[1.7] text-[#B8AF9E]">
+        <div className="mb-4.5 text-meta leading-[1.7] text-text-placeholder">
           直到 <time dateTime={deadline}>{formatDate(deadline)}</time>
           <br />
           委託者可給予青睞留言 {points} 積分
         </div>
 
-        <div className="mb-4 h-px bg-border-default" />
+        <Separator className="mb-4" />
 
         {/* 互動列 */}
         <PostInteractions postId={id} initialLikes={222} comments={50} />

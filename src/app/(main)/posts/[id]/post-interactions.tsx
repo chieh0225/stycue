@@ -84,7 +84,7 @@ export default function PostInteractions({
   }
 
   return (
-    <div className="flex items-center gap-[22px] text-text-primary">
+    <div className="flex items-center gap-5.5 text-text-primary">
       <button
         type="button"
         onClick={toggleLike}
@@ -93,12 +93,12 @@ export default function PostInteractions({
       >
         <HeartIcon filled={liked} />
         <span className="sr-only">讚</span>
-        <span className="text-[15px]">{likes}</span>
+        <span className="text-name">{likes}</span>
       </button>
       <Link href={`/posts/${postId}/comments`} className="flex items-center gap-1.5">
         <CommentIcon />
         <span className="sr-only">留言</span>
-        <span className="text-[15px]">{comments}</span>
+        <span className="text-name">{comments}</span>
       </Link>
       <button
         type="button"

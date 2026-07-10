@@ -1,4 +1,4 @@
-export function UserIcon({ className = 'h-[17px] w-[17px]' }: { className?: string }) {
+export function UserIcon({ className = 'h-4.25 w-4.25' }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -16,7 +16,7 @@ export function UserIcon({ className = 'h-[17px] w-[17px]' }: { className?: stri
   );
 }
 
-export function ImagePlaceholderIcon({ className = 'h-[22px] w-[22px]' }: { className?: string }) {
+export function ImagePlaceholderIcon({ className = 'h-5.5 w-5.5' }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -120,8 +120,8 @@ export function AlertTriangleIcon({ className = 'h-4 w-4' }: { className?: strin
   return (
     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
       <path d="M12 2.5 1.5 21h21L12 2.5Z" fill="currentColor" />
-      <rect x="11" y="9" width="2" height="6.2" rx="1" fill="#FFFDF7" />
-      <circle cx="12" cy="17.6" r="1.15" fill="#FFFDF7" />
+      <rect x="11" y="9" width="2" height="6.2" rx="1" fill="var(--background)" />
+      <circle cx="12" cy="17.6" r="1.15" fill="var(--background)" />
     </svg>
   );
 }

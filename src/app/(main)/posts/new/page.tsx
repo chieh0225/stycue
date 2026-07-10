@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { TopBar } from '@/components/ui/top-bar';
 import {
   DRAFT_STORAGE_KEY,
   TITLE_MAX_LENGTH,
@@ -91,20 +93,22 @@ export default function NewPostPage() {
   return (
     <div className="flex flex-1 flex-col bg-surface-base">
       {/* Header */}
-      <div className="flex items-center justify-between bg-surface-soft px-4 py-4">
-        <Link href="/" onClick={saveDraft} className="text-sm text-text-muted">
-          取消
-        </Link>
-        <h1 className="text-base font-semibold text-text-primary">發表委託</h1>
-        <div className="w-8" />
-      </div>
+      <TopBar
+        left={
+          <Link href="/" onClick={saveDraft} className="text-title leading-6 text-muted-foreground">
+            取消
+          </Link>
+        }
+        title="發表委託"
+        className="py-4"
+      />
 
       <div className="flex flex-1 flex-col gap-6 px-4 py-4">
         {/* User row */}
         <div className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-text-primary text-sm text-surface-base">
-            M
-          </div>
+          <Avatar size="xl">
+            <AvatarFallback>M</AvatarFallback>
+          </Avatar>
           <span className="text-sm font-medium text-text-primary">Maple</span>
           <div className="relative">
             <button
@@ -128,7 +132,7 @@ export default function NewPostPage() {
             {typeMenuOpen ? (
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setTypeMenuOpen(false)} />
-                <div className="absolute top-full left-0 z-40 mt-2 w-max min-w-full overflow-hidden rounded-xl border border-border-default bg-white shadow-[0_4px_12px_rgba(217,154,61,0.12)]">
+                <div className="absolute top-full left-0 z-40 mt-2 w-max min-w-full overflow-hidden rounded-xl border border-border-default bg-white shadow-card">
                   {postTypes.map((type) => (
                     <button
                       key={type}
@@ -353,7 +357,7 @@ export default function NewPostPage() {
               {pointsMenuOpen ? (
                 <>
                   <div className="fixed inset-0 z-30" onClick={() => setPointsMenuOpen(false)} />
-                  <div className="absolute top-full left-0 z-40 mt-2 w-full overflow-hidden rounded-xl border border-border-default bg-white shadow-[0_4px_12px_rgba(217,154,61,0.12)]">
+                  <div className="absolute top-full left-0 z-40 mt-2 w-full overflow-hidden rounded-xl border border-border-default bg-white shadow-card">
                     {pointsOptions.map((option) => (
                       <button
                         key={option}

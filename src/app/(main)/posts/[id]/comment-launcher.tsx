@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { BottomBar } from '@/components/ui/bottom-bar';
 
 function UserIcon({ className = 'h-4 w-4' }: { className?: string }) {
   return (
@@ -41,18 +43,22 @@ function ChevronRightIcon({ className = 'h-5 w-5' }: { className?: string }) {
 // the full comments list (where typing and the outfit template actually live).
 export default function CommentLauncher({ postId }: { postId: string }) {
   return (
-    <Link
-      href={`/posts/${postId}/comments`}
-      aria-label="查看並加入留言討論"
-      className="sticky bottom-0 z-10 flex items-center gap-2.5 border-t border-border-default bg-surface-base px-4.5 py-3.5"
-    >
-      <div className="flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full bg-text-primary text-surface-base">
-        <UserIcon className="h-4 w-4" />
-      </div>
-      <span className="min-w-0 flex-1 truncate text-[13.5px] text-text-muted">
-        查看並加入留言討論…
-      </span>
-      <ChevronRightIcon className="h-5 w-5 flex-shrink-0 text-text-primary" />
-    </Link>
+    <BottomBar className="p-0">
+      <Link
+        href={`/posts/${postId}/comments`}
+        aria-label="查看並加入留言討論"
+        className="flex flex-1 items-center gap-2.5 px-4.5 py-3.5"
+      >
+        <Avatar size="md">
+          <AvatarFallback>
+            <UserIcon className="h-4 w-4" />
+          </AvatarFallback>
+        </Avatar>
+        <span className="min-w-0 flex-1 truncate text-[13.5px] text-text-muted">
+          查看並加入留言討論…
+        </span>
+        <ChevronRightIcon className="h-5 w-5 flex-shrink-0 text-text-primary" />
+      </Link>
+    </BottomBar>
   );
 }
