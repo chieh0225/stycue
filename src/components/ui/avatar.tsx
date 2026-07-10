@@ -1,32 +1,58 @@
-import { cva, type VariantProps } from 'class-variance-authority';
+'use client';
+
+import { Avatar as AvatarPrimitive } from '@base-ui/react/avatar';
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
-// Circular avatar container (see docs/design-component-inventory.md A8). Content
-// is passed as children — an icon (UserIcon, sized by the caller) or initials
-// text — since icon components are still defined per-file, not consolidated here.
-const avatarVariants = cva(
-  'inline-flex shrink-0 items-center justify-center rounded-full bg-foreground text-sm text-background',
-  {
-    variants: {
-      size: {
-        sm: 'h-7.5 w-7.5',
-        md: 'h-8.5 w-8.5',
-        lg: 'h-9 w-9',
-        xl: 'h-9.5 w-9.5',
-      },
-    },
-    defaultVariants: {
-      size: 'lg',
-    },
-  },
-);
-
-type AvatarProps = React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof avatarVariants>;
-
-function Avatar({ className, size, ...props }: AvatarProps) {
-  return <div className={cn(avatarVariants({ size, className }))} {...props} />;
+// Based on shadcn's official Base UI Avatar (base-vega style), edited directly
+// with StyCue's brand sizes/colors — see docs/design-component-inventory.md A8.
+// AvatarImage/AvatarBadge/AvatarGroup dropped: nothing in the app loads a real
+// photo yet, so only the fallback (icon/initials) path is used.
+function Avatar({
+  className,
+  size = 'lg',
+  ...props
+}: AvatarPrimitive.Root.Props & {
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+}) {
+  return (
+    <AvatarPrimitive.Root
+      data-slot="avatar"
+      data-size={size}
+      className={cn(
+        'relative flex shrink-0 rounded-full select-none data-[size=lg]:size-9 data-[size=md]:size-8.5 data-[size=sm]:size-7.5 data-[size=xl]:size-9.5',
+        className,
+      )}
+      {...props}
+    />
+  );
 }
 
-export { Avatar, avatarVariants };
-export type { AvatarProps };
+function AvatarFallback({ className, ...props }: AvatarPrimitive.Fallback.Props) {
+  return (
+    <AvatarPrimitive.Fallback
+      data-slot="avatar-fallback"
+      className={cn(
+        'flex size-full items-center justify-center rounded-full bg-foreground text-sm text-background',
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+// Dynamic bg-* color standing in for a real photo not yet uploaded — distinct
+// from Avatar/AvatarFallback's fixed brand color, which represents an actual
+// icon/initials identity.
+type PlaceholderAvatarProps = React.ComponentProps<typeof Avatar> & {
+  accent: string;
+  bordered?: boolean;
+};
+
+function PlaceholderAvatar({ accent, bordered, className, ...props }: PlaceholderAvatarProps) {
+  return (
+    <Avatar className={cn(bordered && 'border-2 border-border', accent, className)} {...props} />
+  );
+}
+
+export { Avatar, AvatarFallback, PlaceholderAvatar };

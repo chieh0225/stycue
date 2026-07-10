@@ -1,19 +1,21 @@
+import { mergeProps } from '@base-ui/react/merge-props';
+import { useRender } from '@base-ui/react/use-render';
 import { cva, type VariantProps } from 'class-variance-authority';
-import * as React from 'react';
 import { cn } from '@/lib/utils';
 
-// Static label/tag chip (see docs/design-component-inventory.md A3). Distinct
-// from Button: never interactive on its own — dropdown/select triggers that
-// happen to look like a chip stay as <button> until a Select primitive exists.
+// Based on shadcn's official Base UI Badge (base-vega style), edited directly
+// with StyCue's brand variants — see docs/design-component-inventory.md A3.
+// Static label/tag chip — dropdown/select triggers that look like a chip stay
+// as <button> until a Select primitive exists.
 const badgeVariants = cva(
-  'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-caption font-bold',
+  'group/badge inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-full border border-transparent px-2.5 py-1 text-caption font-bold whitespace-nowrap transition-all focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3!',
   {
     variants: {
       variant: {
         gold: 'bg-gold-soft text-gold-deep',
         blue: 'bg-tag-blue-bg text-tag-blue',
         green: 'bg-tag-green-bg text-tag-green',
-        neutral: 'border border-border bg-muted font-normal text-foreground',
+        neutral: 'border-border bg-muted font-normal text-foreground',
       },
     },
     defaultVariants: {
@@ -22,11 +24,26 @@ const badgeVariants = cva(
   },
 );
 
-type BadgeProps = React.HTMLAttributes<HTMLSpanElement> & VariantProps<typeof badgeVariants>;
-
-function Badge({ className, variant, ...props }: BadgeProps) {
-  return <span className={cn(badgeVariants({ variant, className }))} {...props} />;
+function Badge({
+  className,
+  variant = 'gold',
+  render,
+  ...props
+}: useRender.ComponentProps<'span'> & VariantProps<typeof badgeVariants>) {
+  return useRender({
+    defaultTagName: 'span',
+    props: mergeProps<'span'>(
+      {
+        className: cn(badgeVariants({ variant }), className),
+      },
+      props,
+    ),
+    render,
+    state: {
+      slot: 'badge',
+      variant,
+    },
+  });
 }
 
 export { Badge, badgeVariants };
-export type { BadgeProps };
