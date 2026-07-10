@@ -181,4 +181,4 @@ rg "#[0-9A-Fa-f]{6}|rgba?\(|bg-\[|text-\[|border-\[|rounded-\[|shadow-\[|-\[[0-9
 2. **元件採用順序**（Step 3）：低風險葉節點先行 → `Badge`(A3) → `Button`(A4) → `Avatar`/`Divider`(A8) → `Card`(A2) → `Input`/`Textarea`(A6) → `Dialog`/`Sheet`(A5) → 自建 `TopBar`(A1)、`BottomBar`(A7)。
 3. **Track B 併行清理**：B1 隨元件採用一起換；B2 依上表決策（預設全收斂、不新增 token）；B3 做一次性 `-[Npx]`→原生 fraction 正規化。
 4. 若採納任何「建議新增 token」→ 先改 `globals.css` + `design-tokens.md`，再套頁面。
-5. 每採用一個元件/一頁，於 `docs/design-token-apply-log.md` 追加對照（該檔待 Step 3 重建）。
+5. 進度、決策、待辦分別記錄於 `docs/design-migration-plan.md`／`docs/design-decisions.md`／`docs/design-remaining-debt.md`（三份文件的分工見各檔開頭說明）。

@@ -1,4 +1,17 @@
-# 設計 Token / 元件套用紀錄（apply log）
+# ⚠️ 本文件已棄用（Deprecated）
+
+**內容已拆分至以下 3 份文件，請改看那邊：**
+
+- 現在採用了什麼、各 Phase 狀態 → [`design-migration-plan.md`](./design-migration-plan.md)
+- 決策理由、哪些不可逆 → [`design-decisions.md`](./design-decisions.md)
+- 還剩什麼待辦、什麼風險 → [`design-remaining-debt.md`](./design-remaining-debt.md)
+- 某次改動實際做了什麼、何時 → `git log`（commit message 已含 Phase 標記）
+
+本文件保留僅供歷史 before/after 對照表查閱（該類執行細節不搬遷），**不再更新**。
+
+---
+
+# 設計 Token / 元件套用紀錄（apply log，已棄用）
 
 > 分支：`refactor/apply-design-tokens`
 > 規格來源：[`docs/design-component-inventory.md`](./design-component-inventory.md)、[`docs/design-tokens.md`](./design-tokens.md)。
