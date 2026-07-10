@@ -4,8 +4,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { BottomBar } from '@/components/ui/bottom-bar';
 import { Button, buttonVariants } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import {
   addPendingComment,
@@ -265,12 +269,12 @@ export default function AddCommentForm({
         </div>
 
         {/* Text input */}
-        <textarea
+        <Textarea
           value={text}
           onChange={(event) => setText(event.target.value)}
           placeholder="分享你的穿搭見解..."
           aria-label="留言內容"
-          className="mb-[26px] min-h-[120px] w-full resize-none rounded-lg border-[1.5px] border-border-default bg-white p-3.5 text-sm leading-[1.7] text-text-primary placeholder:text-[#B8AF9E] focus:outline-none"
+          className="mb-6.5"
         />
 
         {/* 附加圖片 */}
@@ -309,10 +313,7 @@ export default function AddCommentForm({
 
         {/* Rendered cards — one per attached image */}
         {images.map((image) => (
-          <div
-            key={image.id}
-            className="mb-3.5 flex gap-3 rounded-xl border-[1.5px] border-border-default p-3.5"
-          >
+          <Card key={image.id} variant="outline" className="mb-3.5 flex gap-3 p-3.5">
             {/* eslint-disable-next-line @next/next/no-img-element -- local object URL preview */}
             <img
               src={image.url}
@@ -384,16 +385,16 @@ export default function AddCommentForm({
 
               {/* 品牌名稱 (選填) */}
               <div className="mb-[5px] text-[11.5px] text-[#9A9080]">品牌名稱 (選填)</div>
-              <input
+              <Input
                 type="text"
                 value={image.brand}
                 onChange={(event) => updateImage(image.id, { brand: event.target.value })}
                 placeholder="輸入品牌..."
                 aria-label={`${image.file.name} 品牌名稱`}
-                className="h-[38px] w-full rounded-lg border-[1.5px] border-border-default px-2.5 text-[13px] font-semibold text-text-primary placeholder:font-normal placeholder:text-[#B8AF9E] focus:outline-none"
+                className="bg-transparent text-meta font-semibold placeholder:font-normal"
               />
             </div>
-          </div>
+          </Card>
         ))}
 
         <input
@@ -407,7 +408,7 @@ export default function AddCommentForm({
       </div>
 
       {/* Bottom action bar */}
-      <div className="flex flex-shrink-0 gap-3 border-t border-border-default bg-surface-base px-4.5 py-4">
+      <BottomBar className="py-4">
         <Link
           href={cancelHref}
           className={cn(buttonVariants({ variant: 'secondary', size: 'lg' }), 'flex-1')}
@@ -424,7 +425,7 @@ export default function AddCommentForm({
         >
           {replyTo ? '發佈回覆' : '發佈留言'}
         </Button>
-      </div>
+      </BottomBar>
 
       {/* Delete confirmation modal — the trash button stages an attachment here
           instead of removing it outright, so the removal is opt-in. */}

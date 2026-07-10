@@ -111,7 +111,7 @@ export default function BottomNav() {
   if (hidesBottomNav(pathname)) return null;
 
   return (
-    <nav className="sticky bottom-0 z-10 flex items-end border-t border-border-default bg-surface-base px-2 pt-2 pb-3 shadow-[0_-4px_12px_rgba(217,154,61,0.08)]">
+    <nav className="sticky bottom-0 z-10 flex items-end border-t border-border-default bg-surface-base px-2 pt-2 pb-3 shadow-nav-top">
       {navItems.map((item) => {
         const active = isActive(pathname, item.href);
 

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { BottomBar } from '@/components/ui/bottom-bar';
 
 function UserIcon({ className = 'h-4 w-4' }: { className?: string }) {
   return (
@@ -75,7 +76,7 @@ export default function CommentComposer({
   }
 
   return (
-    <footer className="sticky bottom-0 z-10 flex items-center gap-2.5 border-t border-border-default bg-surface-base px-4.5 py-3">
+    <BottomBar className="items-center gap-2.5 py-3">
       <Avatar size="md">
         <AvatarFallback>
           <UserIcon className="h-4 w-4" />
@@ -117,6 +118,6 @@ export default function CommentComposer({
       >
         <SendIcon />
       </button>
-    </footer>
+    </BottomBar>
   );
 }

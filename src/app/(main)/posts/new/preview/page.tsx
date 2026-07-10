@@ -4,7 +4,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { BottomBar } from '@/components/ui/bottom-bar';
+import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { TopBar } from '@/components/ui/top-bar';
 import {
   DRAFT_STORAGE_KEY,
   TITLE_MAX_LENGTH,
@@ -126,13 +129,15 @@ export default function NewPostPreviewPage() {
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col bg-surface-base">
       {/* Header */}
-      <header className="flex flex-shrink-0 items-center justify-between border-b border-border-default bg-surface-soft px-4.5 py-4 shadow-[0_4px_12px_rgba(217,154,61,0.08)]">
-        <Link href="/posts/new" className="text-sm text-text-muted">
-          返回編輯
-        </Link>
-        <h1 className="text-base font-semibold text-text-primary">確認委託內容</h1>
-        <div className="w-12" />
-      </header>
+      <TopBar
+        left={
+          <Link href="/posts/new" className="text-title leading-6 text-muted-foreground">
+            返回編輯
+          </Link>
+        }
+        title="確認委託內容"
+        className="py-4"
+      />
 
       <div className="flex-1 overflow-y-auto px-4.5 pt-5 pb-24">
         {/* Post type + title */}
@@ -276,7 +281,7 @@ export default function NewPostPreviewPage() {
 
         {/* 委託條件 */}
         <h2 className="mb-3 text-base font-bold text-text-primary">委託條件</h2>
-        <div className="mb-[22px] rounded-[14px] border border-border-default bg-[#FDF7E9] px-1 py-3.5">
+        <Card variant="info" className="mb-5.5 px-1 py-3.5">
           <div className="mb-3.5 grid grid-cols-3">
             <div className="flex flex-col items-center gap-[3px]">
               <span className="text-[11px] text-[#9A9080]">身高</span>
@@ -341,7 +346,7 @@ export default function NewPostPreviewPage() {
               })}
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* 積分 */}
         <div className="mb-[22px] flex flex-col gap-2">
@@ -415,21 +420,21 @@ export default function NewPostPreviewPage() {
       </div>
 
       {/* Bottom action bar */}
-      <footer className="fixed bottom-0 left-1/2 z-20 flex w-full max-w-md -translate-x-1/2 gap-3 border-t border-border-default bg-surface-soft px-4.5 py-3.5">
+      <BottomBar fixed className="py-3.5">
         <Link
           href="/posts/new"
-          className="flex-1 rounded-lg border border-border-default py-3 text-center text-sm font-semibold text-text-primary"
+          className="flex-1 rounded-lg border border-border py-3 text-center text-sm font-semibold text-foreground"
         >
           返回編輯
         </Link>
         <button
           type="button"
           onClick={confirmSubmit}
-          className="flex-1 rounded-lg bg-brand-primary py-3 text-sm font-semibold text-text-primary"
+          className="flex-1 rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground"
         >
           確認送出
         </button>
-      </footer>
+      </BottomBar>
     </div>
   );
 }

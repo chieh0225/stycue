@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react';
 import { PlaceholderAvatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { TopBar } from '@/components/ui/top-bar';
 
 const trendingItems = [
   {
@@ -227,27 +229,25 @@ export default function Home() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <header className="sticky top-0 z-20 border-b border-border-default bg-surface-soft px-4 py-4">
-        <div className="flex items-center justify-center">
+      <TopBar
+        left={
           <button
             type="button"
             onClick={() => setMenuOpen(true)}
-            className="absolute left-4 flex h-8 w-8 items-center justify-center rounded-full text-text-primary"
+            aria-label="開啟選單"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-foreground"
           >
             <MenuIcon />
           </button>
-          <div className="text-[19px] font-bold tracking-[0.5px] text-text-primary">StyCue</div>
-        </div>
-      </header>
+        }
+        title="StyCue"
+      />
 
       <section className="px-4 pt-5 pb-7">
         <div className="mb-3 text-[20px] font-bold text-text-primary">人氣穿搭</div>
         <div className="-mx-1 flex gap-3 overflow-x-auto pb-2">
           {trendingItems.map((item) => (
-            <article
-              key={item.id}
-              className="w-[172px] flex-none overflow-hidden rounded-[16px] bg-white shadow-[0_4px_12px_rgba(217,154,61,0.08)]"
-            >
+            <Card key={item.id} variant="trending" className="w-43 flex-none">
               <Link href={`/posts/${item.id}`} className="block">
                 <div className="relative">
                   <div
@@ -283,7 +283,7 @@ export default function Home() {
                   <BookmarkIcon filled={trendingBookmarks[item.id]} />
                 </button>
               </div>
-            </article>
+            </Card>
           ))}
         </div>
       </section>
@@ -371,10 +371,7 @@ export default function Home() {
         {filteredPosts.map((post) => {
           const interaction = postInteractions[post.id];
           return (
-            <article
-              key={post.id}
-              className="mb-4 overflow-hidden rounded-[18px] border border-border-default bg-white shadow-[0_4px_12px_rgba(217,154,61,0.08)]"
-            >
+            <Card key={post.id} variant="post" className="mb-4">
               <Link href={`/posts/${post.id}`} className="block p-4 pb-0">
                 <div className="mb-3 flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
@@ -451,7 +448,7 @@ export default function Home() {
                   <BookmarkIcon filled={interaction.bookmarked} />
                 </button>
               </div>
-            </article>
+            </Card>
           );
         })}
       </section>

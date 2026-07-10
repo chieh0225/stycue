@@ -3,7 +3,9 @@ import { getCreatedPost } from '@/app/api/posts/store';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { TopBar } from '@/components/ui/top-bar';
 import CommentLauncher from './comment-launcher';
 import HideScrollbar from './hide-scrollbar';
 import { MOCK_PUBLISH_POINTS } from './mock-commission';
@@ -109,12 +111,16 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col bg-surface-base">
       <HideScrollbar />
       {/* Header — sticky so it stays pinned to the top while the page scrolls */}
-      <header className="sticky top-0 z-10 flex flex-shrink-0 items-center gap-3.5 border-b border-border-default bg-surface-soft px-4.5 pt-5 pb-3.5 shadow-[0_4px_12px_rgba(217,154,61,0.08)]">
-        <Link href="/" aria-label="返回全部文章" className="text-text-primary">
-          <ChevronLeftIcon />
-        </Link>
-        <span className="text-lg font-bold text-text-primary">全部文章</span>
-      </header>
+      <TopBar
+        center={false}
+        left={
+          <Link href="/" aria-label="返回全部文章" className="text-foreground">
+            <ChevronLeftIcon />
+          </Link>
+        }
+        title="全部文章"
+        className="py-4"
+      />
 
       {/* Article body — grows with the page (document scroll) between the
           sticky header and the sticky comment bar. */}
@@ -179,7 +185,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
 
         {/* 委託條件 */}
         <h2 className="mb-3 text-base font-bold text-text-primary">委託條件</h2>
-        <div className="mb-[22px] rounded-[14px] border border-border-default bg-[#FDF7E9] px-1 py-3.5">
+        <Card variant="info" className="mb-5.5 px-1 py-3.5">
           <dl className="mb-3.5 grid grid-cols-3">
             <div className="flex flex-col items-center gap-[3px]">
               <dt className="text-[11px] text-[#9A9080]">身高</dt>
@@ -205,7 +211,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
             <dt className="text-[12.5px] text-[#9A9080]">預算範圍</dt>
             <dd className="text-sm font-bold text-text-primary">{budgetLabel}</dd>
           </dl>
-        </div>
+        </Card>
 
         {/* 截止資訊 */}
         <div className="mb-[18px] text-[13px] leading-[1.7] text-[#B8AF9E]">

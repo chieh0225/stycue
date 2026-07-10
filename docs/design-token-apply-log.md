@@ -160,4 +160,101 @@
 - `ui/separator.tsx` 改回官方原樣的 `data-horizontal:`/`data-vertical:` 寫法（先前為了繞過缺失的 variant，暫時改寫成 `data-[orientation=horizontal]:` 這種可攜寫法；現在 variant 已註冊，改回官方寫法，之後 `npx shadcn add separator` 的 diff 也會更乾淨）。
 
 **驗證**：`npm view shadcn exports` 確認套件真的有 `./tailwind.css` subpath；`cat node_modules/shadcn/dist/tailwind.css` 逐行確認內容只有 variant/utility、無顏色 token；`tsc`/`eslint` 0 errors；`npm run build` ✓；編譯後 CSS 確認 `[data-orientation=` 選擇器正確生成、`no-scrollbar` 存在、**`--primary:#f6d978` 等品牌色完全未被覆蓋**（`git diff` 也確認 `:root`/`@theme inline` 區塊零異動，只多了一行 import）；SSR 直接檢查登入頁 `Separator` 渲染出的 class 與屬性，確認 `data-horizontal:h-px`/`data-horizontal:w-full` 現在能正確匹配 `data-orientation="horizontal"`。
-**Commit（建議）**：`fix(ui): import shadcn/tailwind.css for data-* variants, dedupe no-scrollbar`
+
+---
+
+## Phase 3B — Card / Input·Textarea / TopBar / BottomBar
+
+延續 Phase 3A.5（修正版）的做法：新元件先取官方 registry 原始碼為起點（Card/Input/Textarea 有官方版本），或在無官方對應時自建（TopBar/BottomBar，`docs/design-component-inventory.md` A1/A7 本來就標注「shadcn 無對應標配」），直接編輯成品牌版，頁面直接 import，不設 `custom/` 邊界層。
+
+### #4 Card（`src/components/ui/card.tsx`，自建，非官方 registry）
+
+官方 Card 附帶 `CardHeader/CardTitle/CardDescription/CardAction/CardFooter` 這組複合子元件，但本專案四處用法（A2）都是單一表面＋依情境變色，沒有一處需要那組子結構，因此**不採用官方 Card 原始碼**，改用最小 cva 版本：`variant` = `post`(`rounded-card border border-border bg-card shadow-card`) / `trending`(同圓角陰影，無邊框) / `info`(`rounded-panel border border-border bg-muted`) / `outline`(`rounded-xl border border-border`，用於附加圖片卡片這類邊框收斂場景)。
+
+**採用點**：
+
+| 檔案:行                                                            | 前                                                                             | 後                                                                                                                                         |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `page.tsx`（人氣穿搭 trending 卡）                                 | `<article className="w-[172px] … rounded-[16px] bg-white shadow-[…0.08]">`     | `<Card variant="trending" className="w-43 flex-none">`（外層 `<article>` 語意併入 Card 的 `<div>`，比照官方 Card 本身也是 `<div>` 的慣例） |
+| `page.tsx`（全部文章 feed 卡）                                     | `<article className="mb-4 … rounded-[18px] border … bg-white shadow-[…0.08]">` | `<Card variant="post" className="mb-4">`                                                                                                   |
+| `posts/[id]/page.tsx`（委託條件面板）                              | `<div className="… rounded-[14px] border … bg-[#FDF7E9] px-1 py-3.5">`         | `<Card variant="info" className="mb-5.5 px-1 py-3.5">`                                                                                     |
+| `posts/new/preview/page.tsx`（同一面板，原本是複製貼上的重複結構） | 同上                                                                           | 同上（順手消掉這處重複）                                                                                                                   |
+| `add-comment-form.tsx`（附加圖片卡片）                             | `<div className="… rounded-xl border-[1.5px] border-border-default p-3.5">`    | `<Card variant="outline" className="mb-3.5 flex gap-3 p-3.5">`（border 寬度 1.5px→1px，§Track B B3 收斂）                                  |
+
+### #5 Input / Textarea（`src/components/ui/input.tsx`、`textarea.tsx`，官方 Base UI 原始碼為起點）
+
+**範圍決策（重要）**：A6 把「裸框欄位」與「圖示前綴欄位（登入/註冊）」「pill 包裹欄位（留言 composer）」歸在同一張表，但三者結構不同——官方 `Input`/`Textarea` 假設自己就是那個有邊框的元素；圖示前綴欄位的邊框其實畫在外層 `<div>` 上（`<input>` 本身無邊框無底色）；pill 欄位同理，邊框/底色/圓角都在外層 pill 容器。硬套官方 Input 會需要拆掉外層邊框、把 `<input>` 撐滿容器再重新套一層樣式，等於重寫這兩種 composite，風險/工作量都不對稱。**本輪只採用官方 Input/Textarea 於真正的裸框欄位**（`add-comment-form.tsx` 的品牌名稱輸入框、留言內容 textarea）；登入/註冊的圖示前綴欄位、留言 composer 的 pill 欄位維持現狀，留待有專門的「複合欄位」規格時再處理。
+
+官方原始碼改動：border 寬度 `border-[1.5px]`→`border`（§Track B B3 收斂）；圓角 `rounded-md`→`rounded-lg`；`bg-transparent`→`bg-card`（原站點用 `bg-white`）；`placeholder:text-muted-foreground`→`placeholder:text-text-placeholder`；拿掉 `dark:bg-input/30`（品牌色直接寫死，不看 mode）；Textarea `min-h-16`(64px)→`min-h-30`(120px)、`px-2.5 py-2`→`p-3.5`、加 `leading-[1.7]`（一次性行高值，§Track B 合理 one-off）。
+
+**採用點**：
+
+| 檔案:行                            | 前                                                                                                  | 後                                                                                                                              |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `add-comment-form.tsx`（留言內容） | `<textarea className="… min-h-[120px] … border-[1.5px] border-border-default bg-white …">`          | `<Textarea className="mb-6.5" />`                                                                                               |
+| `add-comment-form.tsx`（品牌名稱） | `<input className="h-[38px] … border-[1.5px] border-border-default … text-[13px] font-semibold …">` | `<Input className="bg-transparent text-meta font-semibold placeholder:font-normal" />`（原本無底色，`bg-transparent` 保留這點） |
+
+### #6 TopBar（`src/components/ui/top-bar.tsx`，自建）
+
+A1 標準規格：`sticky top-0 z-10 border-b border-border-subtle bg-secondary px-4.5 pt-5 pb-3.5 shadow-card`，slot 為 `left`/`title`/`right`。額外做的設計決策：
+
+- **`center`（預設 `true`）**：5 處原始 header 中有 4 處把標題絕對置中（`absolute left-1/2 -translate-x-1/2`），只有 `posts/[id]/page.tsx` 是標題緊接在返回鍵右側（`items-center gap-3.5`，非置中）。為了不改變這一頁的既有視覺，**該頁改用 `center={false}`**，其餘 4 頁維持置中（多數行為，也更一致）。
+- **z-index／sticky／padding 全部收斂**：`notifications/page.tsx` 原本 `z-20`+`pt-4`（其餘四處 `z-10`+`pt-5`）、`preview/page.tsx` 原本無 `sticky`——全部收斂成 A1 標準值（z-10、sticky、`pt-5 pb-3.5`），符合盤點時就記錄的既定決策。
+- **`comments/new/page.tsx` 原本用一個 `<span className="w-5" />` 佔位元素把標題視覺置中**（因為它的 `<h1>` 沒有用 absolute 置中技巧）——TopBar 統一用 absolute 置中後，這個佔位 span 不再需要，直接拿掉。
+- **標題文字樣式收斂**：原本 5 處字級不一（`text-lg`／`text-base`／`text-[19px] tracking-[0.5px]`），TopBar 統一用 `text-lg font-bold text-foreground`，`notifications/page.tsx` 的品牌字距因此拿掉（19px→18px、去 letter-spacing，視覺差異極小）。
+
+**採用點**：`posts/[id]/page.tsx`（`center={false}`）、`posts/[id]/comments/page.tsx`、`posts/[id]/comments/new/page.tsx`（拿掉手動置中 spacer）、`posts/new/preview/page.tsx`（原本無 sticky，收斂為 sticky）、`notifications/page.tsx`（z-20→z-10、拿掉自訂字距）。
+
+### #7 BottomBar（`src/components/ui/bottom-bar.tsx`，自建）
+
+只固定結構（`border-t border-border bg-background px-4.5` + `sticky bottom-0` 或 `fixed`），版面（`items-center`/`gap`/`py`）留給呼叫端用 `className` 覆蓋，因為各處版面差異大（icon+pill 一列 vs. 兩顆等寬按鈕）。`fixed` prop 給 `preview/page.tsx` 用（它的內容是自身 scroll container、底欄要固定在 viewport，其餘頁面都是 `sticky` 跟文件捲動）。
+
+**bg 收斂**：`preview/page.tsx` 原本底欄用 `bg-surface-soft`，其餘三處（composer/launcher/add-comment-form）都是 `bg-surface-base`——收斂到多數的 `bg-background`（即 `bg-surface-base`）。
+
+**採用點**：
+
+| 檔案                   | 前                                                                                                  | 後                                                                                                                                               |
+| ---------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `comment-composer.tsx` | `<footer className="sticky bottom-0 … border-t border-border-default bg-surface-base px-4.5 py-3">` | `<BottomBar className="items-center gap-2.5 py-3">`                                                                                              |
+| `comment-launcher.tsx` | `<Link className="sticky bottom-0 … border-t … px-4.5 py-3.5">`（整個可點列本身就是底欄）           | `<BottomBar className="p-0"><Link className="flex flex-1 items-center gap-2.5 px-4.5 py-3.5">`（`footer` landmark 外層 + `Link` 內層，視覺不變） |
+| `add-comment-form.tsx` | `<div className="flex … border-t border-border-default bg-surface-base px-4.5 py-4">`               | `<BottomBar className="py-4">`                                                                                                                   |
+| `preview/page.tsx`     | `<footer className="fixed bottom-0 … bg-surface-soft px-4.5 py-3.5">`                               | `<BottomBar fixed className="py-3.5">`（`bg-surface-soft`→`bg-background`，見上）；內部兩顆按鈕暫維持 raw class（未套 `Button`，非本輪範圍）     |
+| `bottom-nav.tsx`       | `shadow-[0_-4px_12px_rgba(217,154,61,0.08)]`                                                        | `shadow-nav-top`（只換陰影 token，`<nav>` 本身不套 BottomBar，語意不同，維持獨立元件）                                                           |
+
+**驗證**：`tsc --noEmit` 0 errors；`eslint src/app src/components` 0 errors（同一既有 warning，另修掉 2 個新檔案的 import 順序 warning）；`npm run build` ✓ 全站 35 條路由正常產出；`npm run dev` 對 5 個改動頁面（`/`、`/posts/[id]`、`/posts/[id]/comments`、`/posts/[id]/comments/new`、`/notifications`）直接檢查伺服器渲染 HTML，確認 `data-slot="top-bar"/"card"/"bottom-bar"` 與其 className 符合預期（首頁是純 client component，dev server 只回傳 client reference 供瀏覽器端渲染，curl 驗不到 SSR 內容——這是該頁本來的架構特性，非本次改動造成，改以 `tsc`/`build` 的型別檢查作為替代保證）。
+
+### #7.1 TopBar padding 收斂為單一值（驗收後追加）
+
+原本 `top-bar.tsx` 是 `pt-5 pb-3.5`（20px/14px，上下不對稱，收斂自 5 處原始 header 更分歧的 padding），進一步收斂成 `py-5`（上下都 20px）。因為 padding 定義集中在元件本身，5 個呼叫點（`posts/[id]/page.tsx`、`comments/page.tsx`、`comments/new/page.tsx`、`posts/new/preview/page.tsx`、`notifications/page.tsx`）不用逐一改，一行 class 修改即全站生效。視覺影響：header 整體變高約 6px（底部 padding 14→20），已知且可接受。
+
+**驗證**：`tsc --noEmit` 0 errors；`eslint` 0 errors；`npm run build` ✓。
+
+### #7.2 首頁、發表委託表單納入 TopBar；padding 再收斂為 `py-5 px-4`
+
+原本 A1 盤點只列了「返回鍵/關閉鍵 + 標題」這 5 個結構相同的複製 header，首頁（漢堡選單 + 置中 Logo）、`posts/new/page.tsx`（`取消` 文字連結 + 表單標題，且原本是 `<div>` 不是 `<header>`）結構不同，當時判斷不算同一種重複而跳過。這次要求一併納入：
+
+- **`top-bar.tsx` 水平 padding `px-4.5`→`px-4`**：首頁、`posts/new` 原本都是 `px-4`，改動後 7 處全部共用 `py-5 px-4`。
+- **首頁**：`<button>` 選單觸發器改由 TopBar 的 `left` slot 承接，拿掉原本 `absolute left-4`（TopBar 有 left/right 內容時標題本來就用絕對置中，不需要 icon 自己 absolute 定位）；標題文字 `text-[19px] tracking-[0.5px]`→統一的 `text-lg font-bold`（同 Phase 3B 已接受的字級收斂）；`z-20`→`z-10`、`border-border-default`→`border-border-subtle`（收斂至 A1 標準）。
+- **`posts/new/page.tsx`**：`<div>`→`<header>`（TopBar 本身用 `<header>`），因此**新增了原本沒有的 `sticky`/`border-b`/`shadow-card`**——這是本次唯一結構性視覺變化（原本是純色靜態列，現在會固定在頂端且有陰影）；標題 `text-base font-semibold`→`text-lg font-bold`；右側原本用來平衡「取消」寬度的 `<div className="w-8" />` 空白 spacer 拿掉（TopBar 絕對置中不需要）。
+
+**驗證**：`tsc --noEmit` 0 errors；`eslint` 0 errors；`npm run build` ✓ 全站路由正常產出。
+
+### #7.3 TopBar padding 固定 `py-3`、字體統一 24px
+
+- `top-bar.tsx`：`py-5`→`py-3`（header 變矮）；標題 `text-lg`(18px)→`text-2xl`(24px)。
+- 一併統一先前記錄的「TopBar 內僅有的另一種字級」（#7 節提到的 `text-sm` 左側文字連結）：`preview/page.tsx` 的「返回編輯」、`posts/new/page.tsx` 的「取消」都改為 `text-2xl`，讓 TopBar 內文字（icon 除外）全部統一 24px。因為 7 處 header 全部共用同一份 `top-bar.tsx`，只需改元件本身＋這兩個左側連結即可全站生效。
+
+**驗證**：`tsc --noEmit` 0 errors；`eslint` 0 errors；`npm run build` ✓。
+
+### #7.4 TopBar 文字改用 token、行高定為字級的 1.5 倍
+
+- 標題從 stock `text-2xl`(24px) 改用專案 token `text-title`(16px)，跟左側連結「返回編輯」/「取消」統一為 16px。
+- 專案的 `text-*` token（`design-tokens.md` 排版章節）只定義 font-size，沒有配對 line-height，預設吃瀏覽器/字型行高（約 1.15–1.2 倍），非刻意值。這次明確要求 1.5 倍，三處文字（`h1` 標題、兩個左側連結）都加上 `leading-6`（16px × 1.5 = 24px）。
+
+**驗證**：`tsc --noEmit` 0 errors；`eslint` 0 errors；`npm run build` ✓。
+
+### #7.5 首頁（含漢堡選單）維持 `py-3`，其餘 6 處改 `py-4`
+
+`top-bar.tsx` 元件本身的 padding 保持 `py-3`（首頁沿用，不特別覆寫），其餘 6 個呼叫點（`posts/[id]/page.tsx`、`posts/[id]/comments/page.tsx`、`posts/[id]/comments/new/page.tsx`、`posts/new/page.tsx`、`posts/new/preview/page.tsx`、`notifications/page.tsx`）逐一加上 `className="py-4"`，靠 `cn`/`twMerge` 覆寫元件預設值——這是 TopBar 系列調整中第一次出現「首頁跟其他頁不同」的分裂，之後若還有頁面差異化需求，同樣走 `className` 覆寫而非改元件預設。
+
+**驗證**：`tsc --noEmit` 0 errors；`eslint` 0 errors；`npm run build` ✓ 全站路由正常產出。
