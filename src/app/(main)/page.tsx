@@ -10,6 +10,12 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetClose, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { TopBar } from '@/components/ui/top-bar';
+import { claimDailyPoints } from '@/lib/points-api';
+
+// POST /api/points/daily returns this exact message only when the call just
+// created today's claim; a same-day repeat returns "今日已領取積分" instead.
+// isClaimed is true in both cases, so message is the only reliable signal.
+const DAILY_CLAIM_SUCCESS_MESSAGE = '每日積分領取成功';
 
 const trendingItems = [
   {
@@ -152,19 +158,24 @@ function BookmarkIcon({ filled, className = 'h-4 w-4' }: { filled?: boolean; cla
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [checkinOpen, setCheckinOpen] = useState(false);
+  const [checkinPoints, setCheckinPoints] = useState(0);
   const [filterOpen, setFilterOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<PostFilter>('全部');
   const [sortMode, setSortMode] = useState<'hot' | 'latest'>('hot');
 
   useEffect(() => {
     let active = true;
-    fetch('/api/checkin')
-      .then((res) => res.json())
-      .then((data: { claimedToday: boolean }) => {
-        if (!active || data.claimedToday) return;
+    // The backend POST is safe to call every visit (idempotent per day) and
+    // distinguishes a fresh claim from a same-day repeat via `message` — that
+    // string, not isClaimed (true in both cases), is what gates the dialog so
+    // it only celebrates a genuinely new award, not every homepage visit.
+    // Landing on the home page while unclaimed IS the check-in action.
+    claimDailyPoints()
+      .then((res) => {
+        if (!active || !res.success || !res.data) return;
+        if (res.message !== DAILY_CLAIM_SUCCESS_MESSAGE) return;
+        setCheckinPoints(res.data.points);
         setCheckinOpen(true);
-        // Landing on the home page while unclaimed IS the check-in action.
-        void fetch('/api/checkin', { method: 'POST' }).catch(() => {});
       })
       .catch(() => {});
     return () => {
@@ -504,7 +515,7 @@ export default function Home() {
             </div>
           </div>
           <DialogTitle className="mb-3 text-display">簽到完成</DialogTitle>
-          <div className="mb-6 text-title font-bold text-gold">獲得積分 + 50</div>
+          <div className="mb-6 text-title font-bold text-gold">獲得積分 + {checkinPoints}</div>
           <Button
             type="button"
             variant="primary"
