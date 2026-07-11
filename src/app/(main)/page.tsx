@@ -468,7 +468,7 @@ export default function Home() {
           if (!open) setCheckinOpen(false);
         }}
       >
-        <DialogContent showCloseButton className="p-7 text-center">
+        <DialogContent showCloseButton className="px-7 pt-9 pb-7 text-center">
           <div className="relative mx-auto mb-8 flex h-17.5 w-17.5 items-center justify-center">
             <svg
               width="12"
@@ -500,8 +500,8 @@ export default function Home() {
               簽
             </div>
           </div>
-          <DialogTitle className="mb-3">簽到完成</DialogTitle>
-          <div className="mb-6 text-headline-md font-bold text-gold">獲得積分 + 50</div>
+          <DialogTitle className="mb-3.5">簽到完成</DialogTitle>
+          <div className="mb-6 text-body-lg font-bold text-gold">獲得積分 + 50</div>
           <Button
             type="button"
             variant="primary"
