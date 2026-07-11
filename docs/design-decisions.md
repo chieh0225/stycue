@@ -146,3 +146,21 @@
 **決策**：拆成 `design-migration-plan.md`（現況，改了就覆寫）、`design-decisions.md`（本文件，僅收錄過門檻的決策，寫完不改）、`design-remaining-debt.md`（待辦，解決後移到 Resolved 區塊而非刪除）。**不獨立維護 execution log**——「做了什麼、何時」直接查 `git log`；純數值收斂不寫文件。舊 `design-token-apply-log.md` 加棄用 banner、改名為 `.deprecated.md` 保留，不搬進 `archive/`（避免讀者以為那是另一份現行文件）。
 
 **後果**：影響之後所有文件寫作習慣——每次要新增內容前，先判斷屬於「現況／決策／待辦」哪一種性質，而不是全部塞進同一個檔案；決策是否要開新 ADR，先檢查是否過收錄門檻。
+
+---
+
+## DR-013：字級量表改採新的六階規格，按鈕文字統一 label-md
+
+**狀態**：Accepted
+
+**背景**：`globals.css` 原本的 7 階字級 token（`text-caption`12/`text-meta`13/`text-body`14/`text-name`15/`text-title`16/`text-heading`18/`text-display`20）跟官方設計提案的 `typography` 規格（`label-md`12/`body-md`14/`body-lg`16/`headline-sm`20/`headline-md`24/`display-lg`28,32）並不一致，且全站另外累積了 40+ 處對不到任何 token 的 arbitrary 小數字級（`text-[11px]`／`[12.5px]`／`[14.5px]` 等，見 `design-remaining-debt.md` 已解決項）。
+
+**決策**：
+
+1. 全站字級改採官方設計提案的 6 個角色（`text-label-md`/`text-body-md`/`text-body-lg`/`text-headline-sm`/`text-headline-md`/`text-display-lg`），`display-lg` 採用行動裝置尺寸（28px）而非桌機 32px，因為 app shell 固定 `max-w-md`、不會出現桌機寬版。
+2. 每個 token 只烘 size + line-height；字重不烘進 token，維持既有「呼叫端另加 `font-medium`/`font-semibold`/`font-bold`」的慣例，避免打散既有強調層次。
+3. **所有按鈕/CTA 文字（含主 CTA）統一改為 `text-label-md`(12px)**，完全照官方設計提案「按鈕文字＝label-md」的規格，不因為是主要按鈕就另外放大——這是全站視覺變化最大的一項，已與使用者確認採用。
+4. 全站 150+ 處字級呼叫點（含舊 7 階 token 與 arbitrary 值）依**實際語意角色**而非機械式就近像素值重新對應，例如：留言/回覆內文從 14–14.5px 提升到 `body-lg`(16px)（因為內文本該是主要可讀內容，貼近就近值反而會誤判成次要文字）；簽到點數等「大型強調數字」提升到 `headline-md`(24px)；Modal/Sheet 標題原本分散在 3 種不同尺寸，收斂成單一 `headline-sm`(20px) 烘進 `DialogTitle`/`SheetTitle` 元件本身。
+5. 舊 7 階量表已從 `globals.css` 移除，不保留 legacy alias。
+
+**後果**：跨全站近 30 個檔案的視覺變更（不可逆——舊 token 已刪除）；影響團隊協作慣例——之後新增文字一律先判斷屬於這六個角色中的哪一個，而非另開 arbitrary 值或延用舊 token 名稱。
