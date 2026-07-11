@@ -1,5 +1,6 @@
 'use client';
 
+import { Info, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -288,7 +289,7 @@ export default function NewPostPreviewPage() {
                     aria-label={`移除標籤 ${tag}`}
                     className="text-text-muted"
                   >
-                    ✕
+                    <X className="h-3 w-3" />
                   </button>
                 </span>
               ))}
@@ -438,7 +439,8 @@ export default function NewPostPreviewPage() {
         {/* Info box */}
         <div className="flex flex-col gap-2 rounded-lg bg-surface-soft p-4 text-xs text-text-muted">
           <p>
-            <span aria-hidden>ⓘ</span> 委託送出後就不能變更了，請仔細確認內容是否有遺漏。
+            <Info className="inline h-3 w-3" aria-hidden />{' '}
+            委託送出後就不能變更了，請仔細確認內容是否有遺漏。
           </p>
         </div>
       </div>

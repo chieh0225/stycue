@@ -1,5 +1,6 @@
 'use client';
 
+import { Calendar, ImagePlus, Info, Plus, Tag, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -233,7 +234,8 @@ export default function NewPostPage() {
               onClick={saveDraft}
               className="flex w-fit items-center gap-1 rounded-full border border-border-default px-3 py-1.5 text-xs text-text-muted"
             >
-              <span aria-hidden>🖼️</span> 上傳圖片{photos.length > 0 ? ` (${photos.length}/9)` : ''}
+              <ImagePlus className="h-3.5 w-3.5" aria-hidden /> 上傳圖片
+              {photos.length > 0 ? ` (${photos.length}/9)` : ''}
             </Link>
           </div>
           {photos.length > 0 && (
@@ -251,7 +253,7 @@ export default function NewPostPage() {
                     aria-label="移除圖片"
                     className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[rgba(64,58,50,0.55)] text-surface-base"
                   >
-                    ✕
+                    <X className="h-3.5 w-3.5" />
                   </button>
                 </div>
               ))}
@@ -263,7 +265,7 @@ export default function NewPostPage() {
                 href="/posts/new/tags"
                 className="flex items-center gap-1 rounded-full border border-border-default px-3 py-1.5 text-xs text-text-muted"
               >
-                <span aria-hidden>🏷️</span> 選擇標籤
+                <Tag className="h-3.5 w-3.5" aria-hidden /> 選擇標籤
               </Link>
             ) : (
               <>
@@ -279,7 +281,7 @@ export default function NewPostPage() {
                       aria-label={`移除標籤 ${tag}`}
                       className="text-text-muted"
                     >
-                      ✕
+                      <X className="h-3 w-3" />
                     </button>
                   </span>
                 ))}
@@ -288,7 +290,7 @@ export default function NewPostPage() {
                   aria-label="新增標籤"
                   className="flex h-7 w-7 items-center justify-center rounded-full border border-dashed border-border-default text-xs text-text-muted"
                 >
-                  +
+                  <Plus className="h-3.5 w-3.5" />
                 </Link>
               </>
             )}
@@ -421,7 +423,7 @@ export default function NewPostPage() {
         <div className="flex flex-col gap-2">
           <h2 className="text-sm font-semibold text-text-primary">預設委託截止時間為 7 天</h2>
           <div className="flex items-center gap-2 rounded-lg bg-surface-soft px-3 py-2">
-            <span aria-hidden>📅</span>
+            <Calendar className="h-3.5 w-3.5" aria-hidden />
             <span className="text-sm text-text-primary">2026 年 6 月 24 日</span>
           </div>
           <p className="text-xs text-text-muted">送出後自動計算，無法編輯</p>
@@ -431,16 +433,16 @@ export default function NewPostPage() {
         <div className="flex flex-col gap-2 rounded-lg bg-surface-soft p-4 text-xs text-text-muted">
           <h3 className="text-sm font-semibold text-text-primary">委託該怎麼寫呢？</h3>
           <p>
-            <span aria-hidden>ⓘ</span>{' '}
+            <Info className="inline h-3 w-3" aria-hidden />{' '}
             委託送出後就不能變更了，請仔細確認內容是否有遺漏，將會根據每次提供的積分扣除 5
             點作為平台手續費。
           </p>
           <p>
-            <span aria-hidden>ⓘ</span>{' '}
+            <Info className="inline h-3 w-3" aria-hidden />{' '}
             收取發文手續費，旨在避免非必要的發布、修改與取消操作，維持平台內容管理秩序。
           </p>
           <p>
-            <span aria-hidden>ⓘ</span> 平台內每次委託最長 7
+            <Info className="inline h-3 w-3" aria-hidden /> 平台內每次委託最長 7
             天，委託者可以在此期限內選擇最佳留言給予積分。
           </p>
         </div>

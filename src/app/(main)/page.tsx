@@ -1,5 +1,6 @@
 'use client';
 
+import { Bookmark, ClipboardList, Coins, FileText, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { PlaceholderAvatar } from '@/components/ui/avatar';
@@ -93,13 +94,13 @@ type PostFilter = (typeof postFilters)[number];
 
 const menuLinkGroups = [
   [
-    { label: '追蹤中', icon: '👥', href: '/profile/following' },
-    { label: '已收藏', icon: '🔖', href: '/profile/favorites' },
+    { label: '追蹤中', icon: Users, href: '/profile/following' },
+    { label: '已收藏', icon: Bookmark, href: '/profile/favorites' },
   ],
   [
-    { label: '管理委託', icon: '🧵', href: '/profile/commissions/sent' },
-    { label: '積分商城', icon: '💰', href: '/profile/points' },
-    { label: '免責聲明', icon: '📝', href: '/disclaimer' },
+    { label: '管理委託', icon: ClipboardList, href: '/profile/commissions/sent' },
+    { label: '積分商城', icon: Coins, href: '/profile/points' },
+    { label: '免責聲明', icon: FileText, href: '/disclaimer' },
   ],
 ] as const;
 
@@ -481,7 +482,7 @@ export default function Home() {
                     href={item.href}
                     className="flex w-full items-center gap-3 rounded-[10px] px-3 py-3 text-left text-[14.5px] font-medium text-foreground hover:bg-card/80"
                   >
-                    <span className="text-lg">{item.icon}</span>
+                    <item.icon className="h-4.5 w-4.5" />
                     {item.label}
                   </Link>
                 ))}

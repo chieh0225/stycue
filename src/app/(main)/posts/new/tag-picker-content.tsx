@@ -1,5 +1,6 @@
 'use client';
 
+import { ArrowLeft, Plus, Search, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 const tagGroups = [
@@ -143,13 +144,13 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
               aria-label="返回"
               className="text-text-primary"
             >
-              ←
+              <ArrowLeft className="h-4.5 w-4.5" />
             </button>
           ) : (
             <h2 className="text-lg font-bold text-text-primary">選擇標籤</h2>
           )}
           <button type="button" onClick={onClose} aria-label="關閉" className="text-text-primary">
-            ✕
+            <X className="h-4.5 w-4.5" />
           </button>
         </div>
 
@@ -179,7 +180,7 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
             placeholder="搜尋標籤"
             className="flex-1 bg-transparent text-sm text-text-primary placeholder-text-muted outline-none"
           />
-          <span aria-hidden>🔍</span>
+          <Search className="h-4 w-4 text-text-muted" aria-hidden />
         </div>
       </div>
 
@@ -188,9 +189,7 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
         <div className="flex-1 overflow-y-auto px-5 pb-6">
           {hasNoMatch && (
             <div className="flex flex-col items-center gap-1 py-6 text-center">
-              <span aria-hidden className="text-2xl text-text-muted">
-                🔍
-              </span>
+              <Search className="h-6 w-6 text-text-muted" aria-hidden />
               <p className="text-sm font-semibold text-text-primary">
                 找不到「{trimmedQuery}」相關標籤
               </p>
@@ -269,9 +268,9 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
                     key={tag}
                     type="button"
                     onClick={() => toggleTag(tag)}
-                    className="rounded-full border border-brand-primary bg-brand-primary px-5 py-2.5 text-sm font-medium text-text-primary"
+                    className="flex items-center gap-1 rounded-full border border-brand-primary bg-brand-primary px-5 py-2.5 text-sm font-medium text-text-primary"
                   >
-                    {tag} ✕
+                    {tag} <X className="h-3 w-3" />
                   </button>
                 ))}
               </div>
@@ -346,7 +345,7 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
                         }}
                         className="flex h-10.25 w-11 items-center justify-center rounded-full border border-dashed border-border-default bg-white text-text-muted"
                       >
-                        +
+                        <Plus className="h-4 w-4" />
                       </button>
                     ))}
                 </div>
