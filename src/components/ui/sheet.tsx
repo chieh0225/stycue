@@ -1,33 +1,17 @@
 'use client';
 
 import { Dialog as SheetPrimitive } from '@base-ui/react/dialog';
+import { X } from 'lucide-react';
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 // Based on shadcn's official Base UI Sheet (base-vega style, a side-panel variant
 // of the same Dialog primitive) — see docs/design-component-inventory.md A7.
-// Same branding deviations as ui/dialog.tsx: `IconPlaceholder` → local inline
-// <XIcon>; overlay `bg-black/10` → `bg-scrim-modal`. Width/background/shadow of
+// Same branding deviations as ui/dialog.tsx: `IconPlaceholder` → `lucide-react`'s
+// `X`; overlay `bg-black/10` → `bg-scrim-modal`. Width/background/shadow of
 // the panel stay per-call overrides (the app's only sheet is the left nav drawer,
 // which keeps its 260px width and warm rightward shadow via className).
-
-function XIcon({ className = 'h-4 w-4' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      className={className}
-    >
-      <path d="M18 6L6 18M6 6l12 12" />
-    </svg>
-  );
-}
 
 function Sheet({ ...props }: SheetPrimitive.Root.Props) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />;
@@ -86,7 +70,7 @@ function SheetContent({
             data-slot="sheet-close"
             render={<Button variant="ghost" size="icon" className="absolute top-4 right-4" />}
           >
-            <XIcon />
+            <X className="h-4 w-4" />
             <span className="sr-only">關閉</span>
           </SheetPrimitive.Close>
         )}

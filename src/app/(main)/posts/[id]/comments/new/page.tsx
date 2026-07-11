@@ -1,24 +1,8 @@
+import { X } from 'lucide-react';
 import Link from 'next/link';
 import { TopBar } from '@/components/ui/top-bar';
 import AddCommentForm from './add-comment-form';
 import HideScrollbar from '../../hide-scrollbar';
-
-function CloseIcon({ className = 'h-5 w-5' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      className={className}
-    >
-      <path d="M18 6L6 18M6 6l12 12" />
-    </svg>
-  );
-}
 
 export default async function NewCommentPage({
   params,
@@ -49,7 +33,7 @@ export default async function NewCommentPage({
       <TopBar
         left={
           <Link href={`/posts/${id}/comments`} aria-label="關閉" className="text-foreground">
-            <CloseIcon />
+            <X className="h-5 w-5" />
           </Link>
         }
         title={

@@ -1,5 +1,6 @@
 'use client';
 
+import { AlertCircle, ChevronDown, ImagePlus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -37,97 +38,6 @@ type Attachment = {
   imageId?: number;
   response?: ApiEnvelope<ImageResponse> | ApiEnvelope<unknown>;
 };
-
-function ImagePlusIcon({ className = 'h-4.5 w-4.5' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      className={className}
-    >
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-      <circle cx="8.5" cy="8.5" r="1.5" />
-      <path d="M21 15l-5-5L5 21" />
-      <path d="M17 3v6M14 6h6" />
-    </svg>
-  );
-}
-
-function ChevronDownIcon({ className = 'h-3 w-3' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      className={className}
-    >
-      <path d="M6 9l6 6 6-6" />
-    </svg>
-  );
-}
-
-function TrashIcon({ className = 'h-4 w-4' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      className={className}
-    >
-      <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
-    </svg>
-  );
-}
-
-function TrashLinesIcon({ className = 'h-6 w-6' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      className={className}
-    >
-      <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
-      <line x1="10" y1="11" x2="10" y2="17" />
-      <line x1="14" y1="11" x2="14" y2="17" />
-    </svg>
-  );
-}
-
-function AlertIcon({ className = 'h-4 w-4' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      className={className}
-    >
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 8v5M12 16.5v.01" />
-    </svg>
-  );
-}
 
 function attachmentLabel(image: Attachment): string {
   if (image.file) return image.file.name;
@@ -304,7 +214,7 @@ export default function NewPostPhotoPage() {
           disabled={images.length >= MAX_IMAGES}
           className="flex h-14 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border-dashed bg-muted disabled:opacity-50"
         >
-          <ImagePlusIcon className="h-4.5 w-4.5 text-text-muted" />
+          <ImagePlus className="h-4.5 w-4.5 text-text-muted" />
           <span className="text-sm font-semibold text-text-primary">
             新增圖片（{images.length}/{MAX_IMAGES}）
           </span>
@@ -315,7 +225,7 @@ export default function NewPostPhotoPage() {
             role="alert"
             className="flex items-start gap-2 rounded-lg bg-error-container px-3 py-2 text-xs leading-[1.6] text-on-error-container"
           >
-            <AlertIcon className="mt-px h-4 w-4 flex-shrink-0" />
+            <AlertCircle className="mt-px h-4 w-4 flex-shrink-0" />
             <span>以下檔案超過 10MB，未加入：{rejected.join('、')}</span>
           </div>
         )}
@@ -325,7 +235,7 @@ export default function NewPostPhotoPage() {
             role="alert"
             className="flex items-start gap-2 rounded-lg bg-error-container px-3 py-2 text-xs leading-[1.6] text-on-error-container"
           >
-            <AlertIcon className="mt-px h-4 w-4 flex-shrink-0" />
+            <AlertCircle className="mt-px h-4 w-4 flex-shrink-0" />
             <span>
               最多只能上傳 {MAX_IMAGES} 張圖片，超過的 {overCapCount} 張未加入
             </span>
@@ -359,7 +269,7 @@ export default function NewPostPhotoPage() {
                     aria-label={`移除 ${attachmentLabel(image)}`}
                     className="flex-shrink-0 rounded-md p-1 text-text-placeholder hover:bg-accent"
                   >
-                    <TrashIcon />
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
 
@@ -378,7 +288,7 @@ export default function NewPostPhotoPage() {
                     <span className="text-meta font-semibold text-text-primary">
                       {categoryLabel(image.category)}
                     </span>
-                    <ChevronDownIcon
+                    <ChevronDown
                       className={`h-3 w-3 text-text-muted transition-transform ${
                         openTagId === image.id ? 'rotate-180' : ''
                       }`}
@@ -459,7 +369,7 @@ export default function NewPostPhotoPage() {
         >
           <DialogContent className="flex flex-col items-center px-5.5 pt-6.5 pb-5 text-center">
             <div className="mb-4 flex h-13 w-13 items-center justify-center rounded-full bg-destructive-bg text-destructive">
-              <TrashLinesIcon />
+              <Trash2 className="h-6 w-6" />
             </div>
             <DialogTitle className="mb-2 text-base">刪除圖片？</DialogTitle>
             <DialogDescription className="mb-5.5">

@@ -1,6 +1,16 @@
 'use client';
 
-import { Bookmark, ClipboardList, Coins, FileText, Users } from 'lucide-react';
+import {
+  Bookmark,
+  ChevronDown,
+  ClipboardList,
+  Coins,
+  FileText,
+  Heart,
+  Menu,
+  MessageCircle,
+  Users,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { PlaceholderAvatar } from '@/components/ui/avatar';
@@ -104,52 +114,6 @@ const menuLinkGroups = [
   ],
 ] as const;
 
-function MenuIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
-      <path d="M4 7h16" />
-      <path d="M4 12h16" />
-      <path d="M4 17h16" />
-    </svg>
-  );
-}
-
-function HeartIcon({ filled }: { filled?: boolean }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill={filled ? 'currentColor' : 'none'}
-      stroke="currentColor"
-      strokeWidth="2"
-      className="h-4 w-4"
-    >
-      <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z" />
-    </svg>
-  );
-}
-
-function CommentIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
-      <path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.4 8.6 8.6 0 0 1-4-1L3 20l1.1-4a8.4 8.4 0 0 1-1-4A8.38 8.38 0 0 1 11.5 3a8.4 8.4 0 0 1 9.5 8.5Z" />
-    </svg>
-  );
-}
-
-function BookmarkIcon({ filled, className = 'h-4 w-4' }: { filled?: boolean; className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill={filled ? 'currentColor' : 'none'}
-      stroke="currentColor"
-      strokeWidth="2"
-      className={className}
-    >
-      <path d="M6 3h12v18l-6-4-6 4Z" />
-    </svg>
-  );
-}
-
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [checkinOpen, setCheckinOpen] = useState(false);
@@ -241,7 +205,7 @@ export default function Home() {
             aria-label="開啟選單"
             className="flex h-8 w-8 items-center justify-center rounded-full text-foreground"
           >
-            <MenuIcon />
+            <Menu className="h-5 w-5" />
           </button>
         }
         title="StyCue"
@@ -284,7 +248,10 @@ export default function Home() {
                   aria-pressed={trendingBookmarks[item.id]}
                   className={trendingBookmarks[item.id] ? 'text-accent-amber' : 'text-text-muted'}
                 >
-                  <BookmarkIcon filled={trendingBookmarks[item.id]} />
+                  <Bookmark
+                    fill={trendingBookmarks[item.id] ? 'currentColor' : 'none'}
+                    className="h-4 w-4"
+                  />
                 </button>
               </div>
             </Card>
@@ -303,15 +270,9 @@ export default function Home() {
               className="flex items-center gap-1 rounded-full border border-border-default bg-white px-3 py-2 text-meta font-medium text-text-primary shadow-card"
             >
               {selectedFilter}
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
+              <ChevronDown
                 className={`h-3 w-3 text-text-muted transition-transform ${filterOpen ? 'rotate-180' : ''}`}
-              >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
+              />
             </button>
 
             {filterOpen ? (
@@ -428,14 +389,14 @@ export default function Home() {
                   aria-pressed={interaction.liked}
                   className={`flex items-center gap-1 text-meta ${interaction.liked ? 'text-accent-amber' : ''}`}
                 >
-                  <HeartIcon filled={interaction.liked} />
+                  <Heart fill={interaction.liked ? 'currentColor' : 'none'} className="h-4 w-4" />
                   {interaction.likes}
                 </button>
                 <Link
                   href={`/posts/${post.id}/comments`}
                   className="flex items-center gap-1 text-meta"
                 >
-                  <CommentIcon />
+                  <MessageCircle className="h-4 w-4" />
                   {post.comments}
                 </Link>
                 <button
@@ -445,7 +406,10 @@ export default function Home() {
                   aria-pressed={interaction.bookmarked}
                   className={`ml-auto ${interaction.bookmarked ? 'text-accent-amber' : ''}`}
                 >
-                  <BookmarkIcon filled={interaction.bookmarked} />
+                  <Bookmark
+                    fill={interaction.bookmarked ? 'currentColor' : 'none'}
+                    className="h-4 w-4"
+                  />
                 </button>
               </div>
             </Card>
@@ -469,7 +433,7 @@ export default function Home() {
                 />
               }
             >
-              <MenuIcon />
+              <Menu className="h-5 w-5" />
             </SheetClose>
           </div>
           <div className="space-y-2">

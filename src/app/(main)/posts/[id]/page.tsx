@@ -1,3 +1,4 @@
+import { ChevronLeft, Image, User } from 'lucide-react';
 import Link from 'next/link';
 import { getCreatedPost } from '@/app/api/posts/store';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -41,54 +42,6 @@ function formatDate(iso: string): string {
   return `${date.getUTCFullYear()} 年 ${date.getUTCMonth() + 1} 月 ${date.getUTCDate()} 日`;
 }
 
-function ChevronLeftIcon({ className = 'h-5 w-5' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      aria-hidden="true"
-      className={className}
-    >
-      <path d="M15 18l-6-6 6-6" />
-    </svg>
-  );
-}
-
-function UserIcon({ className = 'h-4.5 w-4.5' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      aria-hidden="true"
-      className={className}
-    >
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" />
-    </svg>
-  );
-}
-
-function ImagePlaceholderIcon({ className = 'h-9 w-9' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      aria-hidden="true"
-      className={className}
-    >
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-      <circle cx="8.5" cy="8.5" r="1.5" />
-      <path d="M21 15l-5-5L5 21" />
-    </svg>
-  );
-}
-
 export default async function PostDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const created = getCreatedPost(id);
@@ -115,7 +68,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
         center={false}
         left={
           <Link href="/" aria-label="返回全部文章" className="text-foreground">
-            <ChevronLeftIcon />
+            <ChevronLeft className="h-5 w-5" />
           </Link>
         }
         title="全部文章"
@@ -137,7 +90,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
         <div className="mb-4.5 flex items-center gap-2.5">
           <Avatar size="xl">
             <AvatarFallback>
-              <UserIcon />
+              <User className="h-4.5 w-4.5" />
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-1 flex-col">
@@ -179,7 +132,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
                   className="flex flex-1 items-center justify-center rounded-xl bg-[#D9D2C0] text-text-primary"
                   style={{ aspectRatio: '1 / 1.2' }}
                 >
-                  <ImagePlaceholderIcon />
+                  <Image className="h-9 w-9" />
                 </div>
               ))}
         </div>

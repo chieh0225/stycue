@@ -1,3 +1,5 @@
+import { AlertCircle, Lock, Mail, User } from 'lucide-react';
+
 export function LogoIcon({ className = '' }: { className?: string }) {
   return (
     <svg
@@ -16,65 +18,19 @@ export function LogoIcon({ className = '' }: { className?: string }) {
 }
 
 export function MailIcon({ className = '' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      className={`h-4.5 w-4.5 shrink-0 ${className}`}
-    >
-      <path d="M4 4h16v16H4z" />
-      <path d="M4 6l8 7 8-7" />
-    </svg>
-  );
+  return <Mail className={`h-4.5 w-4.5 shrink-0 ${className}`} />;
 }
 
 export function LockIcon({ className = '' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      className={`h-4.5 w-4.5 shrink-0 ${className}`}
-    >
-      <rect x="5" y="11" width="14" height="9" rx="2" />
-      <path d="M8 11V7a4 4 0 0 1 8 0v4" />
-    </svg>
-  );
+  return <Lock className={`h-4.5 w-4.5 shrink-0 ${className}`} />;
 }
 
 export function PersonIcon({ className = '' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      className={`h-4.5 w-4.5 shrink-0 ${className}`}
-    >
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" />
-    </svg>
-  );
+  return <User className={`h-4.5 w-4.5 shrink-0 ${className}`} />;
 }
 
 export function AlertIcon({ className = '' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={`h-3.25 w-3.25 shrink-0 ${className}`}
-    >
-      <circle cx="12" cy="12" r="10" />
-      <path d="M12 16v-4M12 8h.01" />
-    </svg>
-  );
+  return <AlertCircle className={`h-3.25 w-3.25 shrink-0 ${className}`} />;
 }
 
 export function GoogleIcon({ className = '' }: { className?: string }) {

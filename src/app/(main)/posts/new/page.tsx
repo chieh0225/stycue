@@ -1,6 +1,6 @@
 'use client';
 
-import { Calendar, ImagePlus, Info, Plus, Tag, X } from 'lucide-react';
+import { Calendar, ChevronDown, ImagePlus, Info, Plus, Tag, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -131,15 +131,9 @@ export default function NewPostPage() {
               className="flex items-center gap-1 rounded-full bg-surface-soft px-3 py-1 text-xs font-semibold text-accent-amber"
             >
               {postType}
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
+              <ChevronDown
                 className={`h-2.5 w-2.5 transition-transform ${typeMenuOpen ? 'rotate-180' : ''}`}
-              >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
+              />
             </button>
 
             {typeMenuOpen ? (
@@ -213,15 +207,9 @@ export default function NewPostPage() {
               className="mt-1 flex items-center gap-1 text-xs font-semibold text-accent-amber"
             >
               {descriptionExpanded ? '收合內文' : '展開全文'}
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
+              <ChevronDown
                 className={`h-2.5 w-2.5 transition-transform ${descriptionExpanded ? 'rotate-180' : ''}`}
-              >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
+              />
             </button>
           )}
         </div>
@@ -379,15 +367,9 @@ export default function NewPostPage() {
                 className="flex w-full items-center justify-between rounded-lg bg-surface-soft px-3.5 py-2 text-sm font-semibold text-accent-amber"
               >
                 {points}
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
+                <ChevronDown
                   className={`h-3 w-3 transition-transform ${pointsMenuOpen ? 'rotate-180' : ''}`}
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
+                />
               </button>
 
               {pointsMenuOpen ? (
