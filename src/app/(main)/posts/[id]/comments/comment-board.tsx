@@ -83,8 +83,8 @@ function ImageCell({ label, variant }: { label?: string; variant: 'lg' | 'grid' 
       <ImagePlaceholderIcon className={isGrid ? 'h-4.5 w-4.5' : 'h-5.5 w-5.5'} />
       {label ? (
         <span
-          className={`absolute inset-x-0 bottom-0 bg-[rgba(64,58,50,0.55)] text-center font-semibold text-surface-base ${
-            isGrid ? 'px-1 py-0.75 text-[9px]' : 'px-1.5 py-1 text-[10.5px]'
+          className={`absolute inset-x-0 bottom-0 bg-[rgba(64,58,50,0.55)] text-center text-label-md font-semibold text-surface-base ${
+            isGrid ? 'px-1 py-0.75' : 'px-1.5 py-1'
           }`}
         >
           {label}
@@ -174,7 +174,7 @@ function CommentActions({
       >
         <HeartIcon className={isLiked ? 'h-4 w-4 fill-current' : 'h-4 w-4'} />
         <span className="sr-only">讚</span>
-        <span className="text-meta">{displayLikeCount}</span>
+        <span className="text-label-md">{displayLikeCount}</span>
       </button>
       <button
         type="button"
@@ -183,7 +183,7 @@ function CommentActions({
         className="flex items-center gap-1.5 text-text-muted"
       >
         <ReplyIcon />
-        <span className="text-meta font-semibold">回覆</span>
+        <span className="text-label-md font-semibold">回覆</span>
       </button>
       {/* Once the commission's reward is awarded it is a one-time state
           (best-comment API 409s on a second call), so the give-points button
@@ -192,7 +192,7 @@ function CommentActions({
       {isAwarded ? (
         <span className="flex items-center gap-1.5 text-accent-amber">
           <StarIcon className="h-4 w-4 fill-current" />
-          <span className="text-meta font-semibold">已給予 {awardedAmount} 積分</span>
+          <span className="text-label-md font-semibold">已給予 {awardedAmount} 積分</span>
         </span>
       ) : canAward ? (
         <button
@@ -201,7 +201,7 @@ function CommentActions({
           className="flex items-center gap-1.5 text-accent-amber"
         >
           <StarIcon />
-          <span className="text-meta font-semibold">給予積分</span>
+          <span className="text-label-md font-semibold">給予積分</span>
         </button>
       ) : null}
     </div>
@@ -248,7 +248,7 @@ function ReplyComposer({
           }}
           placeholder="加入討論，或附上圖片"
           aria-label="回覆留言"
-          className="h-full min-w-0 flex-1 bg-transparent text-[12.5px] text-text-primary placeholder:text-text-placeholder focus:outline-none"
+          className="h-full min-w-0 flex-1 bg-transparent text-body-md text-text-primary placeholder:text-text-placeholder focus:outline-none"
         />
         <Link
           href={`/posts/${postId}/comments/new?replyTo=${commentId}`}
@@ -305,7 +305,7 @@ function ReplyList({
           type="button"
           onClick={() => setExpanded((prev) => !prev)}
           aria-expanded={expanded}
-          className="flex items-center gap-1 self-start text-meta font-semibold text-text-muted"
+          className="flex items-center gap-1 self-start text-label-md font-semibold text-text-muted"
         >
           <span>{expanded ? '隱藏回覆' : `顯示回覆（${replies.length}）`}</span>
           <ChevronDownIcon
@@ -325,30 +325,32 @@ function ReplyList({
               </Avatar>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.75">
-                  <span className="text-sm font-bold text-text-primary">{reply.nickName}</span>
+                  <span className="text-label-md font-bold text-text-primary">
+                    {reply.nickName}
+                  </span>
                   {reply.isCommissioner ? <Badge variant="blue">委託人</Badge> : null}
-                  <time className="ml-auto text-caption text-text-placeholder">
+                  <time className="ml-auto text-label-md text-text-placeholder">
                     {reply.timeLabel}
                   </time>
                   {reply.authorEmail !== undefined && reply.authorEmail === currentUserEmail ? (
                     <>
                       <Link
                         href={`/posts/${postId}/comments/new?replyTo=${commentId}&editReplyId=${reply.replyId}`}
-                        className="text-caption font-semibold text-text-muted"
+                        className="text-label-md font-semibold text-text-muted"
                       >
                         編輯
                       </Link>
                       <button
                         type="button"
                         onClick={() => onDeleteReply(reply.replyId)}
-                        className="text-caption font-semibold text-text-muted"
+                        className="text-label-md font-semibold text-text-muted"
                       >
                         刪除
                       </button>
                     </>
                   ) : null}
                 </div>
-                <div className="mt-0.75 text-sm leading-[1.7] text-text-primary">
+                <div className="mt-0.75 text-body-lg leading-[1.7] text-text-primary">
                   {reply.content}
                 </div>
                 <AttachedImages images={reply.images} />
@@ -418,14 +420,14 @@ function CommentItem({
         </Avatar>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="text-name font-bold text-text-primary">{comment.nickName}</span>
+            <span className="text-label-md font-bold text-text-primary">{comment.nickName}</span>
             {isAwarded ? (
               <Badge variant="gold">
                 <StarIcon className="h-3 w-3 fill-current" />
                 最佳留言
               </Badge>
             ) : null}
-            <time className="ml-auto text-caption text-text-placeholder">{comment.timeLabel}</time>
+            <time className="ml-auto text-label-md text-text-placeholder">{comment.timeLabel}</time>
             {/* Square corner (not the default pill) to read as a compact button
                 like 追蹤, distinguishing the floor number from the tag chips. */}
             <Badge variant="green" className="rounded-lg">
@@ -435,23 +437,21 @@ function CommentItem({
               <>
                 <Link
                   href={`/posts/${postId}/comments/new?editCommentId=${comment.commentId}`}
-                  className="text-caption font-semibold text-text-muted"
+                  className="text-label-md font-semibold text-text-muted"
                 >
                   編輯
                 </Link>
                 <button
                   type="button"
                   onClick={() => onDeleteComment(comment.commentId)}
-                  className="text-caption font-semibold text-text-muted"
+                  className="text-label-md font-semibold text-text-muted"
                 >
                   刪除
                 </button>
               </>
             ) : null}
           </div>
-          <div className="mt-1 text-[14.5px] leading-[1.7] text-text-primary">
-            {comment.content}
-          </div>
+          <div className="mt-1 text-body-lg leading-[1.7] text-text-primary">{comment.content}</div>
           <AttachedImages images={comment.images} />
           <CommentActions
             likeCount={comment.likeCount}

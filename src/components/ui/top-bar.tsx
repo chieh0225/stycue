@@ -33,7 +33,7 @@ function TopBar({ left, title, right, center = true, sticky = true, className }:
       {left}
       <h1
         className={cn(
-          'text-title leading-6 font-bold text-foreground',
+          'text-headline-sm font-bold text-foreground',
           center && (left || right) && 'absolute left-1/2 -translate-x-1/2',
         )}
       >

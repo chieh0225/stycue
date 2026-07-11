@@ -49,11 +49,13 @@ export function GivePointsModal({
         <div className="mb-4 flex size-13 items-center justify-center rounded-full bg-gold-soft text-gold">
           <StarIcon className="h-6 w-6" />
         </div>
-        <DialogTitle className="mb-2 text-base leading-[1.5]">
+        <DialogTitle className="mb-2 text-body-lg leading-[1.5]">
           將 {targetName} 選為最佳留言並給予積分
         </DialogTitle>
         <DialogDescription className="mb-5">
-          確定要將積分給予 {targetName} 嗎？此操作無法復原。
+          確定要將積分給予 {targetName} 嗎？
+          <br />
+          此操作無法復原。
         </DialogDescription>
 
         <div className="flex w-full justify-center gap-3">
@@ -65,7 +67,7 @@ export function GivePointsModal({
                 type="button"
                 onClick={() => onSelectAmount(amount)}
                 aria-pressed={isSelected}
-                className={`flex h-10 w-18 items-center justify-center rounded-full border text-name text-text-primary ${
+                className={`flex h-10 w-18 items-center justify-center rounded-full border text-body-lg text-text-primary ${
                   isSelected
                     ? 'border-brand-primary bg-brand-primary font-bold'
                     : 'border-border bg-muted font-medium'
@@ -112,7 +114,7 @@ export function InsufficientPointsModal({
         <div className="mb-4 flex size-13 items-center justify-center rounded-full bg-destructive/10 text-destructive">
           <AlertTriangleIcon className="h-6.5 w-6.5" />
         </div>
-        <DialogTitle className="mb-2 text-[14.5px] whitespace-nowrap">積分不足</DialogTitle>
+        <DialogTitle className="mb-2 whitespace-nowrap">積分不足</DialogTitle>
         <DialogDescription className="mb-5">
           您目前的積分不足以給予 {targetName} {amount} 積分，請前往儲值積分！
         </DialogDescription>
@@ -155,7 +157,7 @@ export function DeleteConfirmModal({
         <div className="mb-4 flex size-13 items-center justify-center rounded-full bg-destructive/10 text-destructive">
           <AlertTriangleIcon className="h-6.5 w-6.5" />
         </div>
-        <DialogTitle className="mb-2 text-[14.5px]">刪除留言？</DialogTitle>
+        <DialogTitle className="mb-2">刪除留言？</DialogTitle>
         <DialogDescription className="mb-5">
           確定要刪除這則留言嗎？此操作無法復原。
         </DialogDescription>

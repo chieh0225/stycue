@@ -1,3 +1,4 @@
+import { ChevronLeft, Image, User } from 'lucide-react';
 import Link from 'next/link';
 import { getCreatedPost } from '@/app/api/posts/store';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -41,54 +42,6 @@ function formatDate(iso: string): string {
   return `${date.getUTCFullYear()} 年 ${date.getUTCMonth() + 1} 月 ${date.getUTCDate()} 日`;
 }
 
-function ChevronLeftIcon({ className = 'h-5 w-5' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      aria-hidden="true"
-      className={className}
-    >
-      <path d="M15 18l-6-6 6-6" />
-    </svg>
-  );
-}
-
-function UserIcon({ className = 'h-4.5 w-4.5' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      aria-hidden="true"
-      className={className}
-    >
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" />
-    </svg>
-  );
-}
-
-function ImagePlaceholderIcon({ className = 'h-9 w-9' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      aria-hidden="true"
-      className={className}
-    >
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-      <circle cx="8.5" cy="8.5" r="1.5" />
-      <path d="M21 15l-5-5L5 21" />
-    </svg>
-  );
-}
-
 export default async function PostDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const created = getCreatedPost(id);
@@ -115,7 +68,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
         center={false}
         left={
           <Link href="/" aria-label="返回全部文章" className="text-foreground">
-            <ChevronLeftIcon />
+            <ChevronLeft className="h-5 w-5" />
           </Link>
         }
         title="全部文章"
@@ -130,19 +83,19 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
           <Badge variant="gold" className="shrink-0">
             {postTypeLabel}
           </Badge>
-          <h1 className="text-[19px] leading-[1.4] font-bold text-text-primary">{title}</h1>
+          <h1 className="text-headline-sm font-bold text-text-primary">{title}</h1>
         </div>
 
         {/* Author row */}
         <div className="mb-4.5 flex items-center gap-2.5">
           <Avatar size="xl">
             <AvatarFallback>
-              <UserIcon />
+              <User className="h-4.5 w-4.5" />
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-1 flex-col">
-            <span className="text-base font-bold text-text-primary">Maple</span>
-            <time dateTime={createdAt} className="text-caption text-text-tertiary">
+            <span className="text-label-md font-bold text-text-primary">Maple</span>
+            <time dateTime={createdAt} className="text-label-md text-text-tertiary">
               {formatDate(createdAt)}
             </time>
           </div>
@@ -154,7 +107,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
         <Separator className="mb-4.5" />
 
         {/* Body text */}
-        <div className="mb-5.5 text-[15.5px] leading-[1.8] whitespace-pre-line text-text-primary">
+        <div className="mb-5.5 text-body-lg leading-[1.8] whitespace-pre-line text-text-primary">
           {bodyText}
         </div>
 
@@ -179,13 +132,13 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
                   className="flex flex-1 items-center justify-center rounded-xl bg-[#D9D2C0] text-text-primary"
                   style={{ aspectRatio: '1 / 1.2' }}
                 >
-                  <ImagePlaceholderIcon />
+                  <Image className="h-9 w-9" />
                 </div>
               ))}
         </div>
 
         {/* 穿搭標籤 */}
-        <h2 className="mb-3 text-base font-bold text-text-primary">穿搭標籤</h2>
+        <h2 className="mb-3 text-body-lg font-bold text-text-primary">穿搭標籤</h2>
         <div className="mb-6 flex flex-wrap gap-2">
           {tags.map((tag) => (
             <Badge key={tag} variant="neutral">
@@ -195,37 +148,37 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
         </div>
 
         {/* 委託條件 */}
-        <h2 className="mb-3 text-base font-bold text-text-primary">委託條件</h2>
+        <h2 className="mb-3 text-body-lg font-bold text-text-primary">委託條件</h2>
         <Card variant="info" className="mb-5.5 px-1 py-3.5">
           <dl className="mb-3.5 grid grid-cols-3">
             <div className="flex flex-col items-center gap-0.75">
-              <dt className="text-[11px] text-text-tertiary">身高</dt>
-              <dd className="text-name font-bold text-text-primary">
-                {height} <span className="text-[11px] font-medium text-text-tertiary">cm</span>
+              <dt className="text-label-md text-text-tertiary">身高</dt>
+              <dd className="text-body-lg font-bold text-text-primary">
+                {height} <span className="text-label-md font-medium text-text-tertiary">cm</span>
               </dd>
             </div>
             <div className="flex flex-col items-center gap-0.75 border-x border-border-default">
-              <dt className="text-[11px] text-text-tertiary">體重</dt>
-              <dd className="text-name font-bold text-text-primary">
-                {weight} <span className="text-[11px] font-medium text-text-tertiary">kg</span>
+              <dt className="text-label-md text-text-tertiary">體重</dt>
+              <dd className="text-body-lg font-bold text-text-primary">
+                {weight} <span className="text-label-md font-medium text-text-tertiary">kg</span>
               </dd>
             </div>
             <div className="flex flex-col items-center gap-0.75">
-              <dt className="text-[11px] text-text-tertiary">年齡</dt>
-              <dd className="text-name font-bold text-text-primary">
-                {age} <span className="text-[11px] font-medium text-text-tertiary">歲</span>
+              <dt className="text-label-md text-text-tertiary">年齡</dt>
+              <dd className="text-body-lg font-bold text-text-primary">
+                {age} <span className="text-label-md font-medium text-text-tertiary">歲</span>
               </dd>
             </div>
           </dl>
           <Separator className="mx-3.5 mb-3 w-auto" />
           <dl className="flex items-center justify-between px-3.5">
-            <dt className="text-[12.5px] text-text-tertiary">預算範圍</dt>
-            <dd className="text-sm font-bold text-text-primary">{budgetLabel}</dd>
+            <dt className="text-label-md text-text-tertiary">預算範圍</dt>
+            <dd className="text-body-md font-bold text-text-primary">{budgetLabel}</dd>
           </dl>
         </Card>
 
         {/* 截止資訊 */}
-        <div className="mb-4.5 text-meta leading-[1.7] text-text-placeholder">
+        <div className="mb-4.5 text-body-md leading-[1.7] text-text-placeholder">
           直到 <time dateTime={deadline}>{formatDate(deadline)}</time>
           <br />
           委託者可給予青睞留言 {points} 積分
