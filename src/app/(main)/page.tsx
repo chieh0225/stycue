@@ -450,9 +450,9 @@ export default function Home() {
                   <Link
                     key={item.label}
                     href={item.href}
-                    className="flex w-full items-center gap-3 rounded-[10px] px-3 py-3 text-left text-body-md font-medium text-foreground hover:bg-card/80"
+                    className="flex w-full items-center gap-4.5 rounded-[10px] px-3 py-4 text-left text-body-md font-medium text-foreground hover:bg-accent"
                   >
-                    <item.icon className="h-4.5 w-4.5" />
+                    <item.icon className="h-5 w-5" />
                     {item.label}
                   </Link>
                 ))}
