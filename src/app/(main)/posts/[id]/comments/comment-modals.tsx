@@ -23,9 +23,6 @@ export function buildGivePointsAmounts(publishPoints: number) {
   );
 }
 
-// Mock balance — replace with GET /api/v1/points/balance (availablePoints).
-export const MOCK_USER_POINTS = 60;
-
 export function GivePointsModal({
   targetName,
   amounts,

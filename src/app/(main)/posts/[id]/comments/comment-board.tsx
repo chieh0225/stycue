@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { getPointWallet } from '@/lib/points-api';
 import { getAuthedUser } from '../../../../auth';
 import CommentComposer from '../comment-composer';
 import {
@@ -22,7 +23,6 @@ import {
   DeleteConfirmModal,
   GivePointsModal,
   InsufficientPointsModal,
-  MOCK_USER_POINTS,
 } from './comment-modals';
 import { categoryLabel } from '../image-categories';
 import {
@@ -529,6 +529,20 @@ export default function CommentBoard({
     setCurrentUserEmail(getAuthedUser()?.email ?? null);
   }, []);
 
+  // The give-points affordability check needs the real wallet balance, not
+  // the MOCK_USER_POINTS placeholder. Defaults to 0 (rather than leaving it
+  // unset) so the check fails closed while the fetch is in flight.
+  const [userPoints, setUserPoints] = useState(0);
+  useEffect(() => {
+    let active = true;
+    getPointWallet().then((res) => {
+      if (active && res.success && res.data) setUserPoints(res.data.currentPoints);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const router = useRouter();
   const pathname = usePathname();
   // We only ever auto-scroll when the user just posted: `focusId` (from the
@@ -693,7 +707,7 @@ export default function CommentBoard({
   function confirmGivePoints() {
     if (!pointsTarget) return;
     // Not enough points: surface the insufficient-points modal instead.
-    if (selectedAmount > MOCK_USER_POINTS) {
+    if (selectedAmount > userPoints) {
       setInsufficient({ name: pointsTarget.name, amount: selectedAmount });
       setPointsTarget(null);
       return;
