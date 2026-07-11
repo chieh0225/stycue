@@ -316,7 +316,7 @@ export default function AddCommentForm({
               <User className="h-4.5 w-4.5" />
             </AvatarFallback>
           </Avatar>
-          <span className="text-[12.5px] leading-[1.5] text-text-muted">
+          <span className="text-label-md leading-[1.5] text-text-muted">
             發布後內容將依序顯示：文字內容 &gt; 附加圖片
           </span>
         </div>
@@ -332,10 +332,10 @@ export default function AddCommentForm({
 
         {/* 附加圖片 */}
         <div className="mb-3">
-          <span className="text-lg font-bold text-text-primary">附加圖片</span>
+          <span className="text-body-lg font-bold text-text-primary">附加圖片</span>
         </div>
         <Separator className="mb-2.5" />
-        <div className="mb-4.5 text-xs text-text-tertiary">
+        <div className="mb-4.5 text-label-md text-text-tertiary">
           最多可上傳 {MAX_IMAGES} 張圖片，單張檔案大小不可超過 10MB
         </div>
 
@@ -348,7 +348,7 @@ export default function AddCommentForm({
           className="mb-4.5 flex h-14 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border-dashed bg-muted disabled:opacity-50"
         >
           <ImagePlus className="h-4.5 w-4.5 text-text-muted" />
-          <span className="text-sm font-semibold text-foreground">
+          <span className="text-label-md font-semibold text-foreground">
             新增圖片（{images.length}/{MAX_IMAGES}）
           </span>
         </button>
@@ -357,7 +357,7 @@ export default function AddCommentForm({
         {rejected.length > 0 && (
           <div
             role="alert"
-            className="mb-4.5 flex items-start gap-2 rounded-lg bg-error-container px-3 py-2 text-xs leading-[1.6] text-on-error-container"
+            className="mb-4.5 flex items-start gap-2 rounded-lg bg-error-container px-3 py-2 text-label-md leading-[1.6] text-on-error-container"
           >
             <AlertCircle className="mt-px h-4 w-4 flex-shrink-0" />
             <span>以下檔案超過 10MB，未加入：{rejected.join('、')}</span>
@@ -368,7 +368,7 @@ export default function AddCommentForm({
         {overCapCount > 0 && (
           <div
             role="alert"
-            className="mb-[18px] flex items-start gap-2 rounded-lg bg-error-container px-3 py-2 text-xs leading-[1.6] text-on-error-container"
+            className="mb-[18px] flex items-start gap-2 rounded-lg bg-error-container px-3 py-2 text-label-md leading-[1.6] text-on-error-container"
           >
             <AlertCircle className="mt-px h-4 w-4 flex-shrink-0" />
             <span>
@@ -403,7 +403,7 @@ export default function AddCommentForm({
             <div className="min-w-0 flex-1">
               {/* Filename + delete */}
               <div className="mb-2.5 flex items-center justify-between">
-                <span className="overflow-hidden text-sm font-semibold text-ellipsis whitespace-nowrap text-text-primary">
+                <span className="overflow-hidden text-label-md font-semibold text-ellipsis whitespace-nowrap text-text-primary">
                   {attachmentLabel(image)}
                 </span>
                 <button
@@ -417,7 +417,7 @@ export default function AddCommentForm({
               </div>
 
               {/* 分類標籤 dropdown */}
-              <div className="mb-1.25 text-[11.5px] text-text-tertiary">分類標籤</div>
+              <div className="mb-1.25 text-label-md text-text-tertiary">分類標籤</div>
               <div className="relative mb-2.5 cursor-pointer rounded-lg border border-border-default bg-muted">
                 <button
                   type="button"
@@ -428,7 +428,7 @@ export default function AddCommentForm({
                   aria-expanded={openTagId === image.id}
                   className="flex h-9.5 w-full items-center justify-between px-2.5"
                 >
-                  <span className="text-meta font-semibold text-text-primary">
+                  <span className="text-label-md font-semibold text-text-primary">
                     {categoryLabel(image.category)}
                   </span>
                   <ChevronDown
@@ -452,7 +452,7 @@ export default function AddCommentForm({
                               updateImage(image.id, { category: option.id });
                               setOpenTagId(null);
                             }}
-                            className={`flex h-9 w-full items-center px-3 text-meta text-text-primary ${
+                            className={`flex h-9 w-full items-center px-3 text-label-md text-text-primary ${
                               selected ? 'bg-gold-soft font-bold' : 'font-normal'
                             }`}
                           >
@@ -466,14 +466,14 @@ export default function AddCommentForm({
               </div>
 
               {/* 品牌名稱 (選填) */}
-              <div className="mb-1.25 text-[11.5px] text-text-tertiary">品牌名稱 (選填)</div>
+              <div className="mb-1.25 text-label-md text-text-tertiary">品牌名稱 (選填)</div>
               <Input
                 type="text"
                 value={image.brand}
                 onChange={(event) => updateImage(image.id, { brand: event.target.value })}
                 placeholder="輸入品牌..."
                 aria-label={`${attachmentLabel(image)} 品牌名稱`}
-                className="bg-transparent text-meta font-semibold placeholder:font-normal"
+                className="bg-transparent font-semibold placeholder:font-normal"
               />
             </div>
           </Card>
@@ -521,7 +521,7 @@ export default function AddCommentForm({
           <div className="mb-4 flex h-13 w-13 items-center justify-center rounded-full bg-destructive-bg text-destructive">
             <Trash2 className="h-6 w-6" />
           </div>
-          <DialogTitle className="mb-2 text-base">刪除圖片？</DialogTitle>
+          <DialogTitle className="mb-2">刪除圖片？</DialogTitle>
           <DialogDescription className="mb-5.5">
             確定要刪除「{deleteTarget ? attachmentLabel(deleteTarget) : ''}」嗎？此操作無法復原。
           </DialogDescription>

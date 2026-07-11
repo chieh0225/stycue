@@ -141,7 +141,7 @@ export default function NewPostPreviewPage() {
       {/* Header */}
       <TopBar
         left={
-          <Link href="/posts/new" className="text-title leading-6 text-muted-foreground">
+          <Link href="/posts/new" className="text-label-md text-muted-foreground">
             返回編輯
           </Link>
         }
@@ -157,7 +157,7 @@ export default function NewPostPreviewPage() {
               type="button"
               onClick={() => setTypeMenuOpen((open) => !open)}
               aria-expanded={typeMenuOpen}
-              className="flex items-center gap-1 rounded-md bg-gold-soft px-2.25 py-0.75 text-meta font-bold text-accent-amber"
+              className="flex items-center gap-1 rounded-md bg-gold-soft px-2.25 py-0.75 text-label-md font-bold text-accent-amber"
             >
               {postType}
               <ChevronDown
@@ -177,7 +177,7 @@ export default function NewPostPreviewPage() {
                         setForm((prev) => ({ ...prev, postType: type }));
                         setTypeMenuOpen(false);
                       }}
-                      className={`block w-full px-4 py-2.5 text-left text-xs font-medium ${
+                      className={`block w-full px-4 py-2.5 text-left text-label-md font-medium ${
                         type === postType
                           ? 'bg-surface-soft text-accent-amber'
                           : 'text-text-primary hover:bg-surface-soft'
@@ -200,7 +200,7 @@ export default function NewPostPreviewPage() {
             }}
             maxLength={TITLE_MAX_LENGTH}
             placeholder="標題"
-            className="flex-1 resize-none overflow-hidden bg-transparent text-[19px] leading-[1.4] font-bold text-text-primary placeholder-text-muted outline-none"
+            className="flex-1 resize-none overflow-hidden bg-transparent text-headline-sm font-bold text-text-primary placeholder-text-muted outline-none"
           />
         </div>
 
@@ -209,7 +209,7 @@ export default function NewPostPreviewPage() {
           <Avatar size="xl">
             <AvatarFallback>M</AvatarFallback>
           </Avatar>
-          <span className="text-base font-bold text-text-primary">Maple</span>
+          <span className="text-label-md font-bold text-text-primary">Maple</span>
         </div>
 
         <Separator className="mb-4.5" />
@@ -222,14 +222,14 @@ export default function NewPostPreviewPage() {
             value={description}
             onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
             placeholder="描述你想要的需求"
-            className={`w-full resize-none bg-transparent text-[15.5px] leading-[1.8] text-text-primary placeholder-text-muted outline-none ${
+            className={`w-full resize-none bg-transparent text-body-lg leading-[1.8] text-text-primary placeholder-text-muted outline-none ${
               descriptionExpanded ? 'overflow-hidden' : 'overflow-y-auto'
             }`}
           />
           <button
             type="button"
             onClick={() => setDescriptionExpanded((expanded) => !expanded)}
-            className="mt-1 flex items-center gap-1 text-xs font-semibold text-accent-amber"
+            className="mt-1 flex items-center gap-1 text-label-md font-semibold text-accent-amber"
           >
             {descriptionExpanded ? '收合內文' : '展開全文'}
             <ChevronDown
@@ -254,12 +254,12 @@ export default function NewPostPreviewPage() {
         ) : null}
 
         {/* 標籤 */}
-        <h2 className="mb-3 text-base font-bold text-text-primary">標籤</h2>
+        <h2 className="mb-3 text-body-lg font-bold text-text-primary">標籤</h2>
         <div className="mb-6 flex flex-wrap gap-2">
           {draftTags.length === 0 ? (
             <Link
               href="/posts/new/tags"
-              className="rounded-full border border-dashed border-border-default px-3.5 py-1.75 text-meta text-text-muted"
+              className="rounded-full border border-dashed border-border-default px-3.5 py-1.75 text-label-md text-text-muted"
             >
               + 選擇標籤
             </Link>
@@ -268,7 +268,7 @@ export default function NewPostPreviewPage() {
               {draftTags.map((tag) => (
                 <span
                   key={tag}
-                  className="flex items-center gap-1 rounded-full border border-border-default bg-muted px-3.5 py-1.75 text-meta text-text-primary"
+                  className="flex items-center gap-1 rounded-full border border-border-default bg-muted px-3.5 py-1.75 text-label-md text-text-primary"
                 >
                   {tag}
                   <button
@@ -284,7 +284,7 @@ export default function NewPostPreviewPage() {
               <Link
                 href="/posts/new/tags"
                 aria-label="新增標籤"
-                className="flex items-center justify-center rounded-full border border-dashed border-border-default px-3 py-1.75 text-meta text-text-muted"
+                className="flex items-center justify-center rounded-full border border-dashed border-border-default px-3 py-1.75 text-label-md text-text-muted"
               >
                 +
               </Link>
@@ -293,52 +293,52 @@ export default function NewPostPreviewPage() {
         </div>
 
         {/* 委託條件 */}
-        <h2 className="mb-3 text-base font-bold text-text-primary">委託條件</h2>
+        <h2 className="mb-3 text-body-lg font-bold text-text-primary">委託條件</h2>
         <Card variant="info" className="mb-5.5 px-1 py-3.5">
           <div className="mb-3.5 grid grid-cols-3">
             <div className="flex flex-col items-center gap-0.75">
-              <span className="text-[11px] text-text-tertiary">身高</span>
+              <span className="text-label-md text-text-tertiary">身高</span>
               <span className="flex items-baseline gap-1">
                 <input
                   type="number"
                   min="1"
                   value={height}
                   onChange={(e) => setForm((prev) => ({ ...prev, height: e.target.value }))}
-                  className="w-12 bg-transparent text-center text-name font-bold text-text-primary outline-none"
+                  className="w-12 bg-transparent text-center text-body-lg font-bold text-text-primary outline-none"
                 />
-                <span className="text-[11px] font-medium text-text-tertiary">cm</span>
+                <span className="text-label-md font-medium text-text-tertiary">cm</span>
               </span>
             </div>
             <div className="flex flex-col items-center gap-0.75 border-x border-border-default">
-              <span className="text-[11px] text-text-tertiary">體重</span>
+              <span className="text-label-md text-text-tertiary">體重</span>
               <span className="flex items-baseline gap-1">
                 <input
                   type="number"
                   min="1"
                   value={weight}
                   onChange={(e) => setForm((prev) => ({ ...prev, weight: e.target.value }))}
-                  className="w-12 bg-transparent text-center text-name font-bold text-text-primary outline-none"
+                  className="w-12 bg-transparent text-center text-body-lg font-bold text-text-primary outline-none"
                 />
-                <span className="text-[11px] font-medium text-text-tertiary">kg</span>
+                <span className="text-label-md font-medium text-text-tertiary">kg</span>
               </span>
             </div>
             <div className="flex flex-col items-center gap-0.75">
-              <span className="text-[11px] text-text-tertiary">年齡</span>
+              <span className="text-label-md text-text-tertiary">年齡</span>
               <span className="flex items-baseline gap-1">
                 <input
                   type="number"
                   min="1"
                   value={age}
                   onChange={(e) => setForm((prev) => ({ ...prev, age: e.target.value }))}
-                  className="w-10 bg-transparent text-center text-name font-bold text-text-primary outline-none"
+                  className="w-10 bg-transparent text-center text-body-lg font-bold text-text-primary outline-none"
                 />
-                <span className="text-[11px] font-medium text-text-tertiary">歲</span>
+                <span className="text-label-md font-medium text-text-tertiary">歲</span>
               </span>
             </div>
           </div>
           <Separator className="mx-3.5 mb-3 w-auto" />
           <div className="px-3.5">
-            <span className="text-[12.5px] text-text-tertiary">預算範圍</span>
+            <span className="text-label-md text-text-tertiary">預算範圍</span>
             <div className="mt-2 grid grid-cols-2 gap-2">
               {budgetOptions.map((option) => {
                 const isSelected = option === selectedBudget;
@@ -349,8 +349,8 @@ export default function NewPostPreviewPage() {
                     onClick={() => setForm((prev) => ({ ...prev, selectedBudget: option }))}
                     className={
                       isSelected
-                        ? 'rounded-lg border-2 border-brand-primary bg-white px-3 py-1.5 text-xs font-medium text-text-primary'
-                        : 'rounded-lg border-2 border-border-default bg-white px-3 py-1.5 text-xs text-text-muted transition-colors hover:border-brand-primary hover:bg-surface-soft hover:text-text-primary'
+                        ? 'rounded-lg border-2 border-brand-primary bg-white px-3 py-1.5 text-label-md font-medium text-text-primary'
+                        : 'rounded-lg border-2 border-border-default bg-white px-3 py-1.5 text-label-md text-text-muted transition-colors hover:border-brand-primary hover:bg-surface-soft hover:text-text-primary'
                     }
                   >
                     {option}
@@ -363,7 +363,7 @@ export default function NewPostPreviewPage() {
 
         {/* 積分 */}
         <div className="mb-5.5 flex flex-col gap-2">
-          <h2 className="text-sm font-semibold text-text-primary">本次委託發佈積分</h2>
+          <h2 className="text-body-lg font-semibold text-text-primary">本次委託發佈積分</h2>
           <div className="flex items-center gap-2">
             <span aria-hidden className="text-accent-amber">
               ✦
@@ -373,7 +373,7 @@ export default function NewPostPreviewPage() {
                 type="button"
                 onClick={() => setPointsMenuOpen((open) => !open)}
                 aria-expanded={pointsMenuOpen}
-                className="flex w-full items-center justify-between rounded-lg bg-surface-soft px-3.5 py-2 text-sm font-semibold text-accent-amber"
+                className="flex w-full items-center justify-between rounded-lg bg-surface-soft px-3.5 py-2 text-label-md font-semibold text-accent-amber"
               >
                 {points} 點
                 <ChevronDown
@@ -393,7 +393,7 @@ export default function NewPostPreviewPage() {
                           setForm((prev) => ({ ...prev, points: option }));
                           setPointsMenuOpen(false);
                         }}
-                        className={`block w-full px-4 py-2.5 text-left text-sm font-medium ${
+                        className={`block w-full px-4 py-2.5 text-left text-label-md font-medium ${
                           option === points
                             ? 'bg-surface-soft text-accent-amber'
                             : 'text-text-primary hover:bg-surface-soft'
@@ -410,7 +410,7 @@ export default function NewPostPreviewPage() {
         </div>
 
         {/* 截止資訊 */}
-        <div className="mb-4.5 text-meta leading-[1.7] text-text-placeholder">
+        <div className="mb-4.5 text-body-md leading-[1.7] text-text-placeholder">
           委託將於送出後開始計算，最長 7 天
           <br />
           委託者可給予青睞留言 {points} 積分
@@ -419,7 +419,7 @@ export default function NewPostPreviewPage() {
         <Separator className="mb-4" />
 
         {/* Info box */}
-        <div className="flex flex-col gap-2 rounded-lg bg-surface-soft p-4 text-xs text-text-muted">
+        <div className="flex flex-col gap-2 rounded-lg bg-surface-soft p-4 text-label-md text-text-muted">
           <p>
             <Info className="inline h-3 w-3" aria-hidden />{' '}
             委託送出後就不能變更了，請仔細確認內容是否有遺漏。
@@ -431,14 +431,14 @@ export default function NewPostPreviewPage() {
       <BottomBar fixed className="py-3.5">
         <Link
           href="/posts/new"
-          className="flex-1 rounded-lg border border-border py-3 text-center text-sm font-semibold text-foreground"
+          className="flex-1 rounded-lg border border-border py-3 text-center text-label-md font-semibold text-foreground"
         >
           返回編輯
         </Link>
         <button
           type="button"
           onClick={confirmSubmit}
-          className="flex-1 rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground"
+          className="flex-1 rounded-lg bg-primary py-3 text-label-md font-semibold text-primary-foreground"
         >
           確認送出
         </button>

@@ -98,14 +98,14 @@ function DialogFooter({ className, ...props }: React.ComponentProps<'div'>) {
   );
 }
 
-// Base intentionally carries no font-size: each modal's title size differs
-// (16 / 14.5 / 20px) and twMerge can't dedupe the project's custom text-* token
-// utilities against a baked-in one, so the size is passed per call site.
+// All modal confirmation headlines converge on one role (DESIGN.md
+// headline-sm) — see docs/design-decisions.md. Previously each call site
+// passed its own size (16 / 14.5 / 20px); that per-call override is gone.
 function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn('font-bold text-foreground', className)}
+      className={cn('text-headline-sm font-bold text-foreground', className)}
       {...props}
     />
   );
@@ -115,7 +115,7 @@ function DialogDescription({ className, ...props }: DialogPrimitive.Description.
   return (
     <DialogPrimitive.Description
       data-slot="dialog-description"
-      className={cn('text-meta leading-[1.6] text-muted-foreground', className)}
+      className={cn('text-body-md leading-[1.6] text-muted-foreground', className)}
       {...props}
     />
   );

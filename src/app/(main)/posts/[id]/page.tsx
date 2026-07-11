@@ -83,7 +83,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
           <Badge variant="gold" className="shrink-0">
             {postTypeLabel}
           </Badge>
-          <h1 className="text-[19px] leading-[1.4] font-bold text-text-primary">{title}</h1>
+          <h1 className="text-headline-sm font-bold text-text-primary">{title}</h1>
         </div>
 
         {/* Author row */}
@@ -94,8 +94,8 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-1 flex-col">
-            <span className="text-base font-bold text-text-primary">Maple</span>
-            <time dateTime={createdAt} className="text-caption text-text-tertiary">
+            <span className="text-label-md font-bold text-text-primary">Maple</span>
+            <time dateTime={createdAt} className="text-label-md text-text-tertiary">
               {formatDate(createdAt)}
             </time>
           </div>
@@ -107,7 +107,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
         <Separator className="mb-4.5" />
 
         {/* Body text */}
-        <div className="mb-5.5 text-[15.5px] leading-[1.8] whitespace-pre-line text-text-primary">
+        <div className="mb-5.5 text-body-lg leading-[1.8] whitespace-pre-line text-text-primary">
           {bodyText}
         </div>
 
@@ -138,7 +138,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
         </div>
 
         {/* 穿搭標籤 */}
-        <h2 className="mb-3 text-base font-bold text-text-primary">穿搭標籤</h2>
+        <h2 className="mb-3 text-body-lg font-bold text-text-primary">穿搭標籤</h2>
         <div className="mb-6 flex flex-wrap gap-2">
           {tags.map((tag) => (
             <Badge key={tag} variant="neutral">
@@ -148,37 +148,37 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
         </div>
 
         {/* 委託條件 */}
-        <h2 className="mb-3 text-base font-bold text-text-primary">委託條件</h2>
+        <h2 className="mb-3 text-body-lg font-bold text-text-primary">委託條件</h2>
         <Card variant="info" className="mb-5.5 px-1 py-3.5">
           <dl className="mb-3.5 grid grid-cols-3">
             <div className="flex flex-col items-center gap-0.75">
-              <dt className="text-[11px] text-text-tertiary">身高</dt>
-              <dd className="text-name font-bold text-text-primary">
-                {height} <span className="text-[11px] font-medium text-text-tertiary">cm</span>
+              <dt className="text-label-md text-text-tertiary">身高</dt>
+              <dd className="text-body-lg font-bold text-text-primary">
+                {height} <span className="text-label-md font-medium text-text-tertiary">cm</span>
               </dd>
             </div>
             <div className="flex flex-col items-center gap-0.75 border-x border-border-default">
-              <dt className="text-[11px] text-text-tertiary">體重</dt>
-              <dd className="text-name font-bold text-text-primary">
-                {weight} <span className="text-[11px] font-medium text-text-tertiary">kg</span>
+              <dt className="text-label-md text-text-tertiary">體重</dt>
+              <dd className="text-body-lg font-bold text-text-primary">
+                {weight} <span className="text-label-md font-medium text-text-tertiary">kg</span>
               </dd>
             </div>
             <div className="flex flex-col items-center gap-0.75">
-              <dt className="text-[11px] text-text-tertiary">年齡</dt>
-              <dd className="text-name font-bold text-text-primary">
-                {age} <span className="text-[11px] font-medium text-text-tertiary">歲</span>
+              <dt className="text-label-md text-text-tertiary">年齡</dt>
+              <dd className="text-body-lg font-bold text-text-primary">
+                {age} <span className="text-label-md font-medium text-text-tertiary">歲</span>
               </dd>
             </div>
           </dl>
           <Separator className="mx-3.5 mb-3 w-auto" />
           <dl className="flex items-center justify-between px-3.5">
-            <dt className="text-[12.5px] text-text-tertiary">預算範圍</dt>
-            <dd className="text-sm font-bold text-text-primary">{budgetLabel}</dd>
+            <dt className="text-label-md text-text-tertiary">預算範圍</dt>
+            <dd className="text-body-md font-bold text-text-primary">{budgetLabel}</dd>
           </dl>
         </Card>
 
         {/* 截止資訊 */}
-        <div className="mb-4.5 text-meta leading-[1.7] text-text-placeholder">
+        <div className="mb-4.5 text-body-md leading-[1.7] text-text-placeholder">
           直到 <time dateTime={deadline}>{formatDate(deadline)}</time>
           <br />
           委託者可給予青睞留言 {points} 積分

@@ -158,13 +158,25 @@ html.hide-native-scrollbar::-webkit-scrollbar {
      (--font-plus-jakarta-sans / --font-noto-sans-tc), and a semantic size
      scale. Named to avoid clobbering Tailwind's stock text-* scale. */
   --font-sans: var(--font-plus-jakarta-sans), var(--font-noto-sans-tc), sans-serif;
-  --text-caption: 12px;
-  --text-meta: 13px;
-  --text-body: 14px;
-  --text-name: 15px;
-  --text-title: 16px;
-  --text-heading: 18px;
-  --text-display: 20px;
+
+  /* Type scale — see docs/design-decisions.md DR-013.
+     `display-lg` uses the mobile size (28px) since the app shell is a fixed
+     max-w-md column and never renders at a desktop-width 32px variant.
+     Weight/letter-spacing are each role's default but are applied per call
+     site via standard font-bold/font-semibold/font-medium utilities (not
+     baked into the token) so existing emphasis choices are preserved. */
+  --text-display-lg: 28px;
+  --text-display-lg--line-height: 36px;
+  --text-headline-md: 24px;
+  --text-headline-md--line-height: 32px;
+  --text-headline-sm: 20px;
+  --text-headline-sm--line-height: 28px;
+  --text-body-lg: 16px;
+  --text-body-lg--line-height: 24px;
+  --text-body-md: 14px;
+  --text-body-md--line-height: 20px;
+  --text-label-md: 12px;
+  --text-label-md--line-height: 16px;
 
   /* Shadows — warm StyCue elevations (not Tailwind's stock shadow-* values). */
   --shadow-card: 0 4px 12px rgba(217, 154, 61, 0.08);

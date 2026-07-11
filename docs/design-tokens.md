@@ -69,9 +69,12 @@
 
 **圓角**：`rounded-card`(12px)、`rounded-panel`(14px)、`rounded-sheet`(20px)、`rounded-device`(36px)；
 其餘用 shadcn 衍生 `rounded-sm/md/lg/xl/2xl`（lg = 8px 基準）；`50%`/`999px` 用 `rounded-full`。
-**字級**：`text-caption`(12)、`text-meta`(13)、`text-body`(14)、`text-name`(15)、`text-title`(16)、
-`text-heading`(18)、`text-display`(20)。**字重** 400/600/700。
-**字體**：`font-sans` = `'Plus Jakarta Sans','Noto Sans TC',sans-serif`（**token 已定義，實際載入另開分支**）。
+**字級**：改採新的六階字級規格（見 DR-013）——
+`text-label-md`(12/500)、`text-body-md`(14/400)、`text-body-lg`(16/400)、`text-headline-sm`(20/600)、
+`text-headline-md`(24/600)、`text-display-lg`(28/700，取行動裝置尺寸，因為 app shell 固定 `max-w-md`)。
+每個 token 都是 size+line-height 成對值；字重不烘進 token，由呼叫端視強調需求另加 `font-medium`/`font-semibold`/`font-bold`。
+原本 7 階量表（`text-caption`/`-meta`/`-body`/`-name`/`-title`/`-heading`/`-display`）已淘汰、全站呼叫點已遷移完畢。
+**字體**：`font-sans` = `'Plus Jakarta Sans','Noto Sans TC',sans-serif`（已透過 `next/font` 於 `layout.tsx` 自架載入）。
 **陰影**：`shadow-card`(.08)、`shadow-cta`(.14)、`shadow-cta-strong`(.18)、`shadow-nav-top`、
 `shadow-modal`、`shadow-dropdown`、`shadow-float`、`shadow-gold-dark`、`shadow-device`。
 
@@ -137,19 +140,21 @@
 
 ### 字級 / 圓角 / 陰影
 
-| 寫死值                                                               | → utility                                                               |
-| -------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `text-[12px]` / `[13px]` / `[14px]` / `[16px]` / `[18px]` / `[20px]` | `text-caption` / `-meta` / `-body` / `-title` / `-heading` / `-display` |
-| `text-[11px]` `[12.5px]` `[14.5px]` `[15.5px]` `[19px]`              | 併入最近階（或必要時保留 arbitrary）                                    |
-| `rounded-[12px]` / `[14px]` / `[36px]`                               | `rounded-card` / `rounded-panel` / `rounded-device`                     |
-| `rounded-[8px]`                                                      | `rounded-lg`                                                            |
-| `rounded-[16px]`（modal）/ `[20px]`（sheet）                         | `rounded-2xl`(≈14.4，可接受) 或 `rounded-[16px]` / `rounded-sheet`      |
-| `rounded-[6px]` / `[10px]` / `[3px]`                                 | 就近用衍生階或保留 arbitrary（非核心）                                  |
-| `shadow-[0_4px_12px_rgba(217,154,61,0.08)]`                          | `shadow-card`                                                           |
-| `…,0.14]` / `…,0.18]` / `…,0.2]`                                     | `shadow-cta` / `shadow-cta-strong`（.2 併入 strong）                    |
-| `shadow-[0_12px_32px_rgba(64,58,50,0.28)]`                           | `shadow-modal`                                                          |
-| `shadow-[0_8px_20px_rgba(64,58,50,0.16)]`                            | `shadow-dropdown`                                                       |
-| `shadow-[0_4px_24px_rgba(113,92,1,0.14)]`                            | `shadow-device`                                                         |
+| 寫死值                                             | → utility                                                                                 |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `text-[9px]`～`[13.5px]`（含 `text-xs`/`text-sm`） | `text-label-md`(12) 或 `text-body-md`(14)——依內容是否為主要可讀文字判斷，非機械式就近取值 |
+| `text-[14.5px]`～`[15.5px]`（含 `text-base`）      | `text-body-lg`(16)——留言/回覆內文等主要內容一律採用此階，不降級當次要文字                 |
+| `text-[17px]`～`[19px]`（含 `text-lg`）            | `text-headline-sm`(20)                                                                    |
+| `text-[20px]`～`[22px]`（含 `text-xl`）            | `text-headline-md`(24)                                                                    |
+| `rounded-[12px]` / `[14px]` / `[36px]`             | `rounded-card` / `rounded-panel` / `rounded-device`                                       |
+| `rounded-[8px]`                                    | `rounded-lg`                                                                              |
+| `rounded-[16px]`（modal）/ `[20px]`（sheet）       | `rounded-2xl`(≈14.4，可接受) 或 `rounded-[16px]` / `rounded-sheet`                        |
+| `rounded-[6px]` / `[10px]` / `[3px]`               | 就近用衍生階或保留 arbitrary（非核心）                                                    |
+| `shadow-[0_4px_12px_rgba(217,154,61,0.08)]`        | `shadow-card`                                                                             |
+| `…,0.14]` / `…,0.18]` / `…,0.2]`                   | `shadow-cta` / `shadow-cta-strong`（.2 併入 strong）                                      |
+| `shadow-[0_12px_32px_rgba(64,58,50,0.28)]`         | `shadow-modal`                                                                            |
+| `shadow-[0_8px_20px_rgba(64,58,50,0.16)]`          | `shadow-dropdown`                                                                         |
+| `shadow-[0_4px_24px_rgba(113,92,1,0.14)]`          | `shadow-device`                                                                           |
 
 > 間距不另建自訂比例——設計稿落在 2px 網格（6/8/10/12/14/18/22/26），用 Tailwind 預設比例即可。
 > 套用時把 `h-13.5`、`gap-1.25`、`pt-4.5`、`px-4.5` 等臨時任意值正規化到最近的標準級距。

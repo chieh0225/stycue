@@ -147,7 +147,7 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
               <ArrowLeft className="h-4.5 w-4.5" />
             </button>
           ) : (
-            <h2 className="text-lg font-bold text-text-primary">選擇標籤</h2>
+            <h2 className="text-headline-sm font-bold text-text-primary">選擇標籤</h2>
           )}
           <button type="button" onClick={onClose} aria-label="關閉" className="text-text-primary">
             <X className="h-4.5 w-4.5" />
@@ -159,7 +159,7 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
             <span aria-hidden className="text-accent-amber">
               ✦
             </span>
-            <span className="text-xs font-semibold text-accent-amber">
+            <span className="text-label-md font-semibold text-accent-amber">
               選擇標籤，讓文章更容易被搜尋與發現。
             </span>
           </div>
@@ -178,7 +178,7 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
             onFocus={() => setSearchActive(true)}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="搜尋標籤"
-            className="flex-1 bg-transparent text-sm text-text-primary placeholder-text-muted outline-none"
+            className="flex-1 bg-transparent text-body-md text-text-primary placeholder-text-muted outline-none"
           />
           <Search className="h-4 w-4 text-text-muted" aria-hidden />
         </div>
@@ -190,15 +190,17 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
           {hasNoMatch && (
             <div className="flex flex-col items-center gap-1 py-6 text-center">
               <Search className="h-6 w-6 text-text-muted" aria-hidden />
-              <p className="text-sm font-semibold text-text-primary">
+              <p className="text-body-md font-semibold text-text-primary">
                 找不到「{trimmedQuery}」相關標籤
               </p>
-              <p className="mb-2 text-xs text-text-muted">試試看其他關鍵字，或從下方選擇標籤</p>
+              <p className="mb-2 text-label-md text-text-muted">
+                試試看其他關鍵字，或從下方選擇標籤
+              </p>
               <hr className="mt-2 w-full border-border-default" />
             </div>
           )}
 
-          <h3 className="mb-3 text-base font-bold text-text-primary">最近用過</h3>
+          <h3 className="mb-3 text-body-lg font-bold text-text-primary">最近用過</h3>
           <div className="mb-6 flex flex-wrap gap-2.5">
             {recentTags.map((tag) => {
               const active = selected.includes(tag.name);
@@ -219,15 +221,15 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
                         : 'flex items-baseline gap-1.5 rounded-full border border-border-default bg-white px-3.5 py-2'
                   }
                 >
-                  <span className="text-sm font-bold text-text-muted">#</span>
-                  <span className="text-sm text-text-primary">{tag.name}</span>
-                  <span className="text-xs text-text-muted">{tag.category}</span>
+                  <span className="text-label-md font-bold text-text-muted">#</span>
+                  <span className="text-label-md text-text-primary">{tag.name}</span>
+                  <span className="text-label-md text-text-muted">{tag.category}</span>
                 </button>
               );
             })}
           </div>
 
-          <h3 className="mb-3 text-base font-bold text-text-primary">熱門標籤</h3>
+          <h3 className="mb-3 text-body-lg font-bold text-text-primary">熱門標籤</h3>
           <div className="flex flex-wrap gap-2.5">
             {popularTags.map((tag) => {
               const active = selected.includes(tag.name);
@@ -248,9 +250,9 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
                         : 'flex items-baseline gap-1.5 rounded-full border border-transparent bg-accent-amber/15 px-3.5 py-2'
                   }
                 >
-                  <span className="text-sm font-bold text-accent-amber">#</span>
-                  <span className="text-sm text-text-primary">{tag.name}</span>
-                  <span className="text-xs text-accent-amber/80">{tag.category}</span>
+                  <span className="text-label-md font-bold text-accent-amber">#</span>
+                  <span className="text-label-md text-text-primary">{tag.name}</span>
+                  <span className="text-label-md text-accent-amber/80">{tag.category}</span>
                 </button>
               );
             })}
@@ -261,14 +263,16 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
         <div className="flex-1 overflow-y-auto px-5 pb-6">
           {selected.length > 0 && (
             <div className="mb-5">
-              <h3 className="mb-3 text-base font-bold text-text-primary">已選標籤（點擊可取消）</h3>
+              <h3 className="mb-3 text-body-lg font-bold text-text-primary">
+                已選標籤（點擊可取消）
+              </h3>
               <div className="flex flex-wrap gap-2.5">
                 {selected.map((tag) => (
                   <button
                     key={tag}
                     type="button"
                     onClick={() => toggleTag(tag)}
-                    className="flex items-center gap-1 rounded-full border border-brand-primary bg-brand-primary px-5 py-2.5 text-sm font-medium text-text-primary"
+                    className="flex items-center gap-1 rounded-full border border-brand-primary bg-brand-primary px-5 py-2.5 text-label-md font-medium text-text-primary"
                   >
                     {tag} <X className="h-3 w-3" />
                   </button>
@@ -284,8 +288,8 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
             return (
               <div key={group.title} className="mb-5">
                 <div className="mb-3 flex items-baseline justify-between">
-                  <h3 className="text-base font-bold text-text-primary">{group.title}</h3>
-                  <span className="text-xs text-text-muted">
+                  <h3 className="text-body-lg font-bold text-text-primary">{group.title}</h3>
+                  <span className="text-label-md text-text-muted">
                     {selectedInGroup}/{MAX_TAGS_PER_GROUP}
                   </span>
                 </div>
@@ -301,10 +305,10 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
                         onClick={() => toggleTag(tag)}
                         className={
                           active
-                            ? 'rounded-full border border-brand-primary bg-brand-primary px-5 py-2.5 text-sm font-medium text-text-primary'
+                            ? 'rounded-full border border-brand-primary bg-brand-primary px-5 py-2.5 text-label-md font-medium text-text-primary'
                             : disabled
-                              ? 'rounded-full border border-border-default bg-surface-soft px-5 py-2.5 text-sm font-medium text-text-muted opacity-50'
-                              : 'rounded-full border border-border-default bg-surface-soft px-5 py-2.5 text-sm font-medium text-text-primary'
+                              ? 'rounded-full border border-border-default bg-surface-soft px-5 py-2.5 text-label-md font-medium text-text-muted opacity-50'
+                              : 'rounded-full border border-border-default bg-surface-soft px-5 py-2.5 text-label-md font-medium text-text-primary'
                         }
                       >
                         {tag}
@@ -332,7 +336,7 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
                         }}
                         onBlur={() => confirmAddTag(group.title, true)}
                         placeholder="輸入標籤"
-                        className="w-28 rounded-full border border-brand-primary bg-surface-soft px-4 py-2.5 text-sm text-text-primary outline-none"
+                        className="w-28 rounded-full border border-brand-primary bg-surface-soft px-4 py-2.5 text-body-md text-text-primary outline-none"
                       />
                     ) : (
                       <button
@@ -350,7 +354,7 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
                     ))}
                 </div>
                 {addingGroup === group.title && tagError && (
-                  <p className="mt-2 text-xs text-red-500">{tagError}</p>
+                  <p className="mt-2 text-label-md text-red-500">{tagError}</p>
                 )}
               </div>
             );
@@ -363,7 +367,7 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
         <button
           type="button"
           onClick={confirmAndClose}
-          className="w-full rounded-lg bg-brand-primary py-3 text-sm font-bold text-text-primary"
+          className="w-full rounded-lg bg-brand-primary py-3 text-label-md font-bold text-text-primary"
         >
           完成
         </button>

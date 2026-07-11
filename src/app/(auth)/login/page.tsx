@@ -54,8 +54,8 @@ export default function LoginPage() {
         <div className="mb-3.5 flex h-16 w-16 items-center justify-center rounded-full bg-brand-primary text-text-primary shadow-cta-strong">
           <LogoIcon />
         </div>
-        <h1 className="text-[22px] font-bold tracking-[0.5px] text-text-primary">StyCue</h1>
-        <p className="mt-1 text-meta text-text-muted">歡迎回來，加入穿搭討論</p>
+        <h1 className="text-headline-md font-bold tracking-[0.5px] text-text-primary">StyCue</h1>
+        <p className="mt-1 text-body-md text-text-muted">歡迎回來，加入穿搭討論</p>
       </div>
 
       {/* Form card */}
@@ -65,7 +65,10 @@ export default function LoginPage() {
         className="mb-5.5 rounded-2xl bg-white px-5 pt-5.5 pb-6 shadow-card"
       >
         <div className="mb-4">
-          <label htmlFor="email" className="mb-2 block text-meta font-semibold text-text-primary">
+          <label
+            htmlFor="email"
+            className="mb-2 block text-label-md font-semibold text-text-primary"
+          >
             信箱
           </label>
           <div
@@ -82,11 +85,11 @@ export default function LoginPage() {
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               placeholder="you@example.com"
-              className="flex-1 bg-transparent text-sm text-text-primary placeholder-text-placeholder outline-none"
+              className="flex-1 bg-transparent text-body-md text-text-primary placeholder-text-placeholder outline-none"
             />
           </div>
           {emailError && (
-            <div className="mt-1.75 flex items-center gap-1.25 text-xs font-semibold text-destructive">
+            <div className="mt-1.75 flex items-center gap-1.25 text-label-md font-semibold text-destructive">
               <AlertIcon />
               {emailError}
             </div>
@@ -96,7 +99,7 @@ export default function LoginPage() {
         <div className="mb-2">
           <label
             htmlFor="password"
-            className="mb-2 block text-meta font-semibold text-text-primary"
+            className="mb-2 block text-label-md font-semibold text-text-primary"
           >
             密碼
           </label>
@@ -114,11 +117,11 @@ export default function LoginPage() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder="8 字元以上，只包含英文字母與數字"
-              className="flex-1 bg-transparent text-sm text-text-primary placeholder-text-placeholder outline-none"
+              className="flex-1 bg-transparent text-body-md text-text-primary placeholder-text-placeholder outline-none"
             />
           </div>
           {passwordError && (
-            <div className="mt-1.75 flex items-center gap-1.25 text-xs font-semibold text-destructive">
+            <div className="mt-1.75 flex items-center gap-1.25 text-label-md font-semibold text-destructive">
               <AlertIcon />
               {passwordError}
             </div>
@@ -126,13 +129,13 @@ export default function LoginPage() {
         </div>
 
         <div className="mb-5 text-right">
-          <Link href="/forgot-password" className="text-[12.5px] font-semibold text-accent-amber">
+          <Link href="/forgot-password" className="text-label-md font-semibold text-accent-amber">
             忘記密碼？
           </Link>
         </div>
 
         {apiError && (
-          <div className="mb-4 flex items-center gap-1.25 rounded-lg bg-destructive-bg px-3.5 py-2.5 text-xs font-semibold text-destructive">
+          <div className="mb-4 flex items-center gap-1.25 rounded-lg bg-destructive-bg px-3.5 py-2.5 text-label-md font-semibold text-destructive">
             <AlertIcon />
             {apiError}
           </div>
@@ -141,7 +144,7 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="h-12.5 w-full rounded-lg bg-brand-primary text-name font-bold text-text-primary shadow-cta disabled:opacity-60"
+          className="h-12.5 w-full rounded-lg bg-brand-primary text-label-md font-bold text-text-primary shadow-cta disabled:opacity-60"
         >
           {loading ? '登入中...' : '登入'}
         </button>
@@ -150,21 +153,21 @@ export default function LoginPage() {
       {/* Divider */}
       <div className="mb-5.5 flex items-center gap-3">
         <Separator className="w-auto flex-1" />
-        <span className="text-xs text-text-muted">或使用以下方式登入</span>
+        <span className="text-label-md text-text-muted">或使用以下方式登入</span>
         <Separator className="w-auto flex-1" />
       </div>
 
       {/* Google */}
       <button
         type="button"
-        className="mb-7 flex h-12.5 w-full items-center justify-center gap-2.5 rounded-lg border border-border-default bg-white text-sm font-semibold text-text-primary shadow-card"
+        className="mb-7 flex h-12.5 w-full items-center justify-center gap-2.5 rounded-lg border border-border-default bg-white text-label-md font-semibold text-text-primary shadow-card"
       >
         <GoogleIcon />
         使用 Google 繼續
       </button>
 
       {/* Sign up */}
-      <div className="mt-auto text-center text-[13.5px]">
+      <div className="mt-auto text-center text-body-md">
         <span className="text-text-muted">還沒有帳號？</span>
         <Link href="/register" className="ml-1 font-bold text-accent-amber">
           快速註冊

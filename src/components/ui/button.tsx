@@ -18,9 +18,9 @@ const buttonVariants = cva(
         ghost: 'text-foreground hover:bg-accent',
       },
       size: {
-        sm: 'h-9 px-4 text-meta',
-        md: 'h-11 px-4 text-body',
-        lg: 'h-13 px-5 text-title',
+        sm: 'h-9 px-4 text-label-md',
+        md: 'h-11 px-4 text-label-md',
+        lg: 'h-13 px-5 text-label-md',
         icon: 'size-9',
       },
     },

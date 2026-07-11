@@ -48,7 +48,7 @@ export default function CommentComposer({
           }}
           placeholder={templateHref ? '加入討論，或附上圖片' : '加入討論...'}
           aria-label="加入討論"
-          className="h-full min-w-0 flex-1 bg-transparent text-meta text-text-primary placeholder:text-text-placeholder focus:outline-none"
+          className="h-full min-w-0 flex-1 bg-transparent text-body-md text-text-primary placeholder:text-text-placeholder focus:outline-none"
         />
         {templateHref ? (
           <Link

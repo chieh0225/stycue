@@ -20,7 +20,7 @@ export default function CommentLauncher({ postId }: { postId: string }) {
             <User className="h-4 w-4" />
           </AvatarFallback>
         </Avatar>
-        <span className="min-w-0 flex-1 truncate text-[13.5px] text-text-muted">
+        <span className="min-w-0 flex-1 truncate text-body-md text-text-muted">
           查看並加入留言討論…
         </span>
         <ChevronRight className="h-5 w-5 flex-shrink-0 text-text-primary" />

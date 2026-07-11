@@ -80,7 +80,7 @@ export default function BottomNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex flex-1 flex-col items-center gap-1 py-2 text-[10px] font-semibold ${
+            className={`flex flex-1 flex-col items-center gap-1 py-2 text-label-md font-semibold ${
               active ? 'text-text-primary' : 'text-text-muted'
             }`}
           >

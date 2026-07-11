@@ -212,14 +212,14 @@ export default function Home() {
       />
 
       <section className="px-4 pt-5 pb-7">
-        <div className="mb-3 text-display font-bold text-text-primary">人氣穿搭</div>
+        <div className="mb-3 text-headline-sm font-bold text-text-primary">人氣穿搭</div>
         <div className="-mx-1 flex gap-3 overflow-x-auto pb-2">
           {trendingItems.map((item) => (
             <Card key={item.id} variant="trending" className="w-43 flex-none">
               <Link href={`/posts/${item.id}`} className="block">
                 <div className="relative">
                   <div
-                    className={`absolute top-2 left-2 z-10 flex h-6 w-6 items-center justify-center rounded-md text-caption font-bold text-white ${item.accent}`}
+                    className={`absolute top-2 left-2 z-10 flex h-6 w-6 items-center justify-center rounded-md text-label-md font-bold text-white ${item.accent}`}
                   >
                     {item.rank}
                   </div>
@@ -227,7 +227,7 @@ export default function Home() {
                     className="flex h-54 items-center justify-center"
                     style={{ background: item.gradient }}
                   >
-                    <span className="rounded-md bg-white/70 px-2 py-1 text-[11px] font-medium text-text-primary">
+                    <span className="rounded-md bg-white/70 px-2 py-1 text-label-md font-medium text-text-primary">
                       {item.title}
                     </span>
                   </div>
@@ -237,8 +237,10 @@ export default function Home() {
                 <div className="flex items-center gap-2">
                   <PlaceholderAvatar size="sm" accent={item.accent} />
                   <div>
-                    <div className="text-meta font-semibold text-text-primary">{item.author}</div>
-                    <div className="text-[11px] text-text-muted">{item.meta}</div>
+                    <div className="text-label-md font-semibold text-text-primary">
+                      {item.author}
+                    </div>
+                    <div className="text-label-md text-text-muted">{item.meta}</div>
                   </div>
                 </div>
                 <button
@@ -261,13 +263,13 @@ export default function Home() {
 
       <section className="px-4 pb-6">
         <div className="mb-4 flex items-center justify-between">
-          <div className="text-display font-bold text-text-primary">全部文章</div>
+          <div className="text-headline-sm font-bold text-text-primary">全部文章</div>
           <div className="relative">
             <button
               type="button"
               onClick={() => setFilterOpen((open) => !open)}
               aria-expanded={filterOpen}
-              className="flex items-center gap-1 rounded-full border border-border-default bg-white px-3 py-2 text-meta font-medium text-text-primary shadow-card"
+              className="flex items-center gap-1 rounded-full border border-border-default bg-white px-3 py-2 text-label-md font-medium text-text-primary shadow-card"
             >
               {selectedFilter}
               <ChevronDown
@@ -287,7 +289,7 @@ export default function Home() {
                         setSelectedFilter(filter);
                         setFilterOpen(false);
                       }}
-                      className={`block w-full px-4 py-2.5 text-left text-meta font-medium ${
+                      className={`block w-full px-4 py-2.5 text-left text-label-md font-medium ${
                         filter === selectedFilter
                           ? 'bg-surface-soft text-accent-amber'
                           : 'text-text-primary hover:bg-surface-soft'
@@ -302,7 +304,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mb-4 flex border-b border-border-default text-name">
+        <div className="mb-4 flex border-b border-border-default text-label-md">
           <button
             type="button"
             onClick={() => setSortMode('hot')}
@@ -328,7 +330,9 @@ export default function Home() {
         </div>
 
         {filteredPosts.length === 0 ? (
-          <div className="py-10 text-center text-meta text-text-muted">目前沒有這個分類的文章</div>
+          <div className="py-10 text-center text-body-md text-text-muted">
+            目前沒有這個分類的文章
+          </div>
         ) : null}
 
         {filteredPosts.map((post) => {
@@ -340,8 +344,10 @@ export default function Home() {
                   <div className="flex items-center gap-2.5">
                     <PlaceholderAvatar size="md" accent={post.accent} bordered />
                     <div>
-                      <div className="text-body font-semibold text-text-primary">{post.author}</div>
-                      <div className="text-caption text-text-muted">
+                      <div className="text-label-md font-semibold text-text-primary">
+                        {post.author}
+                      </div>
+                      <div className="text-label-md text-text-muted">
                         {formatRelativeTime(post.createdAt)}
                       </div>
                     </div>
@@ -351,9 +357,9 @@ export default function Home() {
 
                 <div className="mb-2 flex items-center gap-2">
                   <Badge variant="gold">{post.tag}</Badge>
-                  <span className="text-name font-bold text-text-primary">{post.title}</span>
+                  <span className="text-body-lg font-bold text-text-primary">{post.title}</span>
                 </div>
-                <p className="mb-3 text-meta leading-5 text-text-muted">{post.body}</p>
+                <p className="mb-3 text-body-md leading-5 text-text-muted">{post.body}</p>
 
                 {post.photos.length > 0 ? (
                   <>
@@ -367,7 +373,7 @@ export default function Home() {
                         />
                       ))}
                     </div>
-                    <div className="mb-3 text-[11px] text-text-muted italic">
+                    <div className="mb-3 text-label-md text-text-muted italic">
                       照片示意（尚未串接真實圖片）
                     </div>
                   </>
@@ -387,14 +393,14 @@ export default function Home() {
                   type="button"
                   onClick={() => toggleLike(post.id)}
                   aria-pressed={interaction.liked}
-                  className={`flex items-center gap-1 text-meta ${interaction.liked ? 'text-accent-amber' : ''}`}
+                  className={`flex items-center gap-1 text-label-md ${interaction.liked ? 'text-accent-amber' : ''}`}
                 >
                   <Heart fill={interaction.liked ? 'currentColor' : 'none'} className="h-4 w-4" />
                   {interaction.likes}
                 </button>
                 <Link
                   href={`/posts/${post.id}/comments`}
-                  className="flex items-center gap-1 text-meta"
+                  className="flex items-center gap-1 text-label-md"
                 >
                   <MessageCircle className="h-4 w-4" />
                   {post.comments}
@@ -423,7 +429,7 @@ export default function Home() {
           className="gap-0 bg-secondary p-5 shadow-[4px_0_20px_rgba(64,58,50,0.18)] data-[side=left]:left-[max(0px,calc(50%-14rem))] data-[side=left]:w-65"
         >
           <div className="mb-5 flex items-center justify-between">
-            <SheetTitle className="text-[17px]">快速瀏覽</SheetTitle>
+            <SheetTitle>快速瀏覽</SheetTitle>
             <SheetClose
               render={
                 <button
@@ -444,7 +450,7 @@ export default function Home() {
                   <Link
                     key={item.label}
                     href={item.href}
-                    className="flex w-full items-center gap-3 rounded-[10px] px-3 py-3 text-left text-[14.5px] font-medium text-foreground hover:bg-card/80"
+                    className="flex w-full items-center gap-3 rounded-[10px] px-3 py-3 text-left text-body-md font-medium text-foreground hover:bg-card/80"
                   >
                     <item.icon className="h-4.5 w-4.5" />
                     {item.label}
@@ -464,12 +470,12 @@ export default function Home() {
       >
         <DialogContent showCloseButton className="p-7 text-center">
           <div className="mb-7 flex justify-center">
-            <div className="flex h-13.5 w-13.5 items-center justify-center rounded-full border-4 border-gold bg-primary text-display font-black text-primary-foreground">
+            <div className="flex h-13.5 w-13.5 items-center justify-center rounded-full border-4 border-gold bg-primary text-headline-md font-black text-primary-foreground">
               簽
             </div>
           </div>
-          <DialogTitle className="mb-3 text-display">簽到完成</DialogTitle>
-          <div className="mb-6 text-title font-bold text-gold">獲得積分 + 50</div>
+          <DialogTitle className="mb-3">簽到完成</DialogTitle>
+          <div className="mb-6 text-headline-md font-bold text-gold">獲得積分 + 50</div>
           <Button
             type="button"
             variant="primary"
