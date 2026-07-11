@@ -468,14 +468,40 @@ export default function Home() {
           if (!open) setCheckinOpen(false);
         }}
       >
-        <DialogContent showCloseButton className="p-7 text-center">
-          <div className="mb-7 flex justify-center">
-            <div className="flex h-13.5 w-13.5 items-center justify-center rounded-full border-4 border-gold bg-primary text-headline-md font-black text-primary-foreground">
+        <DialogContent showCloseButton className="px-7 pt-9 pb-7 text-center">
+          <div className="relative mx-auto mb-8 flex h-17.5 w-17.5 items-center justify-center">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              className="absolute -top-0.5 right-0.5 fill-primary stroke-gold"
+              strokeWidth="1.5"
+            >
+              <path d="M12 2l2.5 7.7L22 12l-7.5 2.3L12 22l-2.5-7.7L2 12l7.5-2.3z" />
+            </svg>
+            <svg
+              width="8"
+              height="8"
+              viewBox="0 0 24 24"
+              className="absolute bottom-0.5 -left-0.5 fill-sage"
+            >
+              <circle cx="12" cy="12" r="12" />
+            </svg>
+            <svg
+              width="7"
+              height="7"
+              viewBox="0 0 24 24"
+              className="absolute top-2 -left-1.5 fill-none stroke-sage"
+              strokeWidth="2.5"
+            >
+              <circle cx="12" cy="12" r="10" />
+            </svg>
+            <div className="flex h-15.5 w-15.5 items-center justify-center rounded-full border-4 border-gold bg-primary text-headline-sm font-black text-primary-foreground shadow-[0_6px_16px_rgba(217,154,61,0.3)]">
               簽
             </div>
           </div>
-          <DialogTitle className="mb-3">簽到完成</DialogTitle>
-          <div className="mb-6 text-headline-md font-bold text-gold">獲得積分 + 50</div>
+          <DialogTitle className="mb-3.5">簽到完成</DialogTitle>
+          <div className="mb-6 text-body-lg font-bold text-gold">獲得積分 + 50</div>
           <Button
             type="button"
             variant="primary"

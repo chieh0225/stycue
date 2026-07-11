@@ -52,11 +52,13 @@ export function GivePointsModal({
         <div className="mb-4 flex size-13 items-center justify-center rounded-full bg-gold-soft text-gold">
           <StarIcon className="h-6 w-6" />
         </div>
-        <DialogTitle className="mb-2 leading-[1.5]">
+        <DialogTitle className="mb-2 text-body-lg leading-[1.5]">
           將 {targetName} 選為最佳留言並給予積分
         </DialogTitle>
         <DialogDescription className="mb-5">
-          確定要將積分給予 {targetName} 嗎？此操作無法復原。
+          確定要將積分給予 {targetName} 嗎？
+          <br />
+          此操作無法復原。
         </DialogDescription>
 
         <div className="flex w-full justify-center gap-3">
