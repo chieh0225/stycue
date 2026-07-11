@@ -8,6 +8,7 @@ import { BottomBar } from '@/components/ui/bottom-bar';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { TopBar } from '@/components/ui/top-bar';
+import { getPointWallet } from '@/lib/points-api';
 import {
   DRAFT_STORAGE_KEY,
   TITLE_MAX_LENGTH,
@@ -17,6 +18,11 @@ import {
   emptyDraft,
   type Draft,
 } from '../draft';
+
+// Matches the platform fee mentioned in the info box below the points picker
+// on the compose page ("將會根據每次提供的積分扣除 5 點作為平台手續費") —
+// the real cost of publishing is the chosen points plus this fee.
+const PLATFORM_FEE = 5;
 
 export default function NewPostPreviewPage() {
   const router = useRouter();
@@ -28,9 +34,22 @@ export default function NewPostPreviewPage() {
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const titleRef = useRef<HTMLTextAreaElement>(null);
+  // Defaults to 0 (rather than leaving it unset) so the affordability check
+  // fails closed while the real balance is still loading.
+  const [userPoints, setUserPoints] = useState(0);
+  useEffect(() => {
+    let active = true;
+    getPointWallet().then((res) => {
+      if (active && res.success && res.data) setUserPoints(res.data.currentPoints);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const { title, description, height, weight, age, selectedBudget, postType, points, photos } =
     form;
+  const insufficientPoints = Number(points) + PLATFORM_FEE > userPoints;
 
   // Auto-grow to fit the full text when expanded so it never needs its own
   // scrollbar; collapsed mode keeps the fixed 3-row clamp instead.
@@ -424,6 +443,13 @@ export default function NewPostPreviewPage() {
               ) : null}
             </div>
           </div>
+          <p className="mt-2 text-xs text-text-muted">目前可用積分：{userPoints} 點</p>
+          {insufficientPoints && (
+            <p className="mt-1 text-xs text-red-500">
+              積分不足：發佈需要 {points} + {PLATFORM_FEE}
+              （手續費）點，請返回編輯選擇較低的積分或前往儲值
+            </p>
+          )}
         </div>
 
         {/* 截止資訊 */}
@@ -454,7 +480,8 @@ export default function NewPostPreviewPage() {
         <button
           type="button"
           onClick={confirmSubmit}
-          className="flex-1 rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground"
+          disabled={insufficientPoints}
+          className="flex-1 rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
         >
           確認送出
         </button>

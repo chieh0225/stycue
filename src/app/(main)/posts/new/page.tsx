@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { TopBar } from '@/components/ui/top-bar';
 import { deleteImage } from '@/lib/image-api';
+import { getPointWallet } from '@/lib/points-api';
 import {
   DRAFT_STORAGE_KEY,
   TITLE_MAX_LENGTH,
@@ -15,6 +16,11 @@ import {
   emptyDraft,
   type Draft,
 } from './draft';
+
+// Matches the platform fee mentioned in the info box below the points picker
+// ("將會根據每次提供的積分扣除 5 點作為平台手續費") — the real cost of
+// publishing is the chosen points plus this fee, not just the chosen points.
+const PLATFORM_FEE = 5;
 
 export default function NewPostPage() {
   const [titleFocused, setTitleFocused] = useState(false);
@@ -32,6 +38,19 @@ export default function NewPostPage() {
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const titleRef = useRef<HTMLTextAreaElement>(null);
+  // Defaults to 0 (rather than leaving it unset) so the affordability check
+  // fails closed while the real balance is still loading.
+  const [userPoints, setUserPoints] = useState(0);
+  useEffect(() => {
+    let active = true;
+    getPointWallet().then((res) => {
+      if (active && res.success && res.data) setUserPoints(res.data.currentPoints);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+  const insufficientPoints = Number(points) + PLATFORM_FEE > userPoints;
   const pathname = usePathname();
 
   // The title wraps across multiple lines instead of overflowing past the
@@ -415,6 +434,12 @@ export default function NewPostPage() {
             </div>
             <span className="text-sm text-text-muted">點</span>
           </div>
+          <p className="text-xs text-text-muted">目前可用積分：{userPoints} 點</p>
+          {insufficientPoints && (
+            <p className="text-xs text-red-500">
+              積分不足：發佈需要 {points} + {PLATFORM_FEE}（手續費）點，請選擇較低的積分或前往儲值
+            </p>
+          )}
         </div>
 
         {/* Deadline */}
@@ -446,13 +471,23 @@ export default function NewPostPage() {
         </div>
 
         {/* Submit */}
-        <Link
-          href="/posts/new/preview"
-          onClick={saveDraft}
-          className="block w-full rounded-lg bg-brand-primary py-3 text-center text-sm font-semibold text-text-primary"
-        >
-          送出
-        </Link>
+        {insufficientPoints ? (
+          <button
+            type="button"
+            disabled
+            className="block w-full cursor-not-allowed rounded-lg bg-brand-primary py-3 text-center text-sm font-semibold text-text-primary opacity-50"
+          >
+            送出
+          </button>
+        ) : (
+          <Link
+            href="/posts/new/preview"
+            onClick={saveDraft}
+            className="block w-full rounded-lg bg-brand-primary py-3 text-center text-sm font-semibold text-text-primary"
+          >
+            送出
+          </Link>
+        )}
       </div>
     </div>
   );
