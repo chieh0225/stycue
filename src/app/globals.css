@@ -154,9 +154,10 @@ html.hide-native-scrollbar::-webkit-scrollbar {
   --radius-sheet: 20px;
   --radius-device: 36px;
 
-  /* Typography — design font (loading deferred to a separate branch) and a
-     semantic size scale. Named to avoid clobbering Tailwind's stock text-* scale. */
-  --font-sans: 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif;
+  /* Typography — design font, self-hosted via next/font/google in layout.tsx
+     (--font-plus-jakarta-sans / --font-noto-sans-tc), and a semantic size
+     scale. Named to avoid clobbering Tailwind's stock text-* scale. */
+  --font-sans: var(--font-plus-jakarta-sans), var(--font-noto-sans-tc), sans-serif;
   --text-caption: 12px;
   --text-meta: 13px;
   --text-body: 14px;
