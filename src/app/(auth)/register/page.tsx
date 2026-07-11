@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { setAuthed } from '../../auth';
 import { AlertIcon, GoogleIcon, LockIcon, LogoIcon, MailIcon, PersonIcon } from '../icons';
@@ -95,8 +96,8 @@ export default function RegisterPage() {
         <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-brand-primary text-text-primary shadow-cta-strong">
           <LogoIcon className="h-6.25 w-6.25" />
         </div>
-        <h1 className="text-xl font-bold tracking-[0.5px] text-text-primary">StyCue</h1>
-        <p className="mt-1 text-meta text-text-muted">建立帳號，開始分享你的穿搭</p>
+        <h1 className="text-headline-md font-bold tracking-[0.5px] text-text-primary">StyCue</h1>
+        <p className="mt-1 text-body-md text-text-muted">建立帳號，開始分享你的穿搭</p>
       </div>
 
       {/* Form card */}
@@ -108,7 +109,7 @@ export default function RegisterPage() {
         <div className="mb-3.5">
           <label
             htmlFor="nickname"
-            className="mb-2 block text-meta font-semibold text-text-primary"
+            className="mb-2 block text-label-md font-semibold text-text-primary"
           >
             暱稱
           </label>
@@ -126,11 +127,11 @@ export default function RegisterPage() {
               value={nickname}
               onChange={(event) => setNickname(event.target.value)}
               placeholder="你想被叫什麼？"
-              className="flex-1 bg-transparent text-sm text-text-primary placeholder-text-placeholder outline-none"
+              className="flex-1 bg-transparent text-body-md text-text-primary placeholder-text-placeholder outline-none"
             />
           </div>
           {nicknameError && (
-            <div className="mt-1.75 flex items-center gap-1.25 text-xs font-semibold text-destructive">
+            <div className="mt-1.75 flex items-center gap-1.25 text-label-md font-semibold text-destructive">
               <AlertIcon />
               {nicknameError}
             </div>
@@ -138,7 +139,10 @@ export default function RegisterPage() {
         </div>
 
         <div className="mb-3.5">
-          <label htmlFor="email" className="mb-2 block text-meta font-semibold text-text-primary">
+          <label
+            htmlFor="email"
+            className="mb-2 block text-label-md font-semibold text-text-primary"
+          >
             信箱
           </label>
           <div
@@ -158,11 +162,11 @@ export default function RegisterPage() {
                 setEmailTaken(false);
               }}
               placeholder="you@example.com"
-              className="flex-1 bg-transparent text-sm text-text-primary placeholder-text-placeholder outline-none"
+              className="flex-1 bg-transparent text-body-md text-text-primary placeholder-text-placeholder outline-none"
             />
           </div>
           {emailError && (
-            <div className="mt-1.75 flex items-center gap-1.25 text-xs font-semibold text-destructive">
+            <div className="mt-1.75 flex items-center gap-1.25 text-label-md font-semibold text-destructive">
               <AlertIcon />
               {emailError}
             </div>
@@ -172,7 +176,7 @@ export default function RegisterPage() {
         <div className="mb-3.5">
           <label
             htmlFor="password"
-            className="mb-2 block text-meta font-semibold text-text-primary"
+            className="mb-2 block text-label-md font-semibold text-text-primary"
           >
             密碼
           </label>
@@ -190,11 +194,11 @@ export default function RegisterPage() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder="至少 8 字元、只能含英文字母與數字"
-              className="flex-1 bg-transparent text-sm text-text-primary placeholder-text-placeholder outline-none"
+              className="flex-1 bg-transparent text-body-md text-text-primary placeholder-text-placeholder outline-none"
             />
           </div>
           {passwordError && (
-            <div className="mt-1.75 flex items-center gap-1.25 text-xs font-semibold text-destructive">
+            <div className="mt-1.75 flex items-center gap-1.25 text-label-md font-semibold text-destructive">
               <AlertIcon />
               {passwordError}
             </div>
@@ -204,7 +208,7 @@ export default function RegisterPage() {
         <div className="mb-1.5">
           <label
             htmlFor="confirmPassword"
-            className="mb-2 block text-meta font-semibold text-text-primary"
+            className="mb-2 block text-label-md font-semibold text-text-primary"
           >
             再次確認密碼
           </label>
@@ -224,11 +228,11 @@ export default function RegisterPage() {
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
               placeholder="至少 8 字元、只能含英文字母與數字"
-              className="flex-1 bg-transparent text-sm text-text-primary placeholder-text-placeholder outline-none"
+              className="flex-1 bg-transparent text-body-md text-text-primary placeholder-text-placeholder outline-none"
             />
           </div>
           {confirmPasswordError && (
-            <div className="mt-1.75 flex items-center gap-1.25 text-xs font-semibold text-destructive">
+            <div className="mt-1.75 flex items-center gap-1.25 text-label-md font-semibold text-destructive">
               <AlertIcon />
               {confirmPasswordError}
             </div>
@@ -236,39 +240,41 @@ export default function RegisterPage() {
         </div>
 
         {apiError && (
-          <div className="mt-4 flex items-center gap-1.25 rounded-lg bg-destructive-bg px-3.5 py-2.5 text-xs font-semibold text-destructive">
+          <div className="mt-4 flex items-center gap-1.25 rounded-lg bg-destructive-bg px-3.5 py-2.5 text-label-md font-semibold text-destructive">
             <AlertIcon />
             {apiError}
           </div>
         )}
 
-        <button
+        <Button
           type="submit"
+          variant="primary"
+          size="lg"
           disabled={loading}
-          className="mt-4.5 h-12.5 w-full rounded-lg bg-brand-primary text-name font-bold text-text-primary shadow-cta disabled:opacity-60"
+          className="mt-4.5 w-full"
         >
           {loading ? '建立中...' : '建立帳號'}
-        </button>
+        </Button>
       </form>
 
       {/* Divider */}
       <div className="mb-5 flex items-center gap-3">
         <Separator className="w-auto flex-1" />
-        <span className="text-xs text-text-muted">或使用以下方式註冊</span>
+        <span className="text-label-md text-text-muted">或使用以下方式註冊</span>
         <Separator className="w-auto flex-1" />
       </div>
 
       {/* Google */}
       <button
         type="button"
-        className="mb-6 flex h-12.5 w-full items-center justify-center gap-2.5 rounded-lg border border-border-default bg-white text-sm font-semibold text-text-primary shadow-card"
+        className="mb-6 flex h-12.5 w-full items-center justify-center gap-2.5 rounded-lg border border-border-default bg-white text-label-md font-semibold text-text-primary shadow-card"
       >
         <GoogleIcon />
         使用 Google 繼續
       </button>
 
       {/* Login link */}
-      <div className="mt-auto text-center text-[13.5px]">
+      <div className="mt-auto text-center text-body-md">
         <span className="text-text-muted">已經有帳號了？</span>
         <Link href="/login" className="ml-1 font-bold text-accent-amber">
           登入

@@ -1,5 +1,16 @@
 'use client';
 
+import {
+  Bookmark,
+  ChevronDown,
+  ClipboardList,
+  Coins,
+  FileText,
+  Heart,
+  Menu,
+  MessageCircle,
+  Users,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { PlaceholderAvatar } from '@/components/ui/avatar';
@@ -93,61 +104,15 @@ type PostFilter = (typeof postFilters)[number];
 
 const menuLinkGroups = [
   [
-    { label: '追蹤中', icon: '👥', href: '/profile/following' },
-    { label: '已收藏', icon: '🔖', href: '/profile/favorites' },
+    { label: '追蹤中', icon: Users, href: '/profile/following' },
+    { label: '已收藏', icon: Bookmark, href: '/profile/favorites' },
   ],
   [
-    { label: '管理委託', icon: '🧵', href: '/profile/commissions/sent' },
-    { label: '積分商城', icon: '💰', href: '/profile/points' },
-    { label: '免責聲明', icon: '📝', href: '/disclaimer' },
+    { label: '管理委託', icon: ClipboardList, href: '/profile/commissions/sent' },
+    { label: '積分商城', icon: Coins, href: '/profile/points' },
+    { label: '免責聲明', icon: FileText, href: '/disclaimer' },
   ],
 ] as const;
-
-function MenuIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
-      <path d="M4 7h16" />
-      <path d="M4 12h16" />
-      <path d="M4 17h16" />
-    </svg>
-  );
-}
-
-function HeartIcon({ filled }: { filled?: boolean }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill={filled ? 'currentColor' : 'none'}
-      stroke="currentColor"
-      strokeWidth="2"
-      className="h-4 w-4"
-    >
-      <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z" />
-    </svg>
-  );
-}
-
-function CommentIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
-      <path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.4 8.6 8.6 0 0 1-4-1L3 20l1.1-4a8.4 8.4 0 0 1-1-4A8.38 8.38 0 0 1 11.5 3a8.4 8.4 0 0 1 9.5 8.5Z" />
-    </svg>
-  );
-}
-
-function BookmarkIcon({ filled, className = 'h-4 w-4' }: { filled?: boolean; className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill={filled ? 'currentColor' : 'none'}
-      stroke="currentColor"
-      strokeWidth="2"
-      className={className}
-    >
-      <path d="M6 3h12v18l-6-4-6 4Z" />
-    </svg>
-  );
-}
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -240,21 +205,21 @@ export default function Home() {
             aria-label="開啟選單"
             className="flex h-8 w-8 items-center justify-center rounded-full text-foreground"
           >
-            <MenuIcon />
+            <Menu className="h-5 w-5" />
           </button>
         }
         title="StyCue"
       />
 
       <section className="px-4 pt-5 pb-7">
-        <div className="mb-3 text-display font-bold text-text-primary">人氣穿搭</div>
+        <div className="mb-3 text-headline-sm font-bold text-text-primary">人氣穿搭</div>
         <div className="-mx-1 flex gap-3 overflow-x-auto pb-2">
           {trendingItems.map((item) => (
             <Card key={item.id} variant="trending" className="w-43 flex-none">
               <Link href={`/posts/${item.id}`} className="block">
                 <div className="relative">
                   <div
-                    className={`absolute top-2 left-2 z-10 flex h-6 w-6 items-center justify-center rounded-md text-caption font-bold text-white ${item.accent}`}
+                    className={`absolute top-2 left-2 z-10 flex h-6 w-6 items-center justify-center rounded-md text-label-md font-bold text-white ${item.accent}`}
                   >
                     {item.rank}
                   </div>
@@ -262,7 +227,7 @@ export default function Home() {
                     className="flex h-54 items-center justify-center"
                     style={{ background: item.gradient }}
                   >
-                    <span className="rounded-md bg-white/70 px-2 py-1 text-[11px] font-medium text-text-primary">
+                    <span className="rounded-md bg-white/70 px-2 py-1 text-label-md font-medium text-text-primary">
                       {item.title}
                     </span>
                   </div>
@@ -272,8 +237,10 @@ export default function Home() {
                 <div className="flex items-center gap-2">
                   <PlaceholderAvatar size="sm" accent={item.accent} />
                   <div>
-                    <div className="text-meta font-semibold text-text-primary">{item.author}</div>
-                    <div className="text-[11px] text-text-muted">{item.meta}</div>
+                    <div className="text-label-md font-semibold text-text-primary">
+                      {item.author}
+                    </div>
+                    <div className="text-label-md text-text-muted">{item.meta}</div>
                   </div>
                 </div>
                 <button
@@ -283,7 +250,10 @@ export default function Home() {
                   aria-pressed={trendingBookmarks[item.id]}
                   className={trendingBookmarks[item.id] ? 'text-accent-amber' : 'text-text-muted'}
                 >
-                  <BookmarkIcon filled={trendingBookmarks[item.id]} />
+                  <Bookmark
+                    fill={trendingBookmarks[item.id] ? 'currentColor' : 'none'}
+                    className="h-4 w-4"
+                  />
                 </button>
               </div>
             </Card>
@@ -293,24 +263,18 @@ export default function Home() {
 
       <section className="px-4 pb-6">
         <div className="mb-4 flex items-center justify-between">
-          <div className="text-display font-bold text-text-primary">全部文章</div>
+          <div className="text-headline-sm font-bold text-text-primary">全部文章</div>
           <div className="relative">
             <button
               type="button"
               onClick={() => setFilterOpen((open) => !open)}
               aria-expanded={filterOpen}
-              className="flex items-center gap-1 rounded-full border border-border-default bg-white px-3 py-2 text-meta font-medium text-text-primary shadow-card"
+              className="flex items-center gap-1 rounded-full border border-border-default bg-white px-3 py-2 text-label-md font-medium text-text-primary shadow-card"
             >
               {selectedFilter}
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
+              <ChevronDown
                 className={`h-3 w-3 text-text-muted transition-transform ${filterOpen ? 'rotate-180' : ''}`}
-              >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
+              />
             </button>
 
             {filterOpen ? (
@@ -325,7 +289,7 @@ export default function Home() {
                         setSelectedFilter(filter);
                         setFilterOpen(false);
                       }}
-                      className={`block w-full px-4 py-2.5 text-left text-meta font-medium ${
+                      className={`block w-full px-4 py-2.5 text-left text-label-md font-medium ${
                         filter === selectedFilter
                           ? 'bg-surface-soft text-accent-amber'
                           : 'text-text-primary hover:bg-surface-soft'
@@ -340,7 +304,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mb-4 flex border-b border-border-default text-name">
+        <div className="mb-4 flex border-b border-border-default text-label-md">
           <button
             type="button"
             onClick={() => setSortMode('hot')}
@@ -366,7 +330,9 @@ export default function Home() {
         </div>
 
         {filteredPosts.length === 0 ? (
-          <div className="py-10 text-center text-meta text-text-muted">目前沒有這個分類的文章</div>
+          <div className="py-10 text-center text-body-md text-text-muted">
+            目前沒有這個分類的文章
+          </div>
         ) : null}
 
         {filteredPosts.map((post) => {
@@ -378,8 +344,10 @@ export default function Home() {
                   <div className="flex items-center gap-2.5">
                     <PlaceholderAvatar size="md" accent={post.accent} bordered />
                     <div>
-                      <div className="text-body font-semibold text-text-primary">{post.author}</div>
-                      <div className="text-caption text-text-muted">
+                      <div className="text-label-md font-semibold text-text-primary">
+                        {post.author}
+                      </div>
+                      <div className="text-label-md text-text-muted">
                         {formatRelativeTime(post.createdAt)}
                       </div>
                     </div>
@@ -389,9 +357,9 @@ export default function Home() {
 
                 <div className="mb-2 flex items-center gap-2">
                   <Badge variant="gold">{post.tag}</Badge>
-                  <span className="text-name font-bold text-text-primary">{post.title}</span>
+                  <span className="text-body-lg font-bold text-text-primary">{post.title}</span>
                 </div>
-                <p className="mb-3 text-meta leading-5 text-text-muted">{post.body}</p>
+                <p className="mb-3 text-body-md leading-5 text-text-muted">{post.body}</p>
 
                 {post.photos.length > 0 ? (
                   <>
@@ -405,7 +373,7 @@ export default function Home() {
                         />
                       ))}
                     </div>
-                    <div className="mb-3 text-[11px] text-text-muted italic">
+                    <div className="mb-3 text-label-md text-text-muted italic">
                       照片示意（尚未串接真實圖片）
                     </div>
                   </>
@@ -425,16 +393,16 @@ export default function Home() {
                   type="button"
                   onClick={() => toggleLike(post.id)}
                   aria-pressed={interaction.liked}
-                  className={`flex items-center gap-1 text-meta ${interaction.liked ? 'text-accent-amber' : ''}`}
+                  className={`flex items-center gap-1 text-label-md ${interaction.liked ? 'text-accent-amber' : ''}`}
                 >
-                  <HeartIcon filled={interaction.liked} />
+                  <Heart fill={interaction.liked ? 'currentColor' : 'none'} className="h-4 w-4" />
                   {interaction.likes}
                 </button>
                 <Link
                   href={`/posts/${post.id}/comments`}
-                  className="flex items-center gap-1 text-meta"
+                  className="flex items-center gap-1 text-label-md"
                 >
-                  <CommentIcon />
+                  <MessageCircle className="h-4 w-4" />
                   {post.comments}
                 </Link>
                 <button
@@ -444,7 +412,10 @@ export default function Home() {
                   aria-pressed={interaction.bookmarked}
                   className={`ml-auto ${interaction.bookmarked ? 'text-accent-amber' : ''}`}
                 >
-                  <BookmarkIcon filled={interaction.bookmarked} />
+                  <Bookmark
+                    fill={interaction.bookmarked ? 'currentColor' : 'none'}
+                    className="h-4 w-4"
+                  />
                 </button>
               </div>
             </Card>
@@ -458,7 +429,7 @@ export default function Home() {
           className="gap-0 bg-secondary p-5 shadow-[4px_0_20px_rgba(64,58,50,0.18)] data-[side=left]:left-[max(0px,calc(50%-14rem))] data-[side=left]:w-65"
         >
           <div className="mb-5 flex items-center justify-between">
-            <SheetTitle className="text-[17px]">快速瀏覽</SheetTitle>
+            <SheetTitle>快速瀏覽</SheetTitle>
             <SheetClose
               render={
                 <button
@@ -468,7 +439,7 @@ export default function Home() {
                 />
               }
             >
-              <MenuIcon />
+              <Menu className="h-5 w-5" />
             </SheetClose>
           </div>
           <div className="space-y-2">
@@ -479,9 +450,9 @@ export default function Home() {
                   <Link
                     key={item.label}
                     href={item.href}
-                    className="flex w-full items-center gap-3 rounded-[10px] px-3 py-3 text-left text-[14.5px] font-medium text-foreground hover:bg-card/80"
+                    className="flex w-full items-center gap-4.5 rounded-[10px] px-3 py-4 text-left text-body-md font-medium text-foreground hover:bg-accent"
                   >
-                    <span className="text-lg">{item.icon}</span>
+                    <item.icon className="h-5 w-5" />
                     {item.label}
                   </Link>
                 ))}
@@ -497,14 +468,40 @@ export default function Home() {
           if (!open) setCheckinOpen(false);
         }}
       >
-        <DialogContent showCloseButton className="p-7 text-center">
-          <div className="mb-7 flex justify-center">
-            <div className="flex h-13.5 w-13.5 items-center justify-center rounded-full border-4 border-gold bg-primary text-display font-black text-primary-foreground">
+        <DialogContent showCloseButton className="px-7 pt-9 pb-7 text-center">
+          <div className="relative mx-auto mb-8 flex h-17.5 w-17.5 items-center justify-center">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              className="absolute -top-0.5 right-0.5 fill-primary stroke-gold"
+              strokeWidth="1.5"
+            >
+              <path d="M12 2l2.5 7.7L22 12l-7.5 2.3L12 22l-2.5-7.7L2 12l7.5-2.3z" />
+            </svg>
+            <svg
+              width="8"
+              height="8"
+              viewBox="0 0 24 24"
+              className="absolute bottom-0.5 -left-0.5 fill-sage"
+            >
+              <circle cx="12" cy="12" r="12" />
+            </svg>
+            <svg
+              width="7"
+              height="7"
+              viewBox="0 0 24 24"
+              className="absolute top-2 -left-1.5 fill-none stroke-sage"
+              strokeWidth="2.5"
+            >
+              <circle cx="12" cy="12" r="10" />
+            </svg>
+            <div className="flex h-15.5 w-15.5 items-center justify-center rounded-full border-4 border-gold bg-primary text-headline-sm font-black text-primary-foreground shadow-[0_6px_16px_rgba(217,154,61,0.3)]">
               簽
             </div>
           </div>
-          <DialogTitle className="mb-3 text-display">簽到完成</DialogTitle>
-          <div className="mb-6 text-title font-bold text-gold">獲得積分 + 50</div>
+          <DialogTitle className="mb-3.5">簽到完成</DialogTitle>
+          <div className="mb-6 text-body-lg font-bold text-gold">獲得積分 + 50</div>
           <Button
             type="button"
             variant="primary"

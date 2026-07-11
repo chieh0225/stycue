@@ -1,52 +1,8 @@
 'use client';
 
+import { Bookmark, Heart, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
-
-function HeartIcon({ filled, className = 'h-5 w-5' }: { filled?: boolean; className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill={filled ? 'currentColor' : 'none'}
-      stroke="currentColor"
-      strokeWidth="2"
-      aria-hidden="true"
-      className={className}
-    >
-      <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z" />
-    </svg>
-  );
-}
-
-function CommentIcon({ className = 'h-5 w-5' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      aria-hidden="true"
-      className={className}
-    >
-      <path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.4 8.6 8.6 0 0 1-4-1L3 20l1.1-4a8.4 8.4 0 0 1-1-4A8.38 8.38 0 0 1 11.5 3a8.4 8.4 0 0 1 9.5 8.5Z" />
-    </svg>
-  );
-}
-
-function BookmarkIcon({ filled, className = 'h-5 w-5' }: { filled?: boolean; className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill={filled ? 'currentColor' : 'none'}
-      stroke="currentColor"
-      strokeWidth="2"
-      aria-hidden="true"
-      className={className}
-    >
-      <path d="M6 3h12v18l-6-4-6 4Z" />
-    </svg>
-  );
-}
 
 export default function PostInteractions({
   postId,
@@ -91,14 +47,14 @@ export default function PostInteractions({
         aria-pressed={liked}
         className={`flex items-center gap-1.5 ${liked ? 'text-accent-amber' : ''}`}
       >
-        <HeartIcon filled={liked} />
+        <Heart fill={liked ? 'currentColor' : 'none'} className="h-5 w-5" />
         <span className="sr-only">讚</span>
-        <span className="text-name">{likes}</span>
+        <span className="text-label-md">{likes}</span>
       </button>
       <Link href={`/posts/${postId}/comments`} className="flex items-center gap-1.5">
-        <CommentIcon />
+        <MessageCircle className="h-5 w-5" />
         <span className="sr-only">留言</span>
-        <span className="text-name">{comments}</span>
+        <span className="text-label-md">{comments}</span>
       </Link>
       <button
         type="button"
@@ -107,7 +63,7 @@ export default function PostInteractions({
         aria-pressed={bookmarked}
         className={`ml-auto ${bookmarked ? 'text-accent-amber' : ''}`}
       >
-        <BookmarkIcon filled={bookmarked} className="h-5 w-5" />
+        <Bookmark fill={bookmarked ? 'currentColor' : 'none'} className="h-5 w-5" />
       </button>
     </div>
   );

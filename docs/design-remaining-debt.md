@@ -53,12 +53,6 @@
 **阻塞原因**：非水平 `Separator` 用途（縱向 thread 線），Phase 3D 掃描時特意排除。
 **下一步**：`#EFE7CE` 跟 `border-border-subtle`(`#F0E4C0`) 很接近，可以直接收斂，只是還沒排進執行批次。
 
-### 15 處 `text-[11px]` 等自創字級小數值未決定去留
-
-**現況**：Phase 3D 執行時發現 `text-[11px]`(15)、`text-[12.5px]`(5)、`text-[14.5px]`(3) 等一批自創小數字級，沒有精確對應現有 token，刻意保留未動。
-**阻塞原因**：屬於「要不要擴充 design token 規模」的決策，不是機械式收斂，需要使用者判斷。
-**下一步**：使用者決定是否要開一輪新 token 提案（尤其 `text-[11px]` 15 次已經是有規模的重複）。
-
 ### Track B 的 token mapping／白名單目前不可機器重跑
 
 **現況**：Phase 3D 的 B1 對照表、B2 白名單（mock 內容色/品牌色/一次性值）只存在 `design-decisions.md`(DR-011) 跟 commit history 裡，沒有落成 JSON/TS mapping。
@@ -87,4 +81,7 @@
 
 ## Resolved
 
-（尚無項目——之後解決 Active 清單項目時，把該項整段移到這裡，並在標題後加 `（Resolved YYYY-MM-DD，commit <hash>）`）
+### `text-[11px]` 等自創字級小數值未決定去留（Resolved 2026-07-11，commit 待補）
+
+**原現況**：Phase 3D 執行時發現 `text-[11px]`(15)、`text-[12.5px]`(5)、`text-[14.5px]`(3) 等一批自創小數字級，沒有精確對應現有 token，刻意保留未動。
+**怎麼解的**：使用者決定改採官方設計提案的六階 typography 規格（`label-md`12/`body-md`14/`body-lg`16/`headline-sm`20/`headline-md`24/`display-lg`28），全站重新盤點約 150+ 處字級呼叫點（含這批小數值與既有 7 階舊 token），依實際語意角色（標籤/次要說明/主要內容/標題）對應到新量表，而非機械式就近取值。舊 7 階量表已從 `globals.css` 移除。詳見 `docs/design-tokens.md` §3、`docs/design-decisions.md` 新增的 ADR。

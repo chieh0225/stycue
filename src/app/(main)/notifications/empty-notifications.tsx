@@ -52,7 +52,7 @@ export default function EmptyNotifications() {
         </div>
       </div>
 
-      <p className="mt-2 text-lg font-bold text-text-primary">沒有通知</p>
+      <p className="mt-2 text-headline-sm font-bold text-text-primary">沒有通知</p>
     </div>
   );
 }
