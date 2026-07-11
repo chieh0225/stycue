@@ -212,7 +212,7 @@ export default function NewPostPhotoPage() {
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={images.length >= MAX_IMAGES}
-          className="flex h-14 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border-dashed bg-muted disabled:opacity-50"
+          className="flex h-13 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border-dashed bg-muted disabled:opacity-50"
         >
           <ImagePlus className="h-4.5 w-4.5 text-text-muted" />
           <span className="text-label-md font-semibold text-text-primary">
@@ -352,14 +352,16 @@ export default function NewPostPhotoPage() {
           onChange={handleFiles}
         />
 
-        <button
+        <Button
           type="button"
+          variant="primary"
+          size="lg"
           onClick={handleUploadAll}
           disabled={!canUploadAll}
-          className="flex h-13 w-full items-center justify-center rounded-lg bg-brand-primary text-label-md font-bold text-text-primary shadow-cta disabled:opacity-50"
+          className="w-full"
         >
           上傳全部圖片
-        </button>
+        </Button>
 
         <Dialog
           open={deleteTarget !== null}

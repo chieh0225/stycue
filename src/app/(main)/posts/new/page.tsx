@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { buttonVariants } from '@/components/ui/button';
 import { TopBar } from '@/components/ui/top-bar';
 import { deleteImage } from '@/lib/image-api';
+import { cn } from '@/lib/utils';
 import {
   DRAFT_STORAGE_KEY,
   TITLE_MAX_LENGTH,
@@ -433,7 +435,7 @@ export default function NewPostPage() {
         <Link
           href="/posts/new/preview"
           onClick={saveDraft}
-          className="block w-full rounded-lg bg-brand-primary py-3 text-center text-label-md font-semibold text-text-primary"
+          className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'w-full')}
         >
           送出
         </Link>

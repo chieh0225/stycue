@@ -345,7 +345,7 @@ export default function AddCommentForm({
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={images.length >= MAX_IMAGES}
-          className="mb-4.5 flex h-14 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border-dashed bg-muted disabled:opacity-50"
+          className="mb-4.5 flex h-13 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border-dashed bg-muted disabled:opacity-50"
         >
           <ImagePlus className="h-4.5 w-4.5 text-text-muted" />
           <span className="text-label-md font-semibold text-foreground">

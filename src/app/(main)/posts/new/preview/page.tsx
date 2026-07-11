@@ -6,9 +6,11 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { BottomBar } from '@/components/ui/bottom-bar';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { TopBar } from '@/components/ui/top-bar';
+import { cn } from '@/lib/utils';
 import {
   DRAFT_STORAGE_KEY,
   TITLE_MAX_LENGTH,
@@ -431,17 +433,19 @@ export default function NewPostPreviewPage() {
       <BottomBar fixed className="py-3.5">
         <Link
           href="/posts/new"
-          className="flex-1 rounded-lg border border-border py-3 text-center text-label-md font-semibold text-foreground"
+          className={cn(buttonVariants({ variant: 'secondary', size: 'md' }), 'flex-1')}
         >
           返回編輯
         </Link>
-        <button
+        <Button
           type="button"
+          variant="primary"
+          size="md"
           onClick={confirmSubmit}
-          className="flex-1 rounded-lg bg-primary py-3 text-label-md font-semibold text-primary-foreground"
+          className="flex-1"
         >
           確認送出
-        </button>
+        </Button>
       </BottomBar>
     </div>
   );

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { setAuthed } from '../../auth';
 import { AlertIcon, GoogleIcon, LockIcon, LogoIcon, MailIcon, PersonIcon } from '../icons';
@@ -245,13 +246,15 @@ export default function RegisterPage() {
           </div>
         )}
 
-        <button
+        <Button
           type="submit"
+          variant="primary"
+          size="lg"
           disabled={loading}
-          className="mt-4.5 h-12.5 w-full rounded-lg bg-brand-primary text-label-md font-bold text-text-primary shadow-cta disabled:opacity-60"
+          className="mt-4.5 w-full"
         >
           {loading ? '建立中...' : '建立帳號'}
-        </button>
+        </Button>
       </form>
 
       {/* Divider */}

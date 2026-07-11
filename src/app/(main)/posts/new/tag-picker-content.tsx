@@ -2,6 +2,7 @@
 
 import { ArrowLeft, Plus, Search, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
 
 const tagGroups = [
   { title: '場合', tags: ['上班', '日常', '約會', '面試', '婚禮'], allowCustom: true },
@@ -364,13 +365,15 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
 
       {/* Confirm bar */}
       <div className="px-5 pt-3.5 pb-6">
-        <button
+        <Button
           type="button"
+          variant="primary"
+          size="md"
           onClick={confirmAndClose}
-          className="w-full rounded-lg bg-brand-primary py-3 text-label-md font-bold text-text-primary"
+          className="w-full"
         >
           完成
-        </button>
+        </Button>
       </div>
     </div>
   );
