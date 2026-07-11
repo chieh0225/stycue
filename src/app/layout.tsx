@@ -1,10 +1,15 @@
 import type { Metadata } from 'next';
-import { Geist } from 'next/font/google';
+import { Noto_Sans_TC, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const plusJakartaSans = Plus_Jakarta_Sans({
+  variable: '--font-plus-jakarta-sans',
   subsets: ['latin'],
+});
+
+const notoSansTC = Noto_Sans_TC({
+  variable: '--font-noto-sans-tc',
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -18,8 +23,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-TW" className={`${geistSans.variable} h-full antialiased`}>
-      <body className="flex min-h-full justify-center bg-zinc-200">
+    <html
+      lang="zh-TW"
+      className={`${plusJakartaSans.variable} ${notoSansTC.variable} h-full antialiased`}
+    >
+      <body className="flex min-h-full justify-center bg-zinc-200 font-sans">
         <div className="flex w-full max-w-md flex-col bg-surface-base">{children}</div>
       </body>
     </html>

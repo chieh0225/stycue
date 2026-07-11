@@ -1,3 +1,4 @@
+import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { TopBar } from '@/components/ui/top-bar';
 import CommentBoard, { type Comment } from './comment-board';
@@ -75,23 +76,6 @@ const comments: Comment[] = [
   },
 ];
 
-function ChevronLeftIcon({ className = 'h-5 w-5' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      className={className}
-    >
-      <path d="M15 18l-6-6 6-6" />
-    </svg>
-  );
-}
-
 export default async function PostCommentsPage({
   params,
   searchParams,
@@ -116,7 +100,7 @@ export default async function PostCommentsPage({
       <TopBar
         left={
           <Link href={`/posts/${id}`} aria-label="返回文章" className="text-foreground">
-            <ChevronLeftIcon />
+            <ChevronLeft className="h-5 w-5" />
           </Link>
         }
         title="全部留言"

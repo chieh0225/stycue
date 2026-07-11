@@ -1,6 +1,7 @@
 'use client';
 
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog';
+import { X } from 'lucide-react';
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -9,8 +10,8 @@ import { cn } from '@/lib/utils';
 // with StyCue's brand look — see docs/design-component-inventory.md A5.
 // Deviations from the registry source, all deliberate:
 //  - Official close button imports `IconPlaceholder` (a lucide/tabler/… abstraction
-//    layer that doesn't exist here and would pull in an icon lib); replaced with a
-//    local inline <XIcon> to honour the project's "no lucide, keep inline SVG" rule.
+//    layer that doesn't exist here); replaced with `lucide-react`'s `X`, now the
+//    project's standard icon source (see design-decisions.md).
 //  - Overlay `bg-black/10` → `bg-scrim-modal` (brand scrim token); content
 //    `ring-1 ring-foreground/10` → `shadow-modal`; width fixed to `max-w-75`
 //    (300px, the reconciled modal width, A5); official `grid gap-6 p-6` internal
@@ -18,23 +19,6 @@ import { cn } from '@/lib/utils';
 //  - `data-open:animate-in`/`zoom-in-95` etc. are kept verbatim from the registry
 //    but are inert without tw-animate-css (not installed); modals appear/vanish
 //    without a transition, same as the hand-rolled versions they replace.
-
-function XIcon({ className = 'h-4 w-4' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      className={className}
-    >
-      <path d="M18 6L6 18M6 6l12 12" />
-    </svg>
-  );
-}
 
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />;
@@ -90,7 +74,7 @@ function DialogContent({
             data-slot="dialog-close"
             render={<Button variant="ghost" size="icon" className="absolute top-4 right-4" />}
           >
-            <XIcon />
+            <X className="h-4 w-4" />
             <span className="sr-only">關閉</span>
           </DialogPrimitive.Close>
         )}
@@ -114,14 +98,14 @@ function DialogFooter({ className, ...props }: React.ComponentProps<'div'>) {
   );
 }
 
-// Base intentionally carries no font-size: each modal's title size differs
-// (16 / 14.5 / 20px) and twMerge can't dedupe the project's custom text-* token
-// utilities against a baked-in one, so the size is passed per call site.
+// All modal confirmation headlines converge on one role (DESIGN.md
+// headline-sm) — see docs/design-decisions.md. Previously each call site
+// passed its own size (16 / 14.5 / 20px); that per-call override is gone.
 function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn('font-bold text-foreground', className)}
+      className={cn('text-headline-sm font-bold text-foreground', className)}
       {...props}
     />
   );
@@ -131,7 +115,7 @@ function DialogDescription({ className, ...props }: DialogPrimitive.Description.
   return (
     <DialogPrimitive.Description
       data-slot="dialog-description"
-      className={cn('text-meta leading-[1.6] text-muted-foreground', className)}
+      className={cn('text-body-md leading-[1.6] text-muted-foreground', className)}
       {...props}
     />
   );
