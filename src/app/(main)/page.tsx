@@ -21,6 +21,23 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetClose, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { TopBar } from '@/components/ui/top-bar';
+import { claimDailyPoints, getPointTransactions } from '@/lib/points-api';
+
+// POST /api/points/daily returns this exact message only when the call just
+// created today's claim; a same-day repeat returns "今日已領取積分" instead.
+// isClaimed is true in both cases, so message is the only reliable signal.
+const DAILY_CLAIM_SUCCESS_MESSAGE = '每日積分領取成功';
+// 註冊贈送 (registration bonus) — see PointTransactionType in src/types/points.ts
+const SIGNUP_BONUS_TRANSACTION_TYPE = 1;
+
+// The registration-bonus transaction's createdAt is UTC; claimDate from the
+// daily claim response is a Taiwan-timezone date ("日期基準使用台灣時區" per
+// the API docs). Converting to a Taiwan calendar date lets the two be
+// compared directly, to show the bonus line only on the actual signup day.
+function toTaiwanDateString(isoUtc: string): string {
+  const utcDate = new Date(isoUtc.endsWith('Z') ? isoUtc : `${isoUtc}Z`);
+  return new Date(utcDate.getTime() + 8 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
 
 const trendingItems = [
   {
@@ -117,19 +134,37 @@ const menuLinkGroups = [
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [checkinOpen, setCheckinOpen] = useState(false);
+  const [checkinPoints, setCheckinPoints] = useState(0);
+  // Only set when today's claim coincides with the registration-bonus
+  // transaction — i.e. this is the user's very first day, not shown again.
+  const [signupBonusPoints, setSignupBonusPoints] = useState<number | null>(null);
   const [filterOpen, setFilterOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<PostFilter>('全部');
   const [sortMode, setSortMode] = useState<'hot' | 'latest'>('hot');
 
   useEffect(() => {
     let active = true;
-    fetch('/api/checkin')
-      .then((res) => res.json())
-      .then((data: { claimedToday: boolean }) => {
-        if (!active || data.claimedToday) return;
+    // The backend POST is safe to call every visit (idempotent per day) and
+    // distinguishes a fresh claim from a same-day repeat via `message` — that
+    // string, not isClaimed (true in both cases), is what gates the dialog so
+    // it only celebrates a genuinely new award, not every homepage visit.
+    // Landing on the home page while unclaimed IS the check-in action.
+    claimDailyPoints()
+      .then((res) => {
+        if (!active || !res.success || !res.data) return;
+        if (res.message !== DAILY_CLAIM_SUCCESS_MESSAGE) return;
+        setCheckinPoints(res.data.points);
         setCheckinOpen(true);
-        // Landing on the home page while unclaimed IS the check-in action.
-        void fetch('/api/checkin', { method: 'POST' }).catch(() => {});
+
+        const { claimDate } = res.data;
+        getPointTransactions({ transactionType: SIGNUP_BONUS_TRANSACTION_TYPE, pageSize: 1 })
+          .then((txRes) => {
+            const signupTx = txRes.success ? txRes.data?.items[0] : undefined;
+            if (active && signupTx && toTaiwanDateString(signupTx.createdAt) === claimDate) {
+              setSignupBonusPoints(signupTx.amount);
+            }
+          })
+          .catch(() => {});
       })
       .catch(() => {});
     return () => {
@@ -500,8 +535,17 @@ export default function Home() {
               簽
             </div>
           </div>
-          <DialogTitle className="mb-3.5">簽到完成</DialogTitle>
-          <div className="mb-6 text-body-lg font-bold text-gold">獲得積分 + 50</div>
+          <DialogTitle className="text-display mb-3">簽到完成</DialogTitle>
+          <div
+            className={`text-title font-bold text-gold ${signupBonusPoints !== null ? 'mb-1' : 'mb-6'}`}
+          >
+            獲得積分 + {checkinPoints}
+          </div>
+          {signupBonusPoints !== null && (
+            <div className="text-caption mb-6 text-text-muted">
+              是初次註冊給予 {signupBonusPoints} 點積分
+            </div>
+          )}
           <Button
             type="button"
             variant="primary"
