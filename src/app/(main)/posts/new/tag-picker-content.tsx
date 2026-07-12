@@ -2,49 +2,51 @@
 
 import { ArrowLeft, Plus, Search, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { isAuthed } from '@/app/auth';
 import { Button } from '@/components/ui/button';
+import { createTags, searchTags } from '@/lib/tag-api';
+import { TAG_CATEGORY, TAG_SOURCE, type TagCategoryValue, type TagResponse } from '@/types/tag';
 
-const tagGroups = [
-  { title: '場合', tags: ['上班', '日常', '約會', '面試', '婚禮'], allowCustom: true },
-  {
-    title: '風格',
-    tags: ['日系', '韓系', '美式', '極簡', '街頭', '運動', '復古'],
-    allowCustom: true,
-  },
-  { title: '季節', tags: ['春季', '夏季', '秋季', '冬季'], allowCustom: false },
-  {
-    title: '配色',
-    tags: ['黑灰', '白米', '大地', '藍色系', '綠色系', '紅色系'],
-    allowCustom: true,
-  },
-  { title: '版型', tags: ['修身', '寬鬆'], allowCustom: true },
-];
-
-const recentTags = [
-  { name: '簡約', category: '風格' },
-  { name: '黑色', category: '配色' },
-  { name: '秋冬', category: '季節' },
-  { name: '婚禮', category: '場合' },
-];
-
-const popularTags = [
-  { name: '日常', category: '場合' },
-  { name: '日系', category: '風格' },
-  { name: '韓系', category: '風格' },
-  { name: '大地', category: '色系' },
+const TAG_GROUPS: { title: string; category: TagCategoryValue; allowCustom: boolean }[] = [
+  { title: '場合', category: TAG_CATEGORY.Occasion, allowCustom: true },
+  { title: '風格', category: TAG_CATEGORY.Style, allowCustom: true },
+  { title: '季節', category: TAG_CATEGORY.Season, allowCustom: false },
+  { title: '配色', category: TAG_CATEGORY.Color, allowCustom: true },
+  { title: '版型', category: TAG_CATEGORY.Fit, allowCustom: true },
 ];
 
 const MAX_TAGS_PER_GROUP = 3;
+const POPULAR_LIMIT = 20;
+const SEARCH_DEBOUNCE_MS = 300;
 
 export default function TagPickerContent({ onClose }: { onClose: () => void }) {
   const [selected, setSelected] = useState<string[]>([]);
-  const [customTags, setCustomTags] = useState<Record<string, string[]>>({});
+  // Every tag object we've seen (popular/search/frequent/created), keyed by
+  // name, so we can look up a selected tag's category without refetching it.
+  const [tagMeta, setTagMeta] = useState<Record<string, TagResponse>>({});
+  const [groupTags, setGroupTags] = useState<Record<number, TagResponse[]>>({});
+  const [flatPopular, setFlatPopular] = useState<TagResponse[]>([]);
+  const [myFrequent, setMyFrequent] = useState<TagResponse[] | null>(null);
+
   const [addingGroup, setAddingGroup] = useState<string | null>(null);
   const [newTagValue, setNewTagValue] = useState('');
   const [tagError, setTagError] = useState<string | null>(null);
+  const [creatingTag, setCreatingTag] = useState(false);
+
   const [searchActive, setSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<TagResponse[] | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  function mergeTagMeta(tags: TagResponse[]) {
+    if (tags.length === 0) return;
+    setTagMeta((prev) => {
+      const next = { ...prev };
+      for (const tag of tags) next[tag.name] = tag;
+      return next;
+    });
+  }
 
   useEffect(() => {
     fetch('/api/posts/draft-tags')
@@ -52,6 +54,62 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
       .then((data: { tags: string[] }) => setSelected(data.tags))
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    for (const group of TAG_GROUPS) {
+      searchTags({ source: TAG_SOURCE.Popular, tagCategory: group.category, limit: POPULAR_LIMIT })
+        .then((res) => {
+          const tags = res.data ?? [];
+          mergeTagMeta(tags);
+          setGroupTags((prev) => ({ ...prev, [group.category]: tags }));
+        })
+        .catch(() => {});
+    }
+
+    searchTags({ source: TAG_SOURCE.Popular, limit: POPULAR_LIMIT })
+      .then((res) => {
+        const tags = res.data ?? [];
+        mergeTagMeta(tags);
+        setFlatPopular(tags);
+      })
+      .catch(() => {});
+
+    if (isAuthed()) {
+      searchTags({ source: TAG_SOURCE.MyFrequent, limit: POPULAR_LIMIT })
+        .then((res) => {
+          if (!res.success) return;
+          const tags = res.data ?? [];
+          mergeTagMeta(tags);
+          setMyFrequent(tags);
+        })
+        .catch(() => {});
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!searchActive) return;
+    const trimmed = searchQuery.trim();
+    const handle = setTimeout(
+      () => {
+        if (!trimmed) {
+          setSearchResults(null);
+          setSearchLoading(false);
+          return;
+        }
+        setSearchLoading(true);
+        searchTags({ source: TAG_SOURCE.Search, keyword: trimmed, limit: POPULAR_LIMIT })
+          .then((res) => {
+            const tags = res.data ?? [];
+            mergeTagMeta(tags);
+            setSearchResults(tags);
+          })
+          .catch(() => setSearchResults([]))
+          .finally(() => setSearchLoading(false));
+      },
+      trimmed ? SEARCH_DEBOUNCE_MS : 0,
+    );
+    return () => clearTimeout(handle);
+  }, [searchQuery, searchActive]);
 
   async function confirmAndClose() {
     await fetch('/api/posts/draft-tags', {
@@ -62,31 +120,29 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
     onClose();
   }
 
-  function findGroupTitle(tag: string) {
-    return tagGroups.find((group) =>
-      [...group.tags, ...(customTags[group.title] ?? [])].includes(tag),
-    )?.title;
+  function groupTitleForCategory(category: TagCategoryValue | null | undefined) {
+    return TAG_GROUPS.find((group) => group.category === category)?.title;
   }
 
-  function selectedCountInGroup(groupTitle: string) {
-    return selected.filter((tag) => findGroupTitle(tag) === groupTitle).length;
+  function selectedCountInGroup(category: TagCategoryValue) {
+    return selected.filter((name) => tagMeta[name]?.tagCategory === category).length;
   }
 
-  function toggleTag(tag: string) {
+  function toggleTag(tag: TagResponse) {
     setSelected((prev) => {
-      if (prev.includes(tag)) return prev.filter((t) => t !== tag);
-      const groupTitle = findGroupTitle(tag);
+      if (prev.includes(tag.name)) return prev.filter((name) => name !== tag.name);
       if (
-        groupTitle &&
-        prev.filter((t) => findGroupTitle(t) === groupTitle).length >= MAX_TAGS_PER_GROUP
+        tag.tagCategory !== null &&
+        selectedCountInGroup(tag.tagCategory) >= MAX_TAGS_PER_GROUP &&
+        !prev.includes(tag.name)
       ) {
         return prev;
       }
-      return [...prev, tag];
+      return [...prev, tag.name];
     });
   }
 
-  function confirmAddTag(groupTitle: string, isBlur = false) {
+  async function confirmAddTag(group: (typeof TAG_GROUPS)[number], isBlur = false) {
     const value = newTagValue.trim();
     if (!value) {
       setAddingGroup(null);
@@ -94,44 +150,90 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
       setTagError(null);
       return;
     }
-
-    const existingGroupTitle = findGroupTitle(value);
-    if (existingGroupTitle && existingGroupTitle !== groupTitle) {
-      if (isBlur) {
-        // Blur means the user moved on rather than confirmed; drop it quietly
-        // instead of leaving an unfocused input stuck with an error.
-        setAddingGroup(null);
-        setNewTagValue('');
-        setTagError(null);
-        return;
-      }
-      setTagError(`「${value}」已屬於「${existingGroupTitle}」類別，換個名稱試試`);
+    if (isBlur) {
+      // Blur means the user moved on rather than confirmed; drop it quietly
+      // instead of leaving an unfocused input stuck mid-request.
+      setAddingGroup(null);
+      setNewTagValue('');
+      setTagError(null);
       return;
     }
 
-    if (existingGroupTitle !== groupTitle) {
-      setCustomTags((prev) => ({
-        ...prev,
-        [groupTitle]: [...(prev[groupTitle] ?? []), value],
-      }));
+    setCreatingTag(true);
+    setTagError(null);
+    const res = await createTags([{ name: value, tagCategory: group.category }]).catch(() => null);
+    setCreatingTag(false);
+
+    const created = res?.data?.[0];
+    if (!res?.success || !created) {
+      setTagError(res?.message || '建立標籤失敗，請稍後再試');
+      return;
     }
-    setSelected((prev) => (prev.includes(value) ? prev : [...prev, value]));
+
+    mergeTagMeta([created]);
+    setGroupTags((prev) => {
+      const targetCategory = created.tagCategory ?? group.category;
+      const existing = prev[targetCategory] ?? [];
+      if (existing.some((tag) => tag.name === created.name)) return prev;
+      return { ...prev, [targetCategory]: [...existing, created] };
+    });
+    setSelected((prev) => (prev.includes(created.name) ? prev : [...prev, created.name]));
     setAddingGroup(null);
     setNewTagValue('');
-    setTagError(null);
   }
 
   function exitSearch() {
     setSearchActive(false);
     setSearchQuery('');
+    setSearchResults(null);
   }
 
-  const allTagNames = tagGroups
-    .flatMap((group) => [...group.tags, ...(customTags[group.title] ?? [])])
-    .map((tag) => tag.toLowerCase());
   const trimmedQuery = searchQuery.trim();
   const hasNoMatch =
-    trimmedQuery.length > 0 && !allTagNames.some((tag) => tag.includes(trimmedQuery.toLowerCase()));
+    trimmedQuery.length > 0 && !searchLoading && (searchResults?.length ?? 0) === 0;
+
+  function renderTagButton(tag: TagResponse, variant: 'default' | 'popular' = 'default') {
+    const active = selected.includes(tag.name);
+    const disabled =
+      !active &&
+      tag.tagCategory !== null &&
+      selectedCountInGroup(tag.tagCategory) >= MAX_TAGS_PER_GROUP;
+    const groupTitle = groupTitleForCategory(tag.tagCategory);
+    const isPopular = variant === 'popular';
+    return (
+      <button
+        key={tag.tagId}
+        type="button"
+        disabled={disabled}
+        onClick={() => toggleTag(tag)}
+        className={
+          active
+            ? 'flex items-baseline gap-1.5 rounded-full border border-brand-primary bg-brand-primary px-3.5 py-2'
+            : disabled
+              ? isPopular
+                ? 'flex items-baseline gap-1.5 rounded-full border border-transparent bg-accent-amber/15 px-3.5 py-2 opacity-50'
+                : 'flex items-baseline gap-1.5 rounded-full border border-border-default bg-white px-3.5 py-2 opacity-50'
+              : isPopular
+                ? 'flex items-baseline gap-1.5 rounded-full border border-transparent bg-accent-amber/15 px-3.5 py-2'
+                : 'flex items-baseline gap-1.5 rounded-full border border-border-default bg-white px-3.5 py-2'
+        }
+      >
+        <span
+          className={`text-label-md font-bold ${isPopular ? 'text-accent-amber' : 'text-text-muted'}`}
+        >
+          #
+        </span>
+        <span className="text-label-md text-text-primary">{tag.name}</span>
+        {groupTitle && (
+          <span
+            className={`text-label-md ${isPopular ? 'text-accent-amber/80' : 'text-text-muted'}`}
+          >
+            {groupTitle}
+          </span>
+        )}
+      </button>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col rounded-t-2xl bg-surface-base">
@@ -188,76 +290,37 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
       {searchActive ? (
         /* Search mode content */
         <div className="flex-1 overflow-y-auto px-5 pb-6">
-          {hasNoMatch && (
-            <div className="flex flex-col items-center gap-1 py-6 text-center">
-              <Search className="h-6 w-6 text-text-muted" aria-hidden />
-              <p className="text-body-md font-semibold text-text-primary">
-                找不到「{trimmedQuery}」相關標籤
-              </p>
-              <p className="mb-2 text-label-md text-text-muted">
-                試試看其他關鍵字，或從下方選擇標籤
-              </p>
-              <hr className="mt-2 w-full border-border-default" />
-            </div>
+          {trimmedQuery ? (
+            hasNoMatch ? (
+              <div className="flex flex-col items-center gap-1 py-6 text-center">
+                <Search className="h-6 w-6 text-text-muted" aria-hidden />
+                <p className="text-body-md font-semibold text-text-primary">
+                  找不到「{trimmedQuery}」相關標籤
+                </p>
+                <p className="mb-2 text-label-md text-text-muted">試試看其他關鍵字</p>
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2.5">
+                {(searchResults ?? []).map((tag) => renderTagButton(tag))}
+              </div>
+            )
+          ) : (
+            <>
+              {myFrequent && myFrequent.length > 0 && (
+                <>
+                  <h3 className="mb-3 text-body-lg font-bold text-text-primary">最近用過</h3>
+                  <div className="mb-6 flex flex-wrap gap-2.5">
+                    {myFrequent.map((tag) => renderTagButton(tag))}
+                  </div>
+                </>
+              )}
+
+              <h3 className="mb-3 text-body-lg font-bold text-text-primary">熱門標籤</h3>
+              <div className="flex flex-wrap gap-2.5">
+                {flatPopular.map((tag) => renderTagButton(tag, 'popular'))}
+              </div>
+            </>
           )}
-
-          <h3 className="mb-3 text-body-lg font-bold text-text-primary">最近用過</h3>
-          <div className="mb-6 flex flex-wrap gap-2.5">
-            {recentTags.map((tag) => {
-              const active = selected.includes(tag.name);
-              const groupTitle = findGroupTitle(tag.name);
-              const disabled =
-                !active && !!groupTitle && selectedCountInGroup(groupTitle) >= MAX_TAGS_PER_GROUP;
-              return (
-                <button
-                  key={tag.name}
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => toggleTag(tag.name)}
-                  className={
-                    active
-                      ? 'flex items-baseline gap-1.5 rounded-full border border-brand-primary bg-brand-primary px-3.5 py-2'
-                      : disabled
-                        ? 'flex items-baseline gap-1.5 rounded-full border border-border-default bg-white px-3.5 py-2 opacity-50'
-                        : 'flex items-baseline gap-1.5 rounded-full border border-border-default bg-white px-3.5 py-2'
-                  }
-                >
-                  <span className="text-label-md font-bold text-text-muted">#</span>
-                  <span className="text-label-md text-text-primary">{tag.name}</span>
-                  <span className="text-label-md text-text-muted">{tag.category}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          <h3 className="mb-3 text-body-lg font-bold text-text-primary">熱門標籤</h3>
-          <div className="flex flex-wrap gap-2.5">
-            {popularTags.map((tag) => {
-              const active = selected.includes(tag.name);
-              const groupTitle = findGroupTitle(tag.name);
-              const disabled =
-                !active && !!groupTitle && selectedCountInGroup(groupTitle) >= MAX_TAGS_PER_GROUP;
-              return (
-                <button
-                  key={tag.name}
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => toggleTag(tag.name)}
-                  className={
-                    active
-                      ? 'flex items-baseline gap-1.5 rounded-full border border-brand-primary bg-brand-primary px-3.5 py-2'
-                      : disabled
-                        ? 'flex items-baseline gap-1.5 rounded-full border border-transparent bg-accent-amber/15 px-3.5 py-2 opacity-50'
-                        : 'flex items-baseline gap-1.5 rounded-full border border-transparent bg-accent-amber/15 px-3.5 py-2'
-                  }
-                >
-                  <span className="text-label-md font-bold text-accent-amber">#</span>
-                  <span className="text-label-md text-text-primary">{tag.name}</span>
-                  <span className="text-label-md text-accent-amber/80">{tag.category}</span>
-                </button>
-              );
-            })}
-          </div>
         </div>
       ) : (
         /* Tag group browsing content */
@@ -272,7 +335,7 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
                   <button
                     key={tag}
                     type="button"
-                    onClick={() => toggleTag(tag)}
+                    onClick={() => setSelected((prev) => prev.filter((t) => t !== tag))}
                     className="flex items-center gap-1 rounded-full border border-brand-primary bg-brand-primary px-5 py-2.5 text-label-md font-medium text-text-primary"
                   >
                     {tag} <X className="h-3 w-3" />
@@ -282,9 +345,9 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
               <hr className="mt-5 border-border-default" />
             </div>
           )}
-          {tagGroups.map((group) => {
-            const groupTags = [...group.tags, ...(customTags[group.title] ?? [])];
-            const selectedInGroup = groupTags.filter((tag) => selected.includes(tag)).length;
+          {TAG_GROUPS.map((group) => {
+            const tags = groupTags[group.category] ?? [];
+            const selectedInGroup = selectedCountInGroup(group.category);
             const limitReached = selectedInGroup >= MAX_TAGS_PER_GROUP;
             return (
               <div key={group.title} className="mb-5">
@@ -295,12 +358,12 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-2.5">
-                  {groupTags.map((tag) => {
-                    const active = selected.includes(tag);
+                  {tags.map((tag) => {
+                    const active = selected.includes(tag.name);
                     const disabled = !active && limitReached;
                     return (
                       <button
-                        key={tag}
+                        key={tag.tagId}
                         type="button"
                         disabled={disabled}
                         onClick={() => toggleTag(tag)}
@@ -312,7 +375,7 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
                               : 'rounded-full border border-border-default bg-surface-soft px-5 py-2.5 text-label-md font-medium text-text-primary'
                         }
                       >
-                        {tag}
+                        {tag.name}
                       </button>
                     );
                   })}
@@ -323,21 +386,22 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
                         autoFocus
                         type="text"
                         value={newTagValue}
+                        disabled={creatingTag}
                         onChange={(e) => {
                           setNewTagValue(e.target.value);
                           setTagError(null);
                         }}
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter') confirmAddTag(group.title);
+                          if (e.key === 'Enter') confirmAddTag(group);
                           if (e.key === 'Escape') {
                             setAddingGroup(null);
                             setNewTagValue('');
                             setTagError(null);
                           }
                         }}
-                        onBlur={() => confirmAddTag(group.title, true)}
+                        onBlur={() => confirmAddTag(group, true)}
                         placeholder="輸入標籤"
-                        className="w-28 rounded-full border border-brand-primary bg-surface-soft px-4 py-2.5 text-body-md text-text-primary outline-none"
+                        className="w-28 rounded-full border border-brand-primary bg-surface-soft px-4 py-2.5 text-body-md text-text-primary outline-none disabled:opacity-50"
                       />
                     ) : (
                       <button
