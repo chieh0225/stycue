@@ -1,9 +1,61 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 const HOT_TAGS = ['韓系穿搭', '穿搭入門', '熱門單品'];
+
+const SEARCH_RESULTS = [
+  {
+    id: 'post-1',
+    tag: '分享',
+    title: (
+      <>
+        秋天的第一套<span className="font-black">日系</span>裙裝
+      </>
+    ),
+    date: '2026/06/12',
+    excerpt: (
+      <>
+        簡單的裙裝配色，也能營造溫柔又清新的<span className="font-black text-[#403a32]">日系</span>
+        感。
+      </>
+    ),
+  },
+  {
+    id: 'post-2',
+    tag: '提問',
+    title: (
+      <>
+        <span className="font-black">日系</span> niko and ... 好穿嗎？
+      </>
+    ),
+    date: '2026/06/09',
+    excerpt: (
+      <>
+        想入手一件<span className="font-black text-[#403a32]">日系</span>
+        品牌針織衫，想問版型偏合身還是寬鬆？
+      </>
+    ),
+  },
+  {
+    id: 'post-3',
+    tag: '分享',
+    title: (
+      <>
+        BEAMS <span className="font-black">日系</span>穿搭分享
+      </>
+    ),
+    date: '2026/06/03',
+    excerpt: (
+      <>
+        把 BEAMS 的大地色系單品排列組合，整體很有
+        <span className="font-black text-[#403a32]">日系</span>氣息。
+      </>
+    ),
+  },
+];
 
 export default function SearchPage() {
   const router = useRouter();
@@ -88,18 +140,62 @@ export default function SearchPage() {
         </span>
       </div>
 
+      {/* Result count */}
+      {hasSearched && (
+        <div className="shrink-0 px-4.5 pt-4 pb-1">
+          <span className="text-[13px] text-[#756c60]">
+            「{query}」的搜尋結果・{SEARCH_RESULTS.length} 篇文章
+          </span>
+        </div>
+      )}
+
       {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto pt-6 pr-4.5 pb-6 pl-4.5">
-        {hasSearched && (
-          <>
-            <div className="mb-5 flex items-baseline gap-1.5">
-              <span className="text-[15px] font-bold text-[#403a32]">「{query}」的搜尋結果</span>
-            </div>
-            <div className="py-8 text-center">
-              <span className="text-[13.5px] text-[#b8af9e]">顯示與「{query}」相關的文章</span>
-            </div>
-          </>
-        )}
+      <div
+        className={
+          hasSearched
+            ? 'flex-1 overflow-y-auto pt-3 pr-4.5 pb-6 pl-4.5'
+            : 'flex-1 overflow-y-auto pt-6 pr-4.5 pb-6 pl-4.5'
+        }
+      >
+        {hasSearched &&
+          SEARCH_RESULTS.map((result) => (
+            <Link
+              key={result.id}
+              href={`/posts/${result.id}`}
+              className="mb-4 flex h-38.5 flex-col rounded-lg border border-[#e5ddbf] bg-white p-4 no-underline shadow-[0_4px_12px_rgba(217,154,61,0.08)]"
+            >
+              <div className="mb-2 flex items-center gap-1.5">
+                <span className="shrink-0 rounded-md bg-[#fcefda] px-1.75 py-0.5 text-[11px] font-bold text-[#d99a3d]">
+                  {result.tag}
+                </span>
+                <span className="overflow-hidden text-[15px] font-semibold text-ellipsis whitespace-nowrap text-[#403a32]">
+                  {result.title}
+                </span>
+              </div>
+              <div className="mb-1 text-[12px] text-[#9a9080]">{result.date}</div>
+              <div className="flex min-h-0 flex-1 items-start gap-3">
+                <div className="line-clamp-2 flex-1 text-[14px] leading-[1.6] text-[#5a5248]">
+                  {result.excerpt}
+                </div>
+                <div className="flex h-17.5 w-17.5 shrink-0 items-center justify-center rounded-lg bg-[#f0e4c0]">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#b8af9e"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <circle cx="8.5" cy="8.5" r="1.5" />
+                    <path d="M21 15l-5-5L5 21" />
+                  </svg>
+                </div>
+              </div>
+            </Link>
+          ))}
 
         {showBrowse && (
           <>
