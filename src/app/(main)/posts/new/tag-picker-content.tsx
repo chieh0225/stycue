@@ -15,6 +15,18 @@ const TAG_GROUPS: { title: string; category: TagCategoryValue; allowCustom: bool
   { title: '版型', category: TAG_CATEGORY.Fit, allowCustom: true },
 ];
 
+// Shown per group only while GET /api/tags?Source=Popular has genuinely
+// returned zero tags for that category (e.g. the tag has no usage yet, so
+// the backend's popularity ranking excludes it). Picking one still resolves
+// a real tagId via createTags — this is a suggestion list, not local-only data.
+const FALLBACK_TAGS: Record<number, string[]> = {
+  [TAG_CATEGORY.Occasion]: ['上班', '日常', '約會', '面試', '婚禮'],
+  [TAG_CATEGORY.Style]: ['日系', '韓系', '美式', '極簡', '街頭', '運動', '復古'],
+  [TAG_CATEGORY.Season]: ['春季', '夏季', '秋季', '冬季'],
+  [TAG_CATEGORY.Color]: ['黑灰', '白米', '大地', '藍色系', '綠色系', '紅色系'],
+  [TAG_CATEGORY.Fit]: ['修身', '寬鬆'],
+};
+
 const MAX_TAGS_PER_GROUP = 3;
 const POPULAR_LIMIT = 20;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -25,6 +37,7 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
   // name, so we can look up a selected tag's category without refetching it.
   const [tagMeta, setTagMeta] = useState<Record<string, TagResponse>>({});
   const [groupTags, setGroupTags] = useState<Record<number, TagResponse[]>>({});
+  const [groupLoaded, setGroupLoaded] = useState<Record<number, boolean>>({});
   const [flatPopular, setFlatPopular] = useState<TagResponse[]>([]);
   const [myFrequent, setMyFrequent] = useState<TagResponse[] | null>(null);
 
@@ -63,7 +76,10 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
           mergeTagMeta(tags);
           setGroupTags((prev) => ({ ...prev, [group.category]: tags }));
         })
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => {
+          setGroupLoaded((prev) => ({ ...prev, [group.category]: true }));
+        });
     }
 
     searchTags({ source: TAG_SOURCE.Popular, limit: POPULAR_LIMIT })
@@ -142,6 +158,27 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
     });
   }
 
+  // Resolves a name to a real tag (creating it, or getting the existing one
+  // back if it already exists) and adds it to both the group's tag list and
+  // the selection. Shared by the custom-tag input and the fallback chips.
+  async function resolveAndSelectTag(group: (typeof TAG_GROUPS)[number], name: string) {
+    const res = await createTags([{ name, tagCategory: group.category }]).catch(() => null);
+    const created = res?.data?.[0];
+    if (!res?.success || !created) {
+      return { success: false as const, message: res?.message };
+    }
+
+    mergeTagMeta([created]);
+    setGroupTags((prev) => {
+      const targetCategory = created.tagCategory ?? group.category;
+      const existing = prev[targetCategory] ?? [];
+      if (existing.some((tag) => tag.name === created.name)) return prev;
+      return { ...prev, [targetCategory]: [...existing, created] };
+    });
+    setSelected((prev) => (prev.includes(created.name) ? prev : [...prev, created.name]));
+    return { success: true as const };
+  }
+
   async function confirmAddTag(group: (typeof TAG_GROUPS)[number], isBlur = false) {
     const value = newTagValue.trim();
     if (!value) {
@@ -161,25 +198,24 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
 
     setCreatingTag(true);
     setTagError(null);
-    const res = await createTags([{ name: value, tagCategory: group.category }]).catch(() => null);
+    const result = await resolveAndSelectTag(group, value);
     setCreatingTag(false);
 
-    const created = res?.data?.[0];
-    if (!res?.success || !created) {
-      setTagError(res?.message || '建立標籤失敗，請稍後再試');
+    if (!result.success) {
+      setTagError(result.message || '建立標籤失敗，請稍後再試');
       return;
     }
-
-    mergeTagMeta([created]);
-    setGroupTags((prev) => {
-      const targetCategory = created.tagCategory ?? group.category;
-      const existing = prev[targetCategory] ?? [];
-      if (existing.some((tag) => tag.name === created.name)) return prev;
-      return { ...prev, [targetCategory]: [...existing, created] };
-    });
-    setSelected((prev) => (prev.includes(created.name) ? prev : [...prev, created.name]));
     setAddingGroup(null);
     setNewTagValue('');
+  }
+
+  async function toggleFallbackTag(group: (typeof TAG_GROUPS)[number], name: string) {
+    if (selected.includes(name)) {
+      setSelected((prev) => prev.filter((n) => n !== name));
+      return;
+    }
+    if (selectedCountInGroup(group.category) >= MAX_TAGS_PER_GROUP) return;
+    await resolveAndSelectTag(group, name);
   }
 
   function exitSearch() {
@@ -347,6 +383,8 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
           )}
           {TAG_GROUPS.map((group) => {
             const tags = groupTags[group.category] ?? [];
+            const showFallback = (groupLoaded[group.category] ?? false) && tags.length === 0;
+            const fallbackNames = showFallback ? (FALLBACK_TAGS[group.category] ?? []) : [];
             const selectedInGroup = selectedCountInGroup(group.category);
             const limitReached = selectedInGroup >= MAX_TAGS_PER_GROUP;
             return (
@@ -376,6 +414,27 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
                         }
                       >
                         {tag.name}
+                      </button>
+                    );
+                  })}
+                  {fallbackNames.map((name) => {
+                    const active = selected.includes(name);
+                    const disabled = !active && limitReached;
+                    return (
+                      <button
+                        key={name}
+                        type="button"
+                        disabled={disabled}
+                        onClick={() => toggleFallbackTag(group, name)}
+                        className={
+                          active
+                            ? 'rounded-full border border-brand-primary bg-brand-primary px-5 py-2.5 text-label-md font-medium text-text-primary'
+                            : disabled
+                              ? 'rounded-full border border-border-default bg-surface-soft px-5 py-2.5 text-label-md font-medium text-text-muted opacity-50'
+                              : 'rounded-full border border-border-default bg-surface-soft px-5 py-2.5 text-label-md font-medium text-text-primary'
+                        }
+                      >
+                        {name}
                       </button>
                     );
                   })}
