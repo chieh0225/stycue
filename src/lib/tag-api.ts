@@ -1,5 +1,17 @@
 import type { ApiEnvelope } from '@/types/image';
-import type { TagCategoryValue, TagResponse, TagSourceValue } from '@/types/tag';
+import {
+  normalizeTagResponse,
+  type TagCategoryValue,
+  type TagResponse,
+  type TagSourceValue,
+} from '@/types/tag';
+
+function normalizeEnvelope(envelope: ApiEnvelope<TagResponse[]>): ApiEnvelope<TagResponse[]> {
+  return {
+    ...envelope,
+    data: envelope.data ? envelope.data.map(normalizeTagResponse) : envelope.data,
+  };
+}
 
 export async function searchTags(params: {
   source: TagSourceValue;
@@ -13,7 +25,7 @@ export async function searchTags(params: {
   if (params.limit !== undefined) query.set('Limit', String(params.limit));
 
   const res = await fetch(`/api/tags?${query.toString()}`);
-  return (await res.json()) as ApiEnvelope<TagResponse[]>;
+  return normalizeEnvelope((await res.json()) as ApiEnvelope<TagResponse[]>);
 }
 
 export async function createTags(
@@ -24,5 +36,5 @@ export async function createTags(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ tags }),
   });
-  return (await res.json()) as ApiEnvelope<TagResponse[]>;
+  return normalizeEnvelope((await res.json()) as ApiEnvelope<TagResponse[]>);
 }

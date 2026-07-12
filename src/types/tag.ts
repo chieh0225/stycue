@@ -22,3 +22,36 @@ export type TagResponse = {
   tagCategory: TagCategoryValue | null;
   usageCount: number | null;
 };
+
+const CATEGORY_NAME_TO_VALUE: Record<string, TagCategoryValue> = {
+  occasion: TAG_CATEGORY.Occasion,
+  style: TAG_CATEGORY.Style,
+  season: TAG_CATEGORY.Season,
+  color: TAG_CATEGORY.Color,
+  fit: TAG_CATEGORY.Fit,
+};
+
+// The backend has returned tagCategory as either a number (1-5) or a lowercase
+// enum name ("occasion", "style", ...) at different points — normalize
+// whatever comes back over the wire to the numeric TagCategoryValue the rest
+// of the app is built around.
+export function normalizeTagCategory(value: unknown): TagCategoryValue | null {
+  if (typeof value === 'number') {
+    return (Object.values(TAG_CATEGORY) as number[]).includes(value)
+      ? (value as TagCategoryValue)
+      : null;
+  }
+  if (typeof value === 'string') {
+    return CATEGORY_NAME_TO_VALUE[value.toLowerCase()] ?? null;
+  }
+  return null;
+}
+
+export function normalizeTagResponse(tag: {
+  tagId: number;
+  name: string;
+  tagCategory: unknown;
+  usageCount: number | null;
+}): TagResponse {
+  return { ...tag, tagCategory: normalizeTagCategory(tag.tagCategory) };
+}
