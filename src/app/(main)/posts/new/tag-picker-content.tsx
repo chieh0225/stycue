@@ -37,7 +37,10 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
   // name, so we can look up a selected tag's category without refetching it.
   const [tagMeta, setTagMeta] = useState<Record<string, TagResponse>>({});
   const [groupTags, setGroupTags] = useState<Record<number, TagResponse[]>>({});
-  const [groupLoaded, setGroupLoaded] = useState<Record<number, boolean>>({});
+  // Set once, the moment a group's Popular fetch comes back empty. Doesn't
+  // get recomputed from groupTags afterward — otherwise resolving one
+  // fallback chip into a real tag would flip this off and hide the rest.
+  const [usingFallback, setUsingFallback] = useState<Record<number, boolean>>({});
   const [flatPopular, setFlatPopular] = useState<TagResponse[]>([]);
   const [myFrequent, setMyFrequent] = useState<TagResponse[] | null>(null);
 
@@ -75,10 +78,12 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
           const tags = res.data ?? [];
           mergeTagMeta(tags);
           setGroupTags((prev) => ({ ...prev, [group.category]: tags }));
+          if (tags.length === 0) {
+            setUsingFallback((prev) => ({ ...prev, [group.category]: true }));
+          }
         })
-        .catch(() => {})
-        .finally(() => {
-          setGroupLoaded((prev) => ({ ...prev, [group.category]: true }));
+        .catch(() => {
+          setUsingFallback((prev) => ({ ...prev, [group.category]: true }));
         });
     }
 
@@ -383,8 +388,11 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
           )}
           {TAG_GROUPS.map((group) => {
             const tags = groupTags[group.category] ?? [];
-            const showFallback = (groupLoaded[group.category] ?? false) && tags.length === 0;
-            const fallbackNames = showFallback ? (FALLBACK_TAGS[group.category] ?? []) : [];
+            const fallbackNames = usingFallback[group.category]
+              ? (FALLBACK_TAGS[group.category] ?? []).filter(
+                  (name) => !tags.some((tag) => tag.name === name),
+                )
+              : [];
             const selectedInGroup = selectedCountInGroup(group.category);
             const limitReached = selectedInGroup >= MAX_TAGS_PER_GROUP;
             return (
