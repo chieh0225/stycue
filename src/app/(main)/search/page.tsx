@@ -1,5 +1,6 @@
 'use client';
 
+import { Flame, History, Image, Search, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -99,20 +100,7 @@ export default function SearchPage() {
             isFocused ? 'border-[#d99a3d]' : 'border-[#ede6d3]'
           }`}
         >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#9a9080"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="shrink-0"
-          >
-            <circle cx="11" cy="11" r="7" />
-            <path d="M21 21l-4.35-4.35" />
-          </svg>
+          <Search className="h-4.5 w-4.5 shrink-0 text-[#9a9080]" strokeWidth={2} />
           <input
             type="text"
             autoFocus
@@ -178,20 +166,7 @@ export default function SearchPage() {
                   {result.excerpt}
                 </div>
                 <div className="flex h-17.5 w-17.5 shrink-0 items-center justify-center rounded-lg bg-[#f0e4c0]">
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#b8af9e"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect x="3" y="3" width="18" height="18" rx="2" />
-                    <circle cx="8.5" cy="8.5" r="1.5" />
-                    <path d="M21 15l-5-5L5 21" />
-                  </svg>
+                  <Image className="h-6 w-6 text-[#b8af9e]" strokeWidth={1.8} />
                 </div>
               </div>
             </Link>
@@ -202,40 +177,14 @@ export default function SearchPage() {
             {/* 最近搜尋 */}
             <div className="mb-3.5 flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#403a32"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M12 7v5l3 3" />
-                </svg>
+                <History className="h-4 w-4 text-[#403a32]" strokeWidth={2} />
                 <span className="text-[15px] font-bold text-[#403a32]">最近搜尋</span>
               </div>
               <div
                 onClick={() => setRecentTags([])}
                 className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full"
               >
-                <svg
-                  width="17"
-                  height="17"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#9a9080"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M3 6h18" />
-                  <path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2" />
-                  <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
-                  <path d="M10 11v6M14 11v6" />
-                </svg>
+                <Trash2 className="h-4.25 w-4.25 text-[#9a9080]" strokeWidth={2} />
               </div>
             </div>
 
@@ -260,18 +209,7 @@ export default function SearchPage() {
             {/* 熱門搜尋 */}
             <div className="mb-5.5 h-px bg-[#e5ddbf]" />
             <div className="mb-3.5 flex items-center gap-1.5">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#d99a3d"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 2.5z" />
-              </svg>
+              <Flame className="h-4 w-4 text-[#d99a3d]" strokeWidth={2} />
               <span className="text-[15px] font-bold text-[#403a32]">熱門搜尋</span>
             </div>
             <div className="flex flex-wrap gap-2.5">
