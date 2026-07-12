@@ -2,9 +2,9 @@
 
 import { ArrowLeft, Plus, Search, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { isAuthed } from '@/app/auth';
 import { Button } from '@/components/ui/button';
 import { createTags, searchTags } from '@/lib/tag-api';
+import type { TagPickerInitialData } from '@/lib/tag-server';
 import { TAG_CATEGORY, TAG_SOURCE, type TagCategoryValue, type TagResponse } from '@/types/tag';
 
 const TAG_GROUPS: { title: string; category: TagCategoryValue; allowCustom: boolean }[] = [
@@ -31,20 +31,39 @@ const MAX_TAGS_PER_GROUP = 3;
 const POPULAR_LIMIT = 20;
 const SEARCH_DEBOUNCE_MS = 300;
 
-export default function TagPickerContent({ onClose }: { onClose: () => void }) {
+export default function TagPickerContent({
+  onClose,
+  initialData,
+}: {
+  onClose: () => void;
+  initialData: TagPickerInitialData;
+}) {
   const [selected, setSelected] = useState<string[]>([]);
   // Every tag object we've seen (popular/search/frequent/created), keyed by
   // name, so we can look up a selected tag's category without refetching it.
-  const [tagMeta, setTagMeta] = useState<Record<string, TagResponse>>({});
-  const [groupTags, setGroupTags] = useState<Record<number, TagResponse[]>>({});
-  const [groupLoaded, setGroupLoaded] = useState<Record<number, boolean>>({});
-  const [flatPopular, setFlatPopular] = useState<TagResponse[]>([]);
-  const [myFrequent, setMyFrequent] = useState<TagResponse[] | null>(null);
+  const [tagMeta, setTagMeta] = useState<Record<string, TagResponse>>(() => {
+    const meta: Record<string, TagResponse> = {};
+    for (const tags of Object.values(initialData.groupTags)) {
+      for (const tag of tags) meta[tag.name] = tag;
+    }
+    for (const tag of initialData.flatPopular) meta[tag.name] = tag;
+    for (const tag of initialData.myFrequent ?? []) meta[tag.name] = tag;
+    return meta;
+  });
+  const [groupTags, setGroupTags] = useState<Record<number, TagResponse[]>>(initialData.groupTags);
+  // Fixed at whatever the server determined on first render — resolving a
+  // fallback chip into a real tag must not flip this off and hide the rest,
+  // and flatPopular/myFrequent are never refetched client-side either.
+  const { usingFallback, flatPopular, myFrequent } = initialData;
 
   const [addingGroup, setAddingGroup] = useState<string | null>(null);
   const [newTagValue, setNewTagValue] = useState('');
   const [tagError, setTagError] = useState<string | null>(null);
   const [creatingTag, setCreatingTag] = useState(false);
+  // Which group's fallback-chip click most recently failed, so the shared
+  // tagError message renders under that group even though no custom-add
+  // input is open there.
+  const [fallbackErrorGroup, setFallbackErrorGroup] = useState<string | null>(null);
 
   const [searchActive, setSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -66,40 +85,6 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
       .then((res) => res.json())
       .then((data: { tags: string[] }) => setSelected(data.tags))
       .catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    for (const group of TAG_GROUPS) {
-      searchTags({ source: TAG_SOURCE.Popular, tagCategory: group.category, limit: POPULAR_LIMIT })
-        .then((res) => {
-          const tags = res.data ?? [];
-          mergeTagMeta(tags);
-          setGroupTags((prev) => ({ ...prev, [group.category]: tags }));
-        })
-        .catch(() => {})
-        .finally(() => {
-          setGroupLoaded((prev) => ({ ...prev, [group.category]: true }));
-        });
-    }
-
-    searchTags({ source: TAG_SOURCE.Popular, limit: POPULAR_LIMIT })
-      .then((res) => {
-        const tags = res.data ?? [];
-        mergeTagMeta(tags);
-        setFlatPopular(tags);
-      })
-      .catch(() => {});
-
-    if (isAuthed()) {
-      searchTags({ source: TAG_SOURCE.MyFrequent, limit: POPULAR_LIMIT })
-        .then((res) => {
-          if (!res.success) return;
-          const tags = res.data ?? [];
-          mergeTagMeta(tags);
-          setMyFrequent(tags);
-        })
-        .catch(() => {});
-    }
   }, []);
 
   useEffect(() => {
@@ -215,7 +200,13 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
       return;
     }
     if (selectedCountInGroup(group.category) >= MAX_TAGS_PER_GROUP) return;
-    await resolveAndSelectTag(group, name);
+    setFallbackErrorGroup(null);
+    setTagError(null);
+    const result = await resolveAndSelectTag(group, name);
+    if (!result.success) {
+      setFallbackErrorGroup(group.title);
+      setTagError(result.message || '建立標籤失敗，請稍後再試');
+    }
   }
 
   function exitSearch() {
@@ -383,8 +374,11 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
           )}
           {TAG_GROUPS.map((group) => {
             const tags = groupTags[group.category] ?? [];
-            const showFallback = (groupLoaded[group.category] ?? false) && tags.length === 0;
-            const fallbackNames = showFallback ? (FALLBACK_TAGS[group.category] ?? []) : [];
+            const fallbackNames = usingFallback[group.category]
+              ? (FALLBACK_TAGS[group.category] ?? []).filter(
+                  (name) => !tags.some((tag) => tag.name === name),
+                )
+              : [];
             const selectedInGroup = selectedCountInGroup(group.category);
             const limitReached = selectedInGroup >= MAX_TAGS_PER_GROUP;
             return (
@@ -470,6 +464,7 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
                           setAddingGroup(group.title);
                           setNewTagValue('');
                           setTagError(null);
+                          setFallbackErrorGroup(null);
                         }}
                         className="flex h-10.25 w-11 items-center justify-center rounded-full border border-dashed border-border-default bg-white text-text-muted"
                       >
@@ -477,9 +472,8 @@ export default function TagPickerContent({ onClose }: { onClose: () => void }) {
                       </button>
                     ))}
                 </div>
-                {addingGroup === group.title && tagError && (
-                  <p className="mt-2 text-label-md text-red-500">{tagError}</p>
-                )}
+                {(addingGroup === group.title || fallbackErrorGroup === group.title) &&
+                  tagError && <p className="mt-2 text-label-md text-red-500">{tagError}</p>}
               </div>
             );
           })}
