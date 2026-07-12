@@ -180,9 +180,9 @@ export default function SearchPage() {
               </div>
               <div
                 onClick={() => setRecentTags([])}
-                className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full"
+                className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full hover:bg-accent"
               >
-                <Trash2 className="h-4.25 w-4.25 text-[#9a9080]" strokeWidth={2} />
+                <Trash2 className="h-4.25 w-4.25 text-text-tertiary" strokeWidth={2} />
               </div>
             </div>
 
