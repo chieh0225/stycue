@@ -22,11 +22,6 @@ import {
   type Draft,
 } from '../draft';
 
-// Matches the platform fee mentioned in the info box below the points picker
-// on the compose page ("將會根據每次提供的積分扣除 5 點作為平台手續費") —
-// the real cost of publishing is the chosen points plus this fee.
-const PLATFORM_FEE = 5;
-
 export default function NewPostPreviewPage() {
   const router = useRouter();
   const [form, setForm] = useState<Draft>(emptyDraft);
@@ -52,7 +47,7 @@ export default function NewPostPreviewPage() {
 
   const { title, description, height, weight, age, selectedBudget, postType, points, photos } =
     form;
-  const insufficientPoints = Number(points) + PLATFORM_FEE > userPoints;
+  const insufficientPoints = Number(points) > userPoints;
 
   // Auto-grow to fit the full text when expanded so it never needs its own
   // scrollbar; collapsed mode keeps the fixed 3-row clamp instead.
@@ -431,8 +426,7 @@ export default function NewPostPreviewPage() {
           <p className="mt-2 text-xs text-text-muted">目前可用積分：{userPoints} 點</p>
           {insufficientPoints && (
             <p className="mt-1 text-xs text-red-500">
-              積分不足：發佈需要 {points} + {PLATFORM_FEE}
-              （手續費）點，請返回編輯選擇較低的積分或前往儲值
+              積分不足：發佈需要 {points} 點，請返回編輯選擇較低的積分或前往儲值
             </p>
           )}
         </div>
