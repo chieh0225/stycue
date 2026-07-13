@@ -29,6 +29,13 @@ export default function ProfilePage() {
       return getAuthedUser()?.nickName || '';
     }
   });
+  const [avatarUrl] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('stycue-profile-avatar');
+    } catch {
+      return null;
+    }
+  });
   const avatarInitial = nickname.charAt(0).toUpperCase();
 
   return (
@@ -43,7 +50,12 @@ export default function ProfilePage() {
         {/* Profile header */}
         <div className="flex items-center gap-3.5 px-4.5 pt-6 pb-5">
           <div className="relative flex h-17 w-17 shrink-0 items-center justify-center overflow-hidden rounded-full border-[3px] border-[#fffdf7] bg-[#f6d978] shadow-[0_4px_12px_rgba(217,154,61,0.16)]">
-            <span className="text-[26px] font-bold text-[#835500]">{avatarInitial}</span>
+            {avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <span className="text-[26px] font-bold text-[#835500]">{avatarInitial}</span>
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <div className="mb-1.5 text-[19px] leading-[1.3] font-bold text-[#403a32]">

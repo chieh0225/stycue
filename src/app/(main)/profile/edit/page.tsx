@@ -30,7 +30,13 @@ export default function ProfileEditPage() {
   const [weightKg, setWeightKg] = useState('');
   const [avatarSheetOpen, setAvatarSheetOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('stycue-profile-avatar');
+    } catch {
+      return null;
+    }
+  });
 
   const avatarFilled = avatarPreviewUrl !== null;
   const avatarInitial = nickname.trim().charAt(0).toUpperCase() || '?';
@@ -38,6 +44,11 @@ export default function ProfileEditPage() {
   function handleSave() {
     try {
       localStorage.setItem('stycue-profile-nickname', nickname || '');
+      if (avatarPreviewUrl) {
+        localStorage.setItem('stycue-profile-avatar', avatarPreviewUrl);
+      } else {
+        localStorage.removeItem('stycue-profile-avatar');
+      }
     } catch {
       // ignore write failures (e.g. private browsing)
     }
@@ -51,7 +62,13 @@ export default function ProfileEditPage() {
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (file) {
-      setAvatarPreviewUrl(URL.createObjectURL(file));
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          setAvatarPreviewUrl(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
     }
     event.target.value = '';
   }
