@@ -251,7 +251,7 @@ export default function Home() {
         <div className="-mx-1 flex gap-3 overflow-x-auto pb-2">
           {trendingItems.map((item) => (
             <Card key={item.id} variant="trending" className="w-43 flex-none">
-              <Link href={`/posts/${item.id}`} className="block">
+              <Link href={`/posts/commissions/${item.id}`} className="block">
                 <div className="relative">
                   <div
                     className={`absolute top-2 left-2 z-10 flex h-6 w-6 items-center justify-center rounded-md text-label-md font-bold text-white ${item.accent}`}
@@ -374,7 +374,7 @@ export default function Home() {
           const interaction = postInteractions[post.id];
           return (
             <Card key={post.id} variant="post" className="mb-4">
-              <Link href={`/posts/${post.id}`} className="block p-4 pb-0">
+              <Link href={`/posts/commissions/${post.id}`} className="block p-4 pb-0">
                 <div className="mb-3 flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <PlaceholderAvatar size="md" accent={post.accent} bordered />
@@ -434,7 +434,7 @@ export default function Home() {
                   {interaction.likes}
                 </button>
                 <Link
-                  href={`/posts/${post.id}/comments`}
+                  href={`/posts/commissions/${post.id}/comments`}
                   className="flex items-center gap-1 text-label-md"
                 >
                   <MessageCircle className="h-4 w-4" />

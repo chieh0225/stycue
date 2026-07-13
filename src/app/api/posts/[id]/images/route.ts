@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import type { DraftPhoto } from '@/app/(main)/posts/new/draft';
+import type { DraftPhoto } from '@/app/(main)/posts/commissions/new/draft';
 import { addPostImages } from '../../store';
 
 // Mirrors the real 委託文章圖片上傳 API shape: images are attached to an
