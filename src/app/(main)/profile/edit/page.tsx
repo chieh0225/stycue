@@ -3,6 +3,7 @@
 import { Camera, ChevronLeft, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
+import { getAuthedUser } from '../../../auth';
 
 type Gender = 'male' | 'female' | 'unspecified';
 
@@ -18,9 +19,9 @@ export default function ProfileEditPage() {
 
   const [nickname, setNickname] = useState(() => {
     try {
-      return localStorage.getItem('stycue-profile-nickname') || '';
+      return localStorage.getItem('stycue-profile-nickname') || getAuthedUser()?.nickName || '';
     } catch {
-      return '';
+      return getAuthedUser()?.nickName || '';
     }
   });
   const [gender, setGender] = useState<Gender>('unspecified');

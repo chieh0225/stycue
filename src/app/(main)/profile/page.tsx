@@ -11,7 +11,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { clearAuthed } from '../../auth';
+import { useState } from 'react';
+import { clearAuthed, getAuthedUser } from '../../auth';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -21,7 +22,13 @@ export default function ProfilePage() {
     router.push('/login');
   }
 
-  const nickname = 'Mao';
+  const [nickname] = useState(() => {
+    try {
+      return localStorage.getItem('stycue-profile-nickname') || getAuthedUser()?.nickName || '';
+    } catch {
+      return getAuthedUser()?.nickName || '';
+    }
+  });
   const avatarInitial = nickname.charAt(0).toUpperCase();
 
   return (
