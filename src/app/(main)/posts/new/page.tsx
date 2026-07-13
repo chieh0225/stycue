@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { buttonVariants } from '@/components/ui/button';
 import { TopBar } from '@/components/ui/top-bar';
 import { deleteImage } from '@/lib/image-api';
+import { getPointWallet } from '@/lib/points-api';
 import { cn } from '@/lib/utils';
 import {
   DRAFT_STORAGE_KEY,
@@ -35,6 +36,19 @@ export default function NewPostPage() {
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const titleRef = useRef<HTMLTextAreaElement>(null);
+  // Defaults to 0 (rather than leaving it unset) so the affordability check
+  // fails closed while the real balance is still loading.
+  const [userPoints, setUserPoints] = useState(0);
+  useEffect(() => {
+    let active = true;
+    getPointWallet().then((res) => {
+      if (active && res.success && res.data) setUserPoints(res.data.currentPoints);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+  const insufficientPoints = Number(points) > userPoints;
   const pathname = usePathname();
 
   // The title wraps across multiple lines instead of overflowing past the
@@ -403,6 +417,12 @@ export default function NewPostPage() {
             </div>
             <span className="text-label-md text-text-muted">點</span>
           </div>
+          <p className="text-xs text-text-muted">目前可用積分：{userPoints} 點</p>
+          {insufficientPoints && (
+            <p className="text-xs text-red-500">
+              積分不足：發佈需要 {points} 點，請選擇較低的積分或前往儲值
+            </p>
+          )}
         </div>
 
         {/* Deadline */}
@@ -434,13 +454,23 @@ export default function NewPostPage() {
         </div>
 
         {/* Submit */}
-        <Link
-          href="/posts/new/preview"
-          onClick={saveDraft}
-          className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'w-full')}
-        >
-          送出
-        </Link>
+        {insufficientPoints ? (
+          <button
+            type="button"
+            disabled
+            className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'w-full')}
+          >
+            送出
+          </button>
+        ) : (
+          <Link
+            href="/posts/new/preview"
+            onClick={saveDraft}
+            className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'w-full')}
+          >
+            送出
+          </Link>
+        )}
       </div>
     </div>
   );
