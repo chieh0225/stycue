@@ -51,7 +51,7 @@ export default function PostInteractions({
         <span className="sr-only">讚</span>
         <span className="text-label-md">{likes}</span>
       </button>
-      <Link href={`/posts/${postId}/comments`} className="flex items-center gap-1.5">
+      <Link href={`/posts/commissions/${postId}/comments`} className="flex items-center gap-1.5">
         <MessageCircle className="h-5 w-5" />
         <span className="sr-only">留言</span>
         <span className="text-label-md">{comments}</span>

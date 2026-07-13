@@ -7,7 +7,7 @@ export default function RedirectToPostsNew() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/posts/new');
+    router.replace('/posts/commissions/new');
   }, [router]);
 
   return null;

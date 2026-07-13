@@ -101,7 +101,7 @@ export default function NewPostPreviewPage() {
 
   useEffect(() => {
     if (loaded && !title.trim()) {
-      router.replace('/posts/new');
+      router.replace('/posts/commissions/new');
     }
   }, [loaded, title, router]);
 
@@ -147,7 +147,7 @@ export default function NewPostPreviewPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tags: [] }),
     }).catch(() => {});
-    router.push(`/posts/${id}`);
+    router.push(`/posts/commissions/${id}`);
   }
 
   if (!loaded || !title.trim()) return null;
@@ -157,7 +157,7 @@ export default function NewPostPreviewPage() {
       {/* Header */}
       <TopBar
         left={
-          <Link href="/posts/new" className="text-label-md text-muted-foreground">
+          <Link href="/posts/commissions/new" className="text-label-md text-muted-foreground">
             返回編輯
           </Link>
         }
@@ -274,7 +274,7 @@ export default function NewPostPreviewPage() {
         <div className="mb-6 flex flex-wrap gap-2">
           {draftTags.length === 0 ? (
             <Link
-              href="/posts/new/tags"
+              href="/posts/commissions/new/tags"
               prefetch={false}
               className="rounded-full border border-dashed border-border-default px-3.5 py-1.75 text-label-md text-text-muted"
             >
@@ -299,7 +299,7 @@ export default function NewPostPreviewPage() {
                 </span>
               ))}
               <Link
-                href="/posts/new/tags"
+                href="/posts/commissions/new/tags"
                 prefetch={false}
                 aria-label="新增標籤"
                 className="flex items-center justify-center rounded-full border border-dashed border-border-default px-3 py-1.75 text-label-md text-text-muted"
@@ -454,7 +454,7 @@ export default function NewPostPreviewPage() {
       {/* Bottom action bar */}
       <BottomBar fixed className="py-3.5">
         <Link
-          href="/posts/new"
+          href="/posts/commissions/new"
           className={cn(buttonVariants({ variant: 'secondary', size: 'md' }), 'flex-1')}
         >
           返回編輯

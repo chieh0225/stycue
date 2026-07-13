@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { getPointWallet } from '@/lib/points-api';
-import { getAuthedUser } from '../../../../auth';
+import { getAuthedUser } from '../../../../../auth';
 import CommentComposer from '../comment-composer';
 import {
   ChevronDownIcon,
@@ -251,7 +251,7 @@ function ReplyComposer({
           className="h-full min-w-0 flex-1 bg-transparent text-body-md text-text-primary placeholder:text-text-placeholder focus:outline-none"
         />
         <Link
-          href={`/posts/${postId}/comments/new?replyTo=${commentId}`}
+          href={`/posts/commissions/${postId}/comments/new?replyTo=${commentId}`}
           aria-label="用整頁模板附上圖片回覆"
           className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-text-muted"
         >
@@ -335,7 +335,7 @@ function ReplyList({
                   {reply.authorEmail !== undefined && reply.authorEmail === currentUserEmail ? (
                     <>
                       <Link
-                        href={`/posts/${postId}/comments/new?replyTo=${commentId}&editReplyId=${reply.replyId}`}
+                        href={`/posts/commissions/${postId}/comments/new?replyTo=${commentId}&editReplyId=${reply.replyId}`}
                         className="text-label-md font-semibold text-text-muted"
                       >
                         編輯
@@ -436,7 +436,7 @@ function CommentItem({
             {comment.authorEmail !== undefined && comment.authorEmail === currentUserEmail ? (
               <>
                 <Link
-                  href={`/posts/${postId}/comments/new?editCommentId=${comment.commentId}`}
+                  href={`/posts/commissions/${postId}/comments/new?editCommentId=${comment.commentId}`}
                   className="text-label-md font-semibold text-text-muted"
                 >
                   編輯
@@ -765,7 +765,10 @@ export default function CommentBoard({
       </ul>
 
       {/* Bottom comment bar — quick text inline, or the dedicated template */}
-      <CommentComposer onSubmit={addComment} templateHref={`/posts/${postId}/comments/new`} />
+      <CommentComposer
+        onSubmit={addComment}
+        templateHref={`/posts/commissions/${postId}/comments/new`}
+      />
 
       {pointsTarget ? (
         <GivePointsModal

@@ -193,14 +193,14 @@ export default function NewPostPhotoPage() {
     }
     persistPhotos(current);
     if (current.every((image) => image.status !== 'error')) {
-      router.push('/posts/new');
+      router.push('/posts/commissions/new');
     }
   }
 
   return (
     <div className="flex flex-1 flex-col">
       <div className="flex items-center justify-between bg-surface-soft px-4 py-4">
-        <Link href="/posts/new" className="text-label-md text-text-muted">
+        <Link href="/posts/commissions/new" className="text-label-md text-text-muted">
           返回
         </Link>
         <h1 className="text-headline-sm font-semibold text-text-primary">上傳圖片</h1>

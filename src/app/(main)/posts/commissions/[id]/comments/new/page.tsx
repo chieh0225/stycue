@@ -32,7 +32,11 @@ export default async function NewCommentPage({
       {/* Header — sticky so it stays pinned to the top while the body scrolls */}
       <TopBar
         left={
-          <Link href={`/posts/${id}/comments`} aria-label="關閉" className="text-foreground">
+          <Link
+            href={`/posts/commissions/${id}/comments`}
+            aria-label="關閉"
+            className="text-foreground"
+          >
             <X className="h-5 w-5" />
           </Link>
         }

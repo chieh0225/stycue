@@ -99,7 +99,7 @@ export default async function PostCommentsPage({
       {/* Header — sticky so it stays pinned to the top while the page scrolls */}
       <TopBar
         left={
-          <Link href={`/posts/${id}`} aria-label="返回文章" className="text-foreground">
+          <Link href={`/posts/commissions/${id}`} aria-label="返回文章" className="text-foreground">
             <ChevronLeft className="h-5 w-5" />
           </Link>
         }

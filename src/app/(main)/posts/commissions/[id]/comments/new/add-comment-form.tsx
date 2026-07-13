@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { getAuthedUser } from '../../../../../auth';
+import { getAuthedUser } from '../../../../../../auth';
 import {
   categoryLabel,
   DEFAULT_IMAGE_CATEGORY_ID,
@@ -118,7 +118,7 @@ export default function AddCommentForm({
   // Attachment awaiting delete confirmation; drives the confirmation modal.
   const [deleteTarget, setDeleteTarget] = useState<Attachment | null>(null);
 
-  const cancelHref = `/posts/${postId}/comments`;
+  const cancelHref = `/posts/commissions/${postId}/comments`;
   const canPublish = (text.trim().length > 0 || images.length > 0) && !submitting;
   const isEditingComment = Boolean(editCommentId);
   const isEditingReply = Boolean(editReplyId && replyTo);
@@ -244,7 +244,7 @@ export default function AddCommentForm({
     //   top-level          : POST /api/v1/commissions/{postId}/comments
     //   body (both): { content, imageIds: number[] } — referencing the ids
     //   returned by the per-attachment POST /api/v1/uploads call above.
-    // `postId` here is the commission id (commissions are served under /posts/[id]).
+    // `postId` here is the commission id (commissions are served under /posts/commissions/[id]).
     // Tell the board what to do once it re-mounts, via query params it reads and
     // then strips: ?focus={domId} scrolls the new item into view, and (for a
     // reply) ?expand={parentId} opens that comment's reply list so the reply is

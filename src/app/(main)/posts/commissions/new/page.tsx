@@ -74,7 +74,7 @@ export default function NewPostPage() {
   }, [descriptionExpanded, description]);
 
   useEffect(() => {
-    if (pathname !== '/posts/new') return;
+    if (pathname !== '/posts/commissions/new') return;
     fetch('/api/posts/draft-tags')
       .then((res) => res.json())
       .then((data: { tags: string[] }) => setDraftTags(data.tags))
@@ -234,7 +234,7 @@ export default function NewPostPage() {
         <div className="flex flex-col gap-2.5">
           <div>
             <Link
-              href="/posts/new/photo"
+              href="/posts/commissions/new/photo"
               onClick={saveDraft}
               className="flex w-fit items-center gap-1 rounded-full border border-border-default px-3 py-1.5 text-label-md text-text-muted"
             >
@@ -266,7 +266,7 @@ export default function NewPostPage() {
           <div className="flex flex-wrap items-center gap-2">
             {draftTags.length === 0 ? (
               <Link
-                href="/posts/new/tags"
+                href="/posts/commissions/new/tags"
                 prefetch={false}
                 className="flex items-center gap-1 rounded-full border border-border-default px-3 py-1.5 text-label-md text-text-muted"
               >
@@ -291,7 +291,7 @@ export default function NewPostPage() {
                   </span>
                 ))}
                 <Link
-                  href="/posts/new/tags"
+                  href="/posts/commissions/new/tags"
                   prefetch={false}
                   aria-label="新增標籤"
                   className="flex h-7 w-7 items-center justify-center rounded-full border border-dashed border-border-default text-label-md text-text-muted"
@@ -464,7 +464,7 @@ export default function NewPostPage() {
           </button>
         ) : (
           <Link
-            href="/posts/new/preview"
+            href="/posts/commissions/new/preview"
             onClick={saveDraft}
             className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'w-full')}
           >

@@ -11,7 +11,7 @@ export default function CommentLauncher({ postId }: { postId: string }) {
   return (
     <BottomBar className="p-0">
       <Link
-        href={`/posts/${postId}/comments`}
+        href={`/posts/commissions/${postId}/comments`}
         aria-label="查看並加入留言討論"
         className="flex flex-1 items-center gap-2.5 px-4.5 py-3.5"
       >
