@@ -261,6 +261,7 @@ export default function NewPostPreviewPage() {
           {draftTags.length === 0 ? (
             <Link
               href="/posts/new/tags"
+              prefetch={false}
               className="rounded-full border border-dashed border-border-default px-3.5 py-1.75 text-label-md text-text-muted"
             >
               + 選擇標籤
@@ -285,6 +286,7 @@ export default function NewPostPreviewPage() {
               ))}
               <Link
                 href="/posts/new/tags"
+                prefetch={false}
                 aria-label="新增標籤"
                 className="flex items-center justify-center rounded-full border border-dashed border-border-default px-3 py-1.75 text-label-md text-text-muted"
               >

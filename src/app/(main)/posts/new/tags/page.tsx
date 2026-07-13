@@ -1,7 +1,12 @@
+import RedirectToPostsNew from './redirect-client';
+
+// This route only exists as an intercepted modal (../@modal/(.)tags); a
+// direct/refresh landing here should just bounce back to /posts/new. Forced
+// dynamic so Vercel never freezes that redirect into a static CDN response
+// — only takes effect in a Server Component, hence the split into
+// redirect-client.tsx.
+export const dynamic = 'force-dynamic';
+
 export default function NewPostTagsPage() {
-  return (
-    <div className="flex flex-1 flex-col gap-6 p-6">
-      <h1 className="text-2xl font-semibold text-foreground">/posts/new/tags</h1>
-    </div>
-  );
+  return <RedirectToPostsNew />;
 }
