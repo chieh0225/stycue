@@ -12,8 +12,9 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { TopBar } from '@/components/ui/top-bar';
+import { cn } from '@/lib/utils';
 import { clearAuthed, getAuthedUser } from '../../auth';
 
 export default function ProfilePage() {
@@ -64,9 +65,12 @@ export default function ProfilePage() {
               <span className="text-label-md font-semibold text-gold-dark">查看個人主頁</span>
             </span>
           </div>
-          <Button variant="secondary" size="sm" render={<Link href="/profile/edit" />}>
+          <Link
+            href="/profile/edit"
+            className={cn(buttonVariants({ variant: 'secondary', size: 'sm' }))}
+          >
             編輯個人資料
-          </Button>
+          </Link>
         </div>
 
         {/* Stats card */}
