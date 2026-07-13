@@ -1,5 +1,14 @@
 'use client';
 
+import {
+  Bookmark,
+  ChevronRight,
+  Eye,
+  Image as ImageIcon,
+  LogOut,
+  PencilLine,
+  Receipt,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { clearAuthed } from '../../auth';
@@ -34,19 +43,7 @@ export default function ProfilePage() {
               {nickname}
             </div>
             <span className="inline-flex items-center gap-1">
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#835500"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
+              <Eye width="14" height="14" stroke="#835500" strokeWidth="2" />
               <span className="text-[12.5px] font-semibold text-[#835500]">查看個人主頁</span>
             </span>
           </div>
@@ -82,38 +79,13 @@ export default function ProfilePage() {
           <div className="grid grid-cols-4 gap-2">
             <Link href="/profile/commissions/sent" className="flex flex-col items-center gap-2">
               <div className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-[rgba(217,154,61,0.12)]">
-                <svg
-                  width="21"
-                  height="21"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#835500"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M12 20h9" />
-                  <path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z" />
-                </svg>
+                <PencilLine width="21" height="21" stroke="#835500" strokeWidth="1.8" />
               </div>
               <span className="text-center text-[11.5px] font-medium text-[#403a32]">我的委託</span>
             </Link>
             <Link href="/profile/posts" className="flex flex-col items-center gap-2">
               <div className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-[rgba(217,154,61,0.12)]">
-                <svg
-                  width="21"
-                  height="21"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#835500"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="3" y="3" width="18" height="18" rx="3" />
-                  <circle cx="8.5" cy="8.5" r="1.5" />
-                  <path d="M21 15l-5-5L5 21" />
-                </svg>
+                <ImageIcon width="21" height="21" stroke="#835500" strokeWidth="1.8" />
               </div>
               <span className="text-center text-[11.5px] font-medium text-[#403a32]">
                 我的分享文
@@ -121,36 +93,13 @@ export default function ProfilePage() {
             </Link>
             <Link href="/profile/points/history" className="flex flex-col items-center gap-2">
               <div className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-[rgba(217,154,61,0.12)]">
-                <svg
-                  width="21"
-                  height="21"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#835500"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M6 3h12a1 1 0 011 1v17l-3-2-2 2-2-2-2 2-2-2-3 2V4a1 1 0 011-1z" />
-                  <path d="M8 8h8M8 12h8M8 16h4" />
-                </svg>
+                <Receipt width="21" height="21" stroke="#835500" strokeWidth="1.8" />
               </div>
               <span className="text-center text-[11.5px] font-medium text-[#403a32]">積分紀錄</span>
             </Link>
             <Link href="/profile/favorites" className="flex flex-col items-center gap-2">
               <div className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-[rgba(217,154,61,0.12)]">
-                <svg
-                  width="21"
-                  height="21"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#835500"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
-                </svg>
+                <Bookmark width="21" height="21" stroke="#835500" strokeWidth="1.8" />
               </div>
               <span className="text-center text-[11.5px] font-medium text-[#403a32]">我的收藏</span>
             </Link>
@@ -166,51 +115,18 @@ export default function ProfilePage() {
               className="flex items-center justify-between border-b border-[#f0e4c0] px-4 py-3.75"
             >
               <span className="text-[14.5px] text-[#403a32]">設定</span>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#7d7766"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M9 18l6-6-6-6" />
-              </svg>
+              <ChevronRight width="16" height="16" stroke="#7d7766" strokeWidth="2" />
             </Link>
             <Link
               href="/disclaimer"
               className="flex items-center justify-between border-b border-[#f0e4c0] px-4 py-3.75"
             >
               <span className="text-[14.5px] text-[#403a32]">免責聲明</span>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#7d7766"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M9 18l6-6-6-6" />
-              </svg>
+              <ChevronRight width="16" height="16" stroke="#7d7766" strokeWidth="2" />
             </Link>
             <div className="flex items-center justify-between border-b border-[#f0e4c0] px-4 py-3.75">
               <span className="text-[14.5px] text-[#403a32]">問題回報</span>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#7d7766"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M9 18l6-6-6-6" />
-              </svg>
+              <ChevronRight width="16" height="16" stroke="#7d7766" strokeWidth="2" />
             </div>
             <div className="flex items-center justify-between px-4 py-3.75">
               <span className="text-[14.5px] text-[#403a32]">版本</span>
@@ -226,20 +142,7 @@ export default function ProfilePage() {
             onClick={handleLogout}
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#f0d8d4] bg-[#fffdf7] px-4 py-3.75"
           >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#ba1a1a"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-              <path d="M16 17l5-5-5-5" />
-              <path d="M21 12H9" />
-            </svg>
+            <LogOut width="18" height="18" stroke="#ba1a1a" strokeWidth="1.8" />
             <span className="text-[14.5px] font-semibold text-[#ba1a1a]">登出</span>
           </button>
         </div>

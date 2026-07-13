@@ -1,5 +1,6 @@
 'use client';
 
+import { Camera, ChevronLeft, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 
@@ -68,18 +69,7 @@ export default function ProfileEditPage() {
           onClick={() => router.back()}
           className="absolute left-4.5 flex h-8 w-8 items-center justify-center"
         >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#403a32"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
+          <ChevronLeft width="20" height="20" stroke="#403a32" strokeWidth="2" />
         </button>
         <span className="text-[19px] font-bold tracking-[0.5px] text-[#403a32]">編輯個人資料</span>
         <button
@@ -115,19 +105,7 @@ export default function ProfileEditPage() {
               onClick={() => setAvatarSheetOpen(true)}
               className="absolute -right-0.5 -bottom-0.5 flex h-7.5 w-7.5 items-center justify-center rounded-full border-[3px] border-[#fdf7e9] bg-[#403a32]"
             >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#fffdf7"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
-                <circle cx="12" cy="13" r="4" />
-              </svg>
+              <Camera width="14" height="14" stroke="#fffdf7" strokeWidth="2" />
             </button>
           </div>
           <span className="mt-2.5 text-[13px] text-[#9a9080]">
@@ -261,20 +239,7 @@ export default function ProfileEditPage() {
               className="flex w-full items-center gap-3 px-1.5 py-3.5"
             >
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[rgba(217,154,61,0.12)]">
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#835500"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="3" y="3" width="18" height="18" rx="3" />
-                  <circle cx="8.5" cy="8.5" r="1.5" />
-                  <path d="M21 15l-5-5L5 21" />
-                </svg>
+                <ImageIcon width="18" height="18" stroke="#835500" strokeWidth="1.8" />
               </div>
               <span className="text-[15px] font-semibold text-[#403a32]">從圖庫中選擇</span>
             </button>
@@ -291,21 +256,7 @@ export default function ProfileEditPage() {
                   className="flex w-full items-center gap-3 px-1.5 py-3.5"
                 >
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[rgba(186,26,26,0.1)]">
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="#ba1a1a"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M3 6h18" />
-                      <path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2" />
-                      <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
-                      <path d="M10 11v6M14 11v6" />
-                    </svg>
+                    <Trash2 width="18" height="18" stroke="#ba1a1a" strokeWidth="1.8" />
                   </div>
                   <span className="text-[15px] font-semibold text-[#ba1a1a]">刪除大頭貼</span>
                 </button>
