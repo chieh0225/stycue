@@ -253,6 +253,7 @@ export default function NewPostPage() {
             {draftTags.length === 0 ? (
               <Link
                 href="/posts/new/tags"
+                prefetch={false}
                 className="flex items-center gap-1 rounded-full border border-border-default px-3 py-1.5 text-label-md text-text-muted"
               >
                 <Tag className="h-3.5 w-3.5" aria-hidden /> 選擇標籤
@@ -277,6 +278,7 @@ export default function NewPostPage() {
                 ))}
                 <Link
                   href="/posts/new/tags"
+                  prefetch={false}
                   aria-label="新增標籤"
                   className="flex h-7 w-7 items-center justify-center rounded-full border border-dashed border-border-default text-label-md text-text-muted"
                 >

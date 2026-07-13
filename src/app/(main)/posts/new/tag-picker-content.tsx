@@ -15,10 +15,9 @@ const TAG_GROUPS: { title: string; category: TagCategoryValue; allowCustom: bool
   { title: '版型', category: TAG_CATEGORY.Fit, allowCustom: true },
 ];
 
-// Shown per group only while GET /api/tags?Source=Popular has genuinely
-// returned zero tags for that category (e.g. the tag has no usage yet, so
-// the backend's popularity ranking excludes it). Picking one still resolves
-// a real tagId via createTags — this is a suggestion list, not local-only data.
+// Shown per group only when the Popular search genuinely returns zero tags
+// for that category. Picking one still resolves a real tagId via
+// createTags — this is a suggestion list, not local-only data.
 const FALLBACK_TAGS: Record<number, string[]> = {
   [TAG_CATEGORY.Occasion]: ['上班', '日常', '約會', '面試', '婚禮'],
   [TAG_CATEGORY.Style]: ['日系', '韓系', '美式', '極簡', '街頭', '運動', '復古'],
@@ -51,18 +50,16 @@ export default function TagPickerContent({
     return meta;
   });
   const [groupTags, setGroupTags] = useState<Record<number, TagResponse[]>>(initialData.groupTags);
-  // Fixed at whatever the server determined on first render — resolving a
-  // fallback chip into a real tag must not flip this off and hide the rest,
-  // and flatPopular/myFrequent are never refetched client-side either.
+  // Fixed at the server's first-render result; resolving a fallback chip
+  // must not flip this off and hide the rest of the fallback list.
   const { usingFallback, flatPopular, myFrequent } = initialData;
 
   const [addingGroup, setAddingGroup] = useState<string | null>(null);
   const [newTagValue, setNewTagValue] = useState('');
   const [tagError, setTagError] = useState<string | null>(null);
   const [creatingTag, setCreatingTag] = useState(false);
-  // Which group's fallback-chip click most recently failed, so the shared
-  // tagError message renders under that group even though no custom-add
-  // input is open there.
+  // Which group's fallback-chip click most recently failed, so tagError
+  // renders under that group even when no custom-add input is open there.
   const [fallbackErrorGroup, setFallbackErrorGroup] = useState<string | null>(null);
 
   const [searchActive, setSearchActive] = useState(false);
