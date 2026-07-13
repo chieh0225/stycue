@@ -31,10 +31,9 @@ const CATEGORY_NAME_TO_VALUE: Record<string, TagCategoryValue> = {
   fit: TAG_CATEGORY.Fit,
 };
 
-// The backend has returned tagCategory as either a number (1-5) or a lowercase
-// enum name ("occasion", "style", ...) at different points — normalize
-// whatever comes back over the wire to the numeric TagCategoryValue the rest
-// of the app is built around.
+// The backend has returned tagCategory as either a number (1-5) or a
+// lowercase enum name ("occasion", ...) — normalize to the numeric
+// TagCategoryValue the rest of the app is built around.
 export function normalizeTagCategory(value: unknown): TagCategoryValue | null {
   if (typeof value === 'number') {
     return (Object.values(TAG_CATEGORY) as number[]).includes(value)
