@@ -219,11 +219,12 @@ export default function ProfileEditPage() {
               <div className="flex items-center gap-1">
                 <Input
                   type="number"
+                  inputMode="decimal"
                   min="0"
                   value={heightCm}
                   onChange={(event) => setHeightCm(event.target.value.replace(/^-/, ''))}
                   placeholder="--"
-                  className="h-auto w-12 border-none bg-transparent p-0 text-right text-body-md font-semibold text-text-primary shadow-none"
+                  className="h-auto w-16 border-none bg-transparent p-0 text-right text-body-md font-semibold text-text-primary shadow-none"
                 />
                 <span className="w-5 text-label-md text-text-tertiary">cm</span>
               </div>
@@ -233,11 +234,12 @@ export default function ProfileEditPage() {
               <div className="flex items-center gap-1">
                 <Input
                   type="number"
+                  inputMode="decimal"
                   min="0"
                   value={weightKg}
                   onChange={(event) => setWeightKg(event.target.value.replace(/^-/, ''))}
                   placeholder="--"
-                  className="h-auto w-12 border-none bg-transparent p-0 text-right text-body-md font-semibold text-text-primary shadow-none"
+                  className="h-auto w-16 border-none bg-transparent p-0 text-right text-body-md font-semibold text-text-primary shadow-none"
                 />
                 <span className="w-5 text-label-md text-text-tertiary">kg</span>
               </div>
