@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { catchError } from '@/lib/catch-error';
 import type { ApiEnvelope } from '@/types/image';
 import type { DailyPointClaimResponse } from '@/types/points';
 import { getAuthHeader } from '../../images/_shared';
@@ -19,10 +20,10 @@ export async function POST() {
     );
   }
 
-  let backendResponse: Response;
-  try {
-    backendResponse = await fetch(BACKEND_URL, { method: 'POST', headers: authHeader });
-  } catch {
+  const [backendResponse, fetchError] = await catchError(
+    fetch(BACKEND_URL, { method: 'POST', headers: authHeader }),
+  );
+  if (fetchError) {
     return NextResponse.json(
       {
         success: false,

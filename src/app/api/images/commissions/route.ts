@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { catchError } from '@/lib/catch-error';
 import type { ApiEnvelope, ImageResponse } from '@/types/image';
 import { getAuthHeader } from '../_shared';
 
@@ -39,14 +40,14 @@ export async function POST(request: Request) {
   const brand = incoming.get('Brand');
   if (brand !== null) outgoing.append('Brand', brand);
 
-  let backendResponse: Response;
-  try {
-    backendResponse = await fetch(BACKEND_URL, {
+  const [backendResponse, fetchError] = await catchError(
+    fetch(BACKEND_URL, {
       method: 'POST',
       headers: authHeader, // do NOT set Content-Type — fetch derives the multipart boundary
       body: outgoing,
-    });
-  } catch {
+    }),
+  );
+  if (fetchError) {
     return NextResponse.json(
       {
         success: false,
