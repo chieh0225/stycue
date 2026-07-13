@@ -219,6 +219,7 @@ export default function ProfileEditPage() {
               <div className="flex items-center gap-1">
                 <Input
                   type="number"
+                  inputMode="decimal"
                   min="0"
                   value={heightCm}
                   onChange={(event) => setHeightCm(event.target.value.replace(/^-/, ''))}
@@ -233,6 +234,7 @@ export default function ProfileEditPage() {
               <div className="flex items-center gap-1">
                 <Input
                   type="number"
+                  inputMode="decimal"
                   min="0"
                   value={weightKg}
                   onChange={(event) => setWeightKg(event.target.value.replace(/^-/, ''))}
