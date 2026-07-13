@@ -150,7 +150,10 @@ export default function SearchPage() {
         {hasSearched &&
           SEARCH_RESULTS.map((result) => (
             <Card key={result.id} variant="post" className="mb-4 h-38.5">
-              <Link href={`/posts/${result.id}`} className="flex h-full flex-col p-4 no-underline">
+              <Link
+                href={`/posts/commissions/${result.id}`}
+                className="flex h-full flex-col p-4 no-underline"
+              >
                 <div className="mb-2 flex items-center gap-1.5">
                   <Badge variant="gold">{result.tag}</Badge>
                   <span className="overflow-hidden text-body-lg font-bold text-ellipsis whitespace-nowrap text-text-primary">
