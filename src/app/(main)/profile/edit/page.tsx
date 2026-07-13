@@ -3,6 +3,17 @@
 import { Camera, ChevronLeft, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { TopBar } from '@/components/ui/top-bar';
 import { getAuthedUser } from '../../../auth';
 
 type Gender = 'male' | 'female' | 'unspecified';
@@ -81,39 +92,45 @@ export default function ProfileEditPage() {
   return (
     <div className="flex flex-1 flex-col">
       {/* Header */}
-      <div className="sticky top-0 z-20 flex shrink-0 items-center justify-center border-b border-[#f0e4c0] bg-[#fff9e8] px-4.5 pt-4 pb-3.5 shadow-[0_4px_12px_rgba(217,154,61,0.08)]">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="absolute left-4.5 flex h-8 w-8 items-center justify-center"
-        >
-          <ChevronLeft width="20" height="20" stroke="#403a32" strokeWidth="2" />
-        </button>
-        <span className="text-[19px] font-bold tracking-[0.5px] text-[#403a32]">編輯個人資料</span>
-        <button
-          type="button"
-          onClick={handleSave}
-          className="absolute right-4.5 text-[14.5px] font-bold text-[#835500]"
-        >
-          儲存
-        </button>
-      </div>
+      <TopBar
+        left={
+          <button
+            type="button"
+            onClick={() => router.back()}
+            aria-label="返回"
+            className="flex h-8 w-8 items-center justify-center"
+          >
+            <ChevronLeft className="h-5 w-5 text-text-primary" strokeWidth={2} />
+          </button>
+        }
+        title="編輯個人資料"
+        right={
+          <button
+            type="button"
+            onClick={handleSave}
+            className="text-label-md font-bold text-gold-dark"
+          >
+            儲存
+          </button>
+        }
+        className="py-4"
+      />
 
       {/* Scroll body */}
-      <div className="flex-1 overflow-y-auto bg-[#fdf7e9]">
+      <div className="flex-1 overflow-y-auto bg-muted">
         {/* Avatar */}
         <div className="flex flex-col items-center px-4.5 pt-7 pb-2">
           <div className="relative h-22 w-22">
             <button
               type="button"
               onClick={() => setAvatarSheetOpen(true)}
-              className="relative h-22 w-22 overflow-hidden rounded-full border-[3px] border-[#fffdf7] bg-[#f6d978] shadow-[0_4px_12px_rgba(217,154,61,0.16)]"
+              className="relative h-22 w-22 overflow-hidden rounded-full border-[3px] border-background bg-primary shadow-[0_4px_12px_rgba(217,154,61,0.16)]"
             >
               {avatarPreviewUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={avatarPreviewUrl} alt="" className="h-full w-full object-cover" />
               ) : (
-                <span className="flex h-full w-full items-center justify-center text-[32px] font-bold text-[#835500]">
+                <span className="flex h-full w-full items-center justify-center text-display-lg font-bold text-gold-dark">
                   {avatarInitial}
                 </span>
               )}
@@ -121,12 +138,12 @@ export default function ProfileEditPage() {
             <button
               type="button"
               onClick={() => setAvatarSheetOpen(true)}
-              className="absolute -right-0.5 -bottom-0.5 flex h-7.5 w-7.5 items-center justify-center rounded-full border-[3px] border-[#fdf7e9] bg-[#403a32]"
+              className="absolute -right-0.5 -bottom-0.5 flex h-7.5 w-7.5 items-center justify-center rounded-full border-[3px] border-muted bg-foreground"
             >
-              <Camera width="14" height="14" stroke="#fffdf7" strokeWidth="2" />
+              <Camera className="h-3.5 w-3.5 text-background" strokeWidth={2} />
             </button>
           </div>
-          <span className="mt-2.5 text-[13px] text-[#9a9080]">
+          <span className="mt-2.5 text-label-md text-text-tertiary">
             {avatarFilled ? '點擊以更換大頭貼' : '點擊以上傳大頭貼'}
           </span>
           <input
@@ -140,28 +157,28 @@ export default function ProfileEditPage() {
 
         {/* Basic info */}
         <div className="px-4.5 pt-5 pb-2">
-          <div className="mb-2.5 text-[14px] font-bold text-[#403a32]">基本資料</div>
-          <div className="flex flex-col rounded-[14px] bg-[#fffdf7] px-4 py-1">
-            <div className="flex items-center justify-between border-b border-[#f0e4c0] py-3.5">
-              <span className="w-19 shrink-0 text-[14px] text-[#756c60]">暱稱</span>
-              <input
+          <div className="mb-2.5 text-body-md font-bold text-text-primary">基本資料</div>
+          <div className="flex flex-col rounded-panel bg-popover px-4 py-1">
+            <div className="flex items-center justify-between border-b border-border-subtle py-3.5">
+              <span className="w-19 shrink-0 text-body-md text-text-muted">暱稱</span>
+              <Input
                 type="text"
                 value={nickname}
                 onChange={(event) => setNickname(event.target.value)}
                 placeholder="輸入暱稱"
-                className="flex-1 border-none bg-transparent text-right text-[14.5px] font-semibold text-[#403a32] outline-none placeholder:font-medium placeholder:text-[#b8af9e]"
+                className="h-auto flex-1 border-none bg-transparent p-0 text-right text-body-md font-semibold text-text-primary shadow-none"
               />
             </div>
-            <div className="flex items-start justify-between border-b border-[#f0e4c0] py-3.5">
-              <span className="w-19 shrink-0 pt-0.5 text-[14px] text-[#756c60]">自我介紹</span>
+            <div className="flex items-start justify-between border-b border-border-subtle py-3.5">
+              <span className="w-19 shrink-0 pt-0.5 text-body-md text-text-muted">自我介紹</span>
               <textarea
                 rows={2}
                 placeholder="介紹一下你的穿搭風格吧"
-                className="flex-1 resize-none border-none bg-transparent text-right text-[14.5px] text-[#403a32] outline-none placeholder:font-medium placeholder:text-[#b8af9e]"
+                className="flex-1 resize-none border-none bg-transparent text-right text-body-md text-text-primary outline-none placeholder:font-medium placeholder:text-text-placeholder"
               />
             </div>
             <div className="flex items-center justify-between py-3.5">
-              <span className="w-19 shrink-0 text-[14px] text-[#756c60]">性別</span>
+              <span className="w-19 shrink-0 text-body-md text-text-muted">性別</span>
               <div className="flex flex-1 justify-end gap-2">
                 {GENDER_OPTIONS.map((opt) => {
                   const selected = gender === opt.key;
@@ -172,11 +189,11 @@ export default function ProfileEditPage() {
                       onClick={() => setGender(opt.key)}
                       className={`flex items-center justify-center rounded-lg border px-4 py-1.75 ${
                         selected
-                          ? 'border-[#403a32] bg-[#403a32] font-semibold text-[#fffdf7]'
-                          : 'border-[#e5ddbf] bg-[#fdf7e9] font-medium text-[#756c60]'
+                          ? 'border-foreground bg-foreground font-semibold text-background'
+                          : 'border-border bg-muted font-medium text-text-muted'
                       }`}
                     >
-                      <span className="text-[13px]">{opt.label}</span>
+                      <span className="text-label-md">{opt.label}</span>
                     </button>
                   );
                 })}
@@ -188,40 +205,40 @@ export default function ProfileEditPage() {
         {/* Body info */}
         <div className="px-4.5 pt-5 pb-2">
           <div className="mb-2.5 flex items-center gap-2">
-            <span className="text-[14px] font-bold text-[#403a32]">身材資訊</span>
-            <span className="text-[11.5px] text-[#9a9080]">用於他人給你穿搭建議時參考</span>
+            <span className="text-body-md font-bold text-text-primary">身材資訊</span>
+            <span className="text-label-md text-text-tertiary">用於他人給你穿搭建議時參考</span>
           </div>
-          <div className="flex flex-col rounded-[14px] bg-[#fffdf7] px-4 py-1">
-            <div className="flex items-center justify-between border-b border-[#f0e4c0] py-3.5">
-              <span className="text-[14px] text-[#756c60]">身高</span>
+          <div className="flex flex-col rounded-panel bg-popover px-4 py-1">
+            <div className="flex items-center justify-between border-b border-border-subtle py-3.5">
+              <span className="text-body-md text-text-muted">身高</span>
               <div className="flex items-center gap-1">
-                <input
+                <Input
                   type="number"
                   min="0"
                   value={heightCm}
                   onChange={(event) => setHeightCm(event.target.value.replace(/^-/, ''))}
                   placeholder="--"
-                  className="w-12 border-none bg-transparent text-right text-[14.5px] font-semibold text-[#403a32] outline-none placeholder:text-[#b8af9e]"
+                  className="h-auto w-12 border-none bg-transparent p-0 text-right text-body-md font-semibold text-text-primary shadow-none"
                 />
-                <span className="w-5 text-[13px] text-[#9a9080]">cm</span>
+                <span className="w-5 text-label-md text-text-tertiary">cm</span>
               </div>
             </div>
-            <div className="flex items-center justify-between border-b border-[#f0e4c0] py-3.5">
-              <span className="text-[14px] text-[#756c60]">體重</span>
+            <div className="flex items-center justify-between border-b border-border-subtle py-3.5">
+              <span className="text-body-md text-text-muted">體重</span>
               <div className="flex items-center gap-1">
-                <input
+                <Input
                   type="number"
                   min="0"
                   value={weightKg}
                   onChange={(event) => setWeightKg(event.target.value.replace(/^-/, ''))}
                   placeholder="--"
-                  className="w-12 border-none bg-transparent text-right text-[14.5px] font-semibold text-[#403a32] outline-none placeholder:text-[#b8af9e]"
+                  className="h-auto w-12 border-none bg-transparent p-0 text-right text-body-md font-semibold text-text-primary shadow-none"
                 />
-                <span className="w-5 text-[13px] text-[#9a9080]">kg</span>
+                <span className="w-5 text-label-md text-text-tertiary">kg</span>
               </div>
             </div>
             <div className="flex items-center justify-between py-3.5">
-              <span className="text-[14px] text-[#756c60]">生日</span>
+              <span className="text-body-md text-text-muted">生日</span>
               <input
                 type="date"
                 value={birthDate}
@@ -230,7 +247,7 @@ export default function ProfileEditPage() {
                   const target = event.target as HTMLInputElement & { showPicker?: () => void };
                   target.showPicker?.();
                 }}
-                className="cursor-pointer border-none bg-transparent text-right text-[14.5px] font-semibold text-[#403a32] outline-none"
+                className="cursor-pointer border-none bg-transparent text-right text-body-md font-semibold text-text-primary outline-none"
               />
             </div>
           </div>
@@ -240,86 +257,86 @@ export default function ProfileEditPage() {
       </div>
 
       {/* Avatar action sheet */}
-      {avatarSheetOpen && (
-        <div
-          onClick={() => setAvatarSheetOpen(false)}
-          className="absolute inset-0 z-30 flex items-end bg-[rgba(64,58,50,0.42)]"
+      <Sheet open={avatarSheetOpen} onOpenChange={setAvatarSheetOpen}>
+        <SheetContent
+          side="bottom"
+          className="gap-0 rounded-t-sheet bg-popover px-4 pt-2 pb-[calc(env(safe-area-inset-bottom,0px)+22px)] shadow-[0_-4px_20px_rgba(64,58,50,0.16)]"
         >
-          <div
-            onClick={(event) => event.stopPropagation()}
-            className="w-full rounded-t-[20px] bg-[#fffdf7] px-4 pt-2 pb-[calc(env(safe-area-inset-bottom,0px)+22px)] shadow-[0_-4px_20px_rgba(64,58,50,0.16)]"
+          <div className="mx-auto mb-3.5 h-1 w-9 rounded-full bg-border" />
+
+          <button
+            type="button"
+            onClick={handlePickFromLibrary}
+            className="flex w-full items-center gap-3 px-1.5 py-3.5"
           >
-            <div className="mx-auto mb-3.5 h-1 w-9 rounded-full bg-[#e5ddbf]" />
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold/12">
+              <ImageIcon width="18" height="18" className="text-gold-dark" strokeWidth={1.8} />
+            </div>
+            <span className="text-body-md font-semibold text-text-primary">從圖庫中選擇</span>
+          </button>
 
-            <button
-              type="button"
-              onClick={handlePickFromLibrary}
-              className="flex w-full items-center gap-3 px-1.5 py-3.5"
-            >
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[rgba(217,154,61,0.12)]">
-                <ImageIcon width="18" height="18" stroke="#835500" strokeWidth="1.8" />
-              </div>
-              <span className="text-[15px] font-semibold text-[#403a32]">從圖庫中選擇</span>
-            </button>
+          {avatarFilled && (
+            <>
+              <div className="mx-1.5 my-0.5 h-px bg-border-subtle" />
+              <button
+                type="button"
+                onClick={() => {
+                  setAvatarSheetOpen(false);
+                  setDeleteConfirmOpen(true);
+                }}
+                className="flex w-full items-center gap-3 px-1.5 py-3.5"
+              >
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-destructive/10">
+                  <Trash2 width="18" height="18" className="text-destructive" strokeWidth={1.8} />
+                </div>
+                <span className="text-body-md font-semibold text-destructive">刪除大頭貼</span>
+              </button>
+            </>
+          )}
 
-            {avatarFilled && (
-              <>
-                <div className="mx-1.5 my-0.5 h-px bg-[#f0e4c0]" />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAvatarSheetOpen(false);
-                    setDeleteConfirmOpen(true);
-                  }}
-                  className="flex w-full items-center gap-3 px-1.5 py-3.5"
-                >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[rgba(186,26,26,0.1)]">
-                    <Trash2 width="18" height="18" stroke="#ba1a1a" strokeWidth="1.8" />
-                  </div>
-                  <span className="text-[15px] font-semibold text-[#ba1a1a]">刪除大頭貼</span>
-                </button>
-              </>
-            )}
-
-            <div className="mx-1.5 my-0.5 h-px bg-[#f0e4c0]" />
-            <button
-              type="button"
-              onClick={() => setAvatarSheetOpen(false)}
-              className="flex w-full items-center justify-center px-1.5 py-3.5"
-            >
-              <span className="text-[15px] font-semibold text-[#756c60]">取消</span>
-            </button>
-          </div>
-        </div>
-      )}
+          <div className="mx-1.5 my-0.5 h-px bg-border-subtle" />
+          <button
+            type="button"
+            onClick={() => setAvatarSheetOpen(false)}
+            className="flex w-full items-center justify-center px-1.5 py-3.5"
+          >
+            <span className="text-body-md font-semibold text-text-muted">取消</span>
+          </button>
+        </SheetContent>
+      </Sheet>
 
       {/* Delete confirmation */}
-      {deleteConfirmOpen && (
-        <div className="absolute inset-0 z-40 flex items-center justify-center bg-[rgba(64,58,50,0.42)] px-8">
-          <div className="w-full max-w-70 rounded-2xl bg-[#fffdf7] px-5 pt-5.5 pb-4 text-center shadow-[0_8px_28px_rgba(64,58,50,0.22)]">
-            <div className="mb-1.5 text-[15.5px] font-bold text-[#403a32]">刪除大頭貼？</div>
-            <div className="mb-4.5 text-[13px] leading-[1.5] text-[#756c60]">
-              刪除後將無法復原，需要重新上傳照片。
-            </div>
-            <div className="flex gap-2.5">
-              <button
-                type="button"
-                onClick={() => setDeleteConfirmOpen(false)}
-                className="flex-1 rounded-[10px] border-[1.5px] border-[#e5ddbf] py-2.75"
-              >
-                <span className="text-[14px] font-semibold text-[#403a32]">取消</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmDeleteAvatar}
-                className="flex-1 rounded-[10px] bg-[#ba1a1a] py-2.75"
-              >
-                <span className="text-[14px] font-semibold text-[#fffdf7]">刪除</span>
-              </button>
-            </div>
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent className="flex flex-col items-center px-5.5 pt-6.5 pb-5 text-center">
+          <div className="mb-4 flex h-13 w-13 items-center justify-center rounded-full bg-destructive-bg text-destructive">
+            <Trash2 className="h-6 w-6" />
           </div>
-        </div>
-      )}
+          <DialogTitle className="mb-2">刪除大頭貼？</DialogTitle>
+          <DialogDescription className="mb-5.5">
+            刪除後將無法復原，需要重新上傳照片。
+          </DialogDescription>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="secondary"
+              size="md"
+              onClick={() => setDeleteConfirmOpen(false)}
+              className="flex-1"
+            >
+              取消
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              size="md"
+              onClick={handleConfirmDeleteAvatar}
+              className="flex-1"
+            >
+              刪除
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
