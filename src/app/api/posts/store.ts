@@ -1,4 +1,4 @@
-import type { DraftPhoto } from '@/app/(main)/posts/new/draft';
+import type { DraftPhoto } from '@/app/(main)/posts/commissions/new/draft';
 
 export type CreatedPost = {
   postType: string;
