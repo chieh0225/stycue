@@ -39,17 +39,6 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const authHeader = await getAuthHeader();
-  if (!authHeader) {
-    return NextResponse.json(
-      {
-        success: false,
-        message: '請先登入',
-        data: null,
-        errorCode: 'NO_TOKEN',
-      } satisfies ApiEnvelope<null>,
-      { status: 401 },
-    );
-  }
 
   const body = await request.json();
 
