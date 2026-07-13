@@ -1,6 +1,6 @@
 'use client';
 
-import { Camera, ChevronLeft, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { Calendar, Camera, ChevronLeft, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,11 @@ const GENDER_OPTIONS: { key: Gender; label: string }[] = [
   { key: 'female', label: '女' },
   { key: 'unspecified', label: '不透露' },
 ];
+
+function formatBirthDate(value: string): string {
+  const [year, month, day] = value.split('-');
+  return year && month && day ? `${year}/${month}/${day}` : '年/月/日';
+}
 
 export default function ProfileEditPage() {
   const router = useRouter();
@@ -239,16 +244,28 @@ export default function ProfileEditPage() {
             </div>
             <div className="flex items-center justify-between py-3.5">
               <span className="text-body-md text-text-muted">生日</span>
-              <input
-                type="date"
-                value={birthDate}
-                onChange={(event) => setBirthDate(event.target.value)}
-                onClick={(event) => {
-                  const target = event.target as HTMLInputElement & { showPicker?: () => void };
-                  target.showPicker?.();
-                }}
-                className="cursor-pointer border-none bg-transparent text-right text-body-md font-semibold text-text-primary outline-none"
-              />
+              <div className="relative flex items-center gap-1.5">
+                <Calendar
+                  className="pointer-events-none h-4 w-4 shrink-0 text-text-tertiary"
+                  strokeWidth={1.8}
+                />
+                <span className="pointer-events-none min-w-22 text-right text-body-md font-semibold text-text-primary">
+                  {formatBirthDate(birthDate)}
+                </span>
+                <input
+                  type="date"
+                  aria-label="生日"
+                  value={birthDate}
+                  onChange={(event) => setBirthDate(event.target.value)}
+                  onClick={(event) => {
+                    const target = event.target as HTMLInputElement & {
+                      showPicker?: () => void;
+                    };
+                    target.showPicker?.();
+                  }}
+                  className="absolute inset-0 h-full w-full cursor-pointer border-none bg-transparent text-right text-body-md font-semibold text-transparent opacity-0 outline-none [&::-webkit-calendar-picker-indicator]:hidden"
+                />
+              </div>
             </div>
           </div>
         </div>
