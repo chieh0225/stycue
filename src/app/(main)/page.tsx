@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { PlaceholderAvatar } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -21,7 +21,9 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetClose, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { TopBar } from '@/components/ui/top-bar';
+import { getHomepageFeed } from '@/lib/homepage-api';
 import { claimDailyPoints, getPointTransactions } from '@/lib/points-api';
+import type { HomepageFilter, HomepageItemResponse } from '@/types/homepage';
 
 // POST /api/points/daily returns this exact message only when the call just
 // created today's claim; a same-day repeat returns "今日已領取積分" instead.
@@ -39,74 +41,22 @@ function toTaiwanDateString(isoUtc: string): string {
   return new Date(utcDate.getTime() + 8 * 60 * 60 * 1000).toISOString().slice(0, 10);
 }
 
-const trendingItems = [
-  {
-    id: 'trend-1',
-    rank: '1',
-    title: '風衣穿搭照',
-    author: 'GD',
-    meta: '171cm',
-    accent: 'bg-text-primary',
-    gradient:
-      'repeating-linear-gradient(135deg, #e9c89a, #e9c89a 10px, #deb985 10px, #deb985 20px)',
-  },
-  {
-    id: 'trend-2',
-    rank: '2',
-    title: '外套穿搭照',
-    author: 'Chris',
-    meta: '178cm',
-    accent: 'bg-support-sage',
-    gradient:
-      'repeating-linear-gradient(135deg, #d9cdb8, #d9cdb8 10px, #cbbe9f 10px, #cbbe9f 20px)',
-  },
-];
-
-const posts = [
-  {
-    id: 'post-1',
-    author: 'GD',
-    createdAt: '2026-07-06T09:30:00+08:00',
-    tag: '提問',
-    title: '面試穿搭',
-    body: '面試時應該要穿什麼樣的服裝比較合適？不同產業的穿搭有什麼眉角嗎？',
-    accent: 'bg-text-primary',
-    badge: '熱門',
-    photos: ['#4a5a6b', '#3f3b37', '#8a7f6e'],
-    chips: ['正式穿搭', '職場感'],
-    likes: '1688',
-    comments: '180',
-  },
-  {
-    id: 'post-2',
-    author: 'Mao',
-    createdAt: '2026-07-07T04:30:00+08:00',
-    tag: '分享',
-    title: '秋天的第一套日系裙裝',
-    body: '簡單的裙裝配色，也能營造溫柔又清新的日系感。',
-    accent: 'bg-accent-amber',
-    badge: '日系',
-    photos: ['linear-gradient(135deg,#d7a55f 0%,#7e8a5f 100%)'],
-    chips: ['日系穿搭', '柔和色系'],
-    likes: '101',
-    comments: '30',
-  },
-  {
-    id: 'post-3',
-    author: 'W',
-    createdAt: '2026-07-07T08:30:00+08:00',
-    tag: '提問',
-    title: '男生棉褲求推薦',
-    body: '想要質感好的，預算 1500 內。',
-    accent: 'bg-text-muted',
-    photos: [],
-    chips: ['日常穿搭', '質感推薦'],
-    likes: '9',
-    comments: '1',
-  },
-];
-
 type Interaction = { liked: boolean; likes: number; bookmarked: boolean };
+
+const ITEM_TYPE_LABEL: Record<HomepageItemResponse['itemType'], string> = {
+  commission: '委託',
+  postShare: '分享',
+  postAsk: '提問',
+};
+
+// itemType → the only detail route that currently exists for it. postAsk has
+// no dedicated detail page yet (see homepage-api-todo), so it falls back to
+// the commission route like the rest of the app does today.
+function detailHref(item: HomepageItemResponse): string {
+  return item.itemType === 'postShare'
+    ? `/posts/share/${item.itemId}`
+    : `/posts/commissions/${item.itemId}`;
+}
 
 function formatRelativeTime(createdAt: string): string {
   const diffMinutes = Math.floor((Date.now() - new Date(createdAt).getTime()) / 60000);
@@ -118,6 +68,17 @@ function formatRelativeTime(createdAt: string): string {
 
 const postFilters = ['全部', '提問', '分享', '委託'] as const;
 type PostFilter = (typeof postFilters)[number];
+
+const FILTER_TO_API: Record<PostFilter, HomepageFilter> = {
+  全部: 'all',
+  提問: 'postAsk',
+  分享: 'postShare',
+  委託: 'commission',
+};
+
+function itemKey(item: HomepageItemResponse): string {
+  return `${item.itemType}-${item.itemId}`;
+}
 
 const menuLinkGroups = [
   [
@@ -171,17 +132,66 @@ export default function Home() {
       active = false;
     };
   }, []);
-  const [postInteractions, setPostInteractions] = useState<Record<string, Interaction>>(() =>
-    Object.fromEntries(
-      posts.map((post) => [
-        post.id,
-        { liked: false, likes: Number(post.likes), bookmarked: false },
-      ]),
-    ),
-  );
-  const [trendingBookmarks, setTrendingBookmarks] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(trendingItems.map((item) => [item.id, false])),
-  );
+  const [trending, setTrending] = useState<HomepageItemResponse[]>([]);
+  const [trendingLoading, setTrendingLoading] = useState(true);
+  useEffect(() => {
+    let active = true;
+    getHomepageFeed({ sortBy: 'mostLikes', filter: 'all', pageSize: 10 })
+      .then((res) => {
+        if (!active) return;
+        if (res.success && res.data) setTrending(res.data.items);
+      })
+      .finally(() => {
+        if (active) setTrendingLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const [feed, setFeed] = useState<HomepageItemResponse[]>([]);
+  const [feedLoading, setFeedLoading] = useState(true);
+  useEffect(() => {
+    let active = true;
+    // Deferred to a microtask so the loading flag doesn't setState
+    // synchronously within the effect body (react-hooks/set-state-in-effect).
+    queueMicrotask(() => {
+      if (active) setFeedLoading(true);
+    });
+    getHomepageFeed({
+      sortBy: sortMode === 'hot' ? 'mostComments' : 'latest',
+      filter: FILTER_TO_API[selectedFilter],
+      pageSize: 20,
+    })
+      .then((res) => {
+        if (!active) return;
+        if (res.success && res.data) setFeed(res.data.items);
+      })
+      .finally(() => {
+        if (active) setFeedLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [selectedFilter, sortMode]);
+
+  const [postInteractions, setPostInteractions] = useState<Record<string, Interaction>>({});
+  useEffect(() => {
+    // Deferred to a microtask so the merge doesn't setState synchronously
+    // within the effect body (react-hooks/set-state-in-effect).
+    queueMicrotask(() => {
+      setPostInteractions((prev) => {
+        const next = { ...prev };
+        for (const item of feed) {
+          const key = itemKey(item);
+          if (!next[key]) next[key] = { liked: false, likes: item.likeCount, bookmarked: false };
+        }
+        return next;
+      });
+    });
+  }, [feed]);
+
+  const [trendingBookmarks, setTrendingBookmarks] = useState<Record<string, boolean>>({});
 
   function toggleLike(postId: string) {
     const liked = !postInteractions[postId].liked;
@@ -220,16 +230,6 @@ export default function Home() {
     }).catch(() => {});
   }
 
-  const filteredPosts = (
-    selectedFilter === '全部' ? posts : posts.filter((post) => post.tag === selectedFilter)
-  )
-    .slice()
-    .sort((a, b) =>
-      sortMode === 'hot'
-        ? Number(b.likes) - Number(a.likes)
-        : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    );
-
   return (
     <div className="flex flex-1 flex-col">
       <TopBar
@@ -248,52 +248,72 @@ export default function Home() {
 
       <section className="px-4 pt-5 pb-7">
         <div className="mb-3 text-headline-sm font-bold text-text-primary">人氣穿搭</div>
-        <div className="-mx-1 flex gap-3 overflow-x-auto pb-2">
-          {trendingItems.map((item) => (
-            <Card key={item.id} variant="trending" className="w-43 flex-none">
-              <Link href={`/posts/commissions/${item.id}`} className="block">
-                <div className="relative">
-                  <div
-                    className={`absolute top-2 left-2 z-10 flex h-6 w-6 items-center justify-center rounded-md text-label-md font-bold text-white ${item.accent}`}
-                  >
-                    {item.rank}
-                  </div>
-                  <div
-                    className="flex h-54 items-center justify-center"
-                    style={{ background: item.gradient }}
-                  >
-                    <span className="rounded-md bg-white/70 px-2 py-1 text-label-md font-medium text-text-primary">
-                      {item.title}
-                    </span>
-                  </div>
-                </div>
-              </Link>
-              <div className="flex items-center justify-between px-3 py-3">
-                <div className="flex items-center gap-2">
-                  <PlaceholderAvatar size="sm" accent={item.accent} />
-                  <div>
-                    <div className="text-label-md font-semibold text-text-primary">
-                      {item.author}
+        {trendingLoading ? (
+          <div className="py-6 text-center text-body-md text-text-muted">載入中…</div>
+        ) : trending.length === 0 ? (
+          <div className="py-6 text-center text-body-md text-text-muted">目前還沒有貼文</div>
+        ) : (
+          <div className="-mx-1 flex gap-3 overflow-x-auto pb-2">
+            {trending.map((item, index) => {
+              const key = itemKey(item);
+              const [cover] = item.images;
+              return (
+                <Card key={key} variant="trending" className="w-43 flex-none">
+                  <Link href={detailHref(item)} className="block">
+                    <div className="relative">
+                      <div className="absolute top-2 left-2 z-10 flex h-6 w-6 items-center justify-center rounded-md bg-text-primary text-label-md font-bold text-white">
+                        {index + 1}
+                      </div>
+                      {cover ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- uploaded photo URL from real backend
+                        <img
+                          src={cover.url}
+                          alt={item.title}
+                          className="h-54 w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-54 items-center justify-center bg-surface-soft">
+                          <span className="rounded-md bg-white/70 px-2 py-1 text-label-md font-medium text-text-primary">
+                            {item.title}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                    <div className="text-label-md text-text-muted">{item.meta}</div>
+                  </Link>
+                  <div className="flex items-center justify-between px-3 py-3">
+                    <div className="flex items-center gap-2">
+                      <Avatar size="sm">
+                        <AvatarFallback>
+                          {item.author.displayName.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="text-label-md font-semibold text-text-primary">
+                          {item.author.displayName}
+                        </div>
+                        <div className="flex items-center gap-1 text-label-md text-text-muted">
+                          <Heart className="h-3 w-3" /> {item.likeCount}
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => toggleTrendingBookmark(key)}
+                      aria-label="收藏"
+                      aria-pressed={trendingBookmarks[key]}
+                      className={trendingBookmarks[key] ? 'text-accent-amber' : 'text-text-muted'}
+                    >
+                      <Bookmark
+                        fill={trendingBookmarks[key] ? 'currentColor' : 'none'}
+                        className="h-4 w-4"
+                      />
+                    </button>
                   </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => toggleTrendingBookmark(item.id)}
-                  aria-label="收藏"
-                  aria-pressed={trendingBookmarks[item.id]}
-                  className={trendingBookmarks[item.id] ? 'text-accent-amber' : 'text-text-muted'}
-                >
-                  <Bookmark
-                    fill={trendingBookmarks[item.id] ? 'currentColor' : 'none'}
-                    className="h-4 w-4"
-                  />
-                </button>
-              </div>
-            </Card>
-          ))}
-        </div>
+                </Card>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       <section className="px-4 pb-6">
@@ -364,98 +384,103 @@ export default function Home() {
           </button>
         </div>
 
-        {filteredPosts.length === 0 ? (
+        {feedLoading ? (
+          <div className="py-10 text-center text-body-md text-text-muted">載入中…</div>
+        ) : feed.length === 0 ? (
           <div className="py-10 text-center text-body-md text-text-muted">
             目前沒有這個分類的文章
           </div>
-        ) : null}
-
-        {filteredPosts.map((post) => {
-          const interaction = postInteractions[post.id];
-          return (
-            <Card key={post.id} variant="post" className="mb-4">
-              <Link href={`/posts/commissions/${post.id}`} className="block p-4 pb-0">
-                <div className="mb-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <PlaceholderAvatar size="md" accent={post.accent} bordered />
-                    <div>
-                      <div className="text-label-md font-semibold text-text-primary">
-                        {post.author}
-                      </div>
-                      <div className="text-label-md text-text-muted">
-                        {formatRelativeTime(post.createdAt)}
+        ) : (
+          feed.map((post) => {
+            const key = itemKey(post);
+            const interaction = postInteractions[key];
+            if (!interaction) return null;
+            return (
+              <Card key={key} variant="post" className="mb-4">
+                <Link href={detailHref(post)} className="block p-4 pb-0">
+                  <div className="mb-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <Avatar size="md" className="border-2 border-border">
+                        <AvatarFallback>
+                          {post.author.displayName.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="text-label-md font-semibold text-text-primary">
+                          {post.author.displayName}
+                        </div>
+                        <div className="text-label-md text-text-muted">
+                          {formatRelativeTime(post.createdAt)}
+                        </div>
                       </div>
                     </div>
                   </div>
-                  {post.badge ? <Badge variant="gold">{post.badge}</Badge> : null}
-                </div>
 
-                <div className="mb-2 flex items-center gap-2">
-                  <Badge variant="gold">{post.tag}</Badge>
-                  <span className="text-body-lg font-bold text-text-primary">{post.title}</span>
-                </div>
-                <p className="mb-3 text-body-md leading-5 text-text-muted">{post.body}</p>
+                  <div className="mb-2 flex items-center gap-2">
+                    <Badge variant="gold">{ITEM_TYPE_LABEL[post.itemType]}</Badge>
+                    <span className="text-body-lg font-bold text-text-primary">{post.title}</span>
+                  </div>
+                  <p className="mb-3 text-body-md leading-5 text-text-muted">
+                    {post.contentPreview}
+                  </p>
 
-                {post.photos.length > 0 ? (
-                  <>
-                    {/* Color blocks stand in for the post's uploaded photo(s) until real media exists. */}
-                    <div className="mb-1 flex gap-2">
-                      {post.photos.map((photo, index) => (
-                        <div
-                          key={index}
-                          className={`rounded-card ${post.photos.length === 1 ? 'h-41 flex-1' : 'h-24 flex-1'}`}
-                          style={{ background: photo }}
+                  {post.images.length > 0 ? (
+                    <div className="mb-3 flex gap-2">
+                      {post.images.map((image) => (
+                        // eslint-disable-next-line @next/next/no-img-element -- uploaded photo URL from real backend
+                        <img
+                          key={image.imageId}
+                          src={image.url}
+                          alt={post.title}
+                          className={`rounded-card object-cover ${post.images.length === 1 ? 'h-41 flex-1' : 'h-24 flex-1'}`}
                         />
                       ))}
                     </div>
-                    <div className="mb-3 text-label-md text-text-muted italic">
-                      照片示意（尚未串接真實圖片）
-                    </div>
-                  </>
-                ) : null}
+                  ) : null}
 
-                <div className="flex flex-wrap gap-2">
-                  {post.chips.map((chip) => (
-                    <Badge key={chip} variant="neutral">
-                      {chip}
-                    </Badge>
-                  ))}
-                </div>
-              </Link>
-
-              <div className="flex items-center gap-4 p-4 pt-3 text-text-muted">
-                <button
-                  type="button"
-                  onClick={() => toggleLike(post.id)}
-                  aria-pressed={interaction.liked}
-                  className={`flex items-center gap-1 text-label-md ${interaction.liked ? 'text-accent-amber' : ''}`}
-                >
-                  <Heart fill={interaction.liked ? 'currentColor' : 'none'} className="h-4 w-4" />
-                  {interaction.likes}
-                </button>
-                <Link
-                  href={`/posts/commissions/${post.id}/comments`}
-                  className="flex items-center gap-1 text-label-md"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  {post.comments}
+                  <div className="flex flex-wrap gap-2">
+                    {post.tags.map((tag) => (
+                      <Badge key={tag.tagId} variant="neutral">
+                        {tag.name}
+                      </Badge>
+                    ))}
+                  </div>
                 </Link>
-                <button
-                  type="button"
-                  onClick={() => toggleBookmark(post.id)}
-                  aria-label="收藏"
-                  aria-pressed={interaction.bookmarked}
-                  className={`ml-auto ${interaction.bookmarked ? 'text-accent-amber' : ''}`}
-                >
-                  <Bookmark
-                    fill={interaction.bookmarked ? 'currentColor' : 'none'}
-                    className="h-4 w-4"
-                  />
-                </button>
-              </div>
-            </Card>
-          );
-        })}
+
+                <div className="flex items-center gap-4 p-4 pt-3 text-text-muted">
+                  <button
+                    type="button"
+                    onClick={() => toggleLike(key)}
+                    aria-pressed={interaction.liked}
+                    className={`flex items-center gap-1 text-label-md ${interaction.liked ? 'text-accent-amber' : ''}`}
+                  >
+                    <Heart fill={interaction.liked ? 'currentColor' : 'none'} className="h-4 w-4" />
+                    {interaction.likes}
+                  </button>
+                  <Link
+                    href={`${detailHref(post)}/comments`}
+                    className="flex items-center gap-1 text-label-md"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    {post.commentCount}
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => toggleBookmark(key)}
+                    aria-label="收藏"
+                    aria-pressed={interaction.bookmarked}
+                    className={`ml-auto ${interaction.bookmarked ? 'text-accent-amber' : ''}`}
+                  >
+                    <Bookmark
+                      fill={interaction.bookmarked ? 'currentColor' : 'none'}
+                      className="h-4 w-4"
+                    />
+                  </button>
+                </div>
+              </Card>
+            );
+          })
+        )}
       </section>
 
       <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
