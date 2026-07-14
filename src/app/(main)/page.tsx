@@ -543,7 +543,7 @@ export default function Home() {
           </div>
           {signupBonusPoints !== null && (
             <div className="text-caption mb-6 text-text-muted">
-              是初次註冊給予 {signupBonusPoints} 點積分
+              初次註冊給予 {signupBonusPoints} 點積分
             </div>
           )}
           <Button
