@@ -28,5 +28,27 @@ export async function getCommentsServer(
     };
   }
 
-  return (await res.json()) as ApiEnvelope<CommentResponse[]>;
+  // Some error responses (e.g. an invalid commissionId) come back with an
+  // empty body rather than a JSON envelope — parse defensively instead of
+  // letting res.json() throw on an empty stream.
+  const text = await res.text();
+  if (!text) {
+    return {
+      success: false,
+      message: `無法取得留言列表（${res.status}）`,
+      data: null,
+      errorCode: 'UPSTREAM_ERROR',
+    };
+  }
+
+  try {
+    return JSON.parse(text) as ApiEnvelope<CommentResponse[]>;
+  } catch {
+    return {
+      success: false,
+      message: '伺服器回應格式錯誤',
+      data: null,
+      errorCode: 'INVALID_RESPONSE',
+    };
+  }
 }
