@@ -19,6 +19,7 @@ import {
   emptyDraft,
   type Draft,
 } from './draft';
+import { getAuthedUser } from '../../../../auth';
 
 export default function NewPostPage() {
   const [titleFocused, setTitleFocused] = useState(false);
@@ -47,6 +48,18 @@ export default function NewPostPage() {
     return () => {
       active = false;
     };
+  }, []);
+
+  // Read from localStorage client-side only, same hydration concern as the
+  // effects below, so it starts null instead of a placeholder that would
+  // flash before the real nickname lands.
+  const [nickName, setNickName] = useState<string | null>(null);
+  useEffect(() => {
+    // Deferred to a microtask so this doesn't setState synchronously within
+    // the effect body (react-hooks/set-state-in-effect).
+    queueMicrotask(() => {
+      setNickName(getAuthedUser()?.nickName ?? null);
+    });
   }, []);
 
   // Computed client-side (rather than at render time) to avoid a hydration
@@ -154,9 +167,9 @@ export default function NewPostPage() {
         {/* User row */}
         <div className="flex items-center gap-2">
           <Avatar size="xl">
-            <AvatarFallback>M</AvatarFallback>
+            <AvatarFallback>{(nickName ?? '').charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
-          <span className="text-label-md font-medium text-text-primary">Maple</span>
+          <span className="text-label-md font-medium text-text-primary">{nickName}</span>
           <div className="relative">
             <button
               type="button"
