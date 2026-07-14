@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { catchError } from '@/lib/catch-error';
 
 const BACKEND_URL = 'https://stycue.rocket-coding.com/api/Auth/login';
 
@@ -18,11 +19,19 @@ type ApiResponse<T> = {
 export async function POST(request: Request) {
   const body = await request.json();
 
-  const backendResponse = await fetch(BACKEND_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+  const [backendResponse, fetchError] = await catchError(
+    fetch(BACKEND_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }),
+  );
+  if (fetchError) {
+    return NextResponse.json(
+      { success: false, message: '無法連線到伺服器，請稍後再試', data: null },
+      { status: 502 },
+    );
+  }
 
   const result = (await backendResponse.json()) as ApiResponse<LoginResponse>;
 
