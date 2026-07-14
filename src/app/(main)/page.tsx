@@ -247,7 +247,7 @@ export default function Home() {
       />
 
       <section className="px-4 pt-5 pb-7">
-        <div className="mb-3 text-headline-sm font-bold text-text-primary">人氣貼文</div>
+        <div className="mb-3 text-headline-sm font-bold text-text-primary">人氣穿搭</div>
         {trendingLoading ? (
           <div className="py-6 text-center text-body-md text-text-muted">載入中…</div>
         ) : trending.length === 0 ? (
