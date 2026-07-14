@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { catchError } from '@/lib/catch-error';
 import type { ApiEnvelope } from '@/types/image';
 import { getAuthHeader } from '../_shared';
 
@@ -22,13 +23,13 @@ export async function DELETE(
     );
   }
 
-  let backendResponse: Response;
-  try {
-    backendResponse = await fetch(`${BACKEND_BASE_URL}/${encodeURIComponent(imageId)}`, {
+  const [backendResponse, fetchError] = await catchError(
+    fetch(`${BACKEND_BASE_URL}/${encodeURIComponent(imageId)}`, {
       method: 'DELETE',
       headers: authHeader,
-    });
-  } catch {
+    }),
+  );
+  if (fetchError) {
     return NextResponse.json(
       {
         success: false,

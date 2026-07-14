@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { catchError } from '@/lib/catch-error';
 import type { ApiEnvelope } from '@/types/image';
 import type { TagResponse } from '@/types/tag';
 
@@ -16,12 +17,12 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const authHeader = await getAuthHeader();
 
-  let backendResponse: Response;
-  try {
-    backendResponse = await fetch(`${BACKEND_URL}?${searchParams.toString()}`, {
+  const [backendResponse, fetchError] = await catchError(
+    fetch(`${BACKEND_URL}?${searchParams.toString()}`, {
       headers: authHeader ?? undefined,
-    });
-  } catch {
+    }),
+  );
+  if (fetchError) {
     return NextResponse.json(
       {
         success: false,
@@ -42,14 +43,14 @@ export async function POST(request: Request) {
 
   const body = await request.json();
 
-  let backendResponse: Response;
-  try {
-    backendResponse = await fetch(BACKEND_URL, {
+  const [backendResponse, fetchError] = await catchError(
+    fetch(BACKEND_URL, {
       method: 'POST',
       headers: { ...authHeader, 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-    });
-  } catch {
+    }),
+  );
+  if (fetchError) {
     return NextResponse.json(
       {
         success: false,

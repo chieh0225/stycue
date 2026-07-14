@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { catchError } from '@/lib/catch-error';
 import type { ApiEnvelope } from '@/types/image';
 import type { PagedResponse, PointTransactionResponse } from '@/types/points';
 import { getAuthHeader } from '../../images/_shared';
@@ -38,12 +39,12 @@ export async function GET(request: Request) {
   }
   const query = forwardedParams.toString();
 
-  let backendResponse: Response;
-  try {
-    backendResponse = await fetch(`${BACKEND_URL}${query ? `?${query}` : ''}`, {
+  const [backendResponse, fetchError] = await catchError(
+    fetch(`${BACKEND_URL}${query ? `?${query}` : ''}`, {
       headers: authHeader,
-    });
-  } catch {
+    }),
+  );
+  if (fetchError) {
     return NextResponse.json(
       {
         success: false,
