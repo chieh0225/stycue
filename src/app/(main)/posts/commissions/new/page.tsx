@@ -48,6 +48,24 @@ export default function NewPostPage() {
       active = false;
     };
   }, []);
+
+  // Computed client-side (rather than at render time) to avoid a hydration
+  // mismatch between the server's "now" and the browser's "now".
+  const [deadlineLabel, setDeadlineLabel] = useState('');
+  useEffect(() => {
+    // Deferred to a microtask so this doesn't setState synchronously within
+    // the effect body (react-hooks/set-state-in-effect).
+    queueMicrotask(() => {
+      const deadline = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      setDeadlineLabel(
+        new Intl.DateTimeFormat('zh-TW', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        }).format(deadline),
+      );
+    });
+  }, []);
   const insufficientPoints = Number(points) > userPoints;
   const pathname = usePathname();
 
@@ -430,7 +448,7 @@ export default function NewPostPage() {
           <h2 className="text-body-lg font-semibold text-text-primary">預設委託截止時間為 7 天</h2>
           <div className="flex items-center gap-2 rounded-lg bg-surface-soft px-3 py-2">
             <Calendar className="h-3.5 w-3.5" aria-hidden />
-            <span className="text-body-md text-text-primary">2026 年 6 月 24 日</span>
+            <span className="text-body-md text-text-primary">{deadlineLabel}</span>
           </div>
           <p className="text-label-md text-text-muted">送出後自動計算，無法編輯</p>
         </div>
