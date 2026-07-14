@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { createComment, createReply } from '@/lib/comment-api';
+import { uploadImage } from '@/lib/image-api';
 import { cn } from '@/lib/utils';
 import {
   categoryLabel,
@@ -207,28 +208,42 @@ export default function AddCommentForm({
     setImages((prev) => prev.map((img) => (img.id === id ? { ...img, ...patch } : img)));
   }
 
-  // No uploads backend exists yet, so `kind === 'new'` attachments simulate
-  // POST /api/v1/uploads' response shape ({ imageId, imageUrl }) — once that
-  // endpoint lands, this becomes a real upload call made per-attachment on
-  // publish, and only the returned imageId needs to travel to the
-  // comment/reply call. `kind === 'existing'` attachments (from an edit) are
-  // already "uploaded" — passed through unchanged, possibly re-tagged.
-  function resolveImages(attachments: Attachment[]): CommentImage[] {
-    return attachments.map((attachment, index) =>
-      attachment.kind === 'existing'
-        ? {
-            imageId: attachment.imageId,
-            imageUrl: attachment.url,
-            category: attachment.category,
-            brand: attachment.brand.trim(),
-          }
-        : {
-            imageId: Date.now() + index,
-            imageUrl: attachment.url,
-            category: attachment.category,
-            brand: attachment.brand.trim(),
-          },
-    );
+  // `kind === 'existing'` attachments (from an edit) are already uploaded —
+  // passed through unchanged, possibly re-tagged. `kind === 'new'` attachments
+  // are uploaded here, one at a time (not Promise.all, so a failure partway
+  // through is easy to reason about and doesn't hammer the endpoint with up
+  // to 9 concurrent multipart requests), via the same real POST
+  // /api/images/comments endpoint the commission-post photo picker already
+  // uses. Returns null if any upload fails, so the caller can abort the
+  // publish rather than send a comment with partially-fake image ids.
+  async function resolveImages(attachments: Attachment[]): Promise<CommentImage[] | null> {
+    const resolved: CommentImage[] = [];
+    for (const attachment of attachments) {
+      if (attachment.kind === 'existing') {
+        resolved.push({
+          imageId: attachment.imageId,
+          imageUrl: attachment.url,
+          category: attachment.category,
+          brand: attachment.brand.trim(),
+        });
+        continue;
+      }
+      const brand = attachment.brand.trim();
+      const uploaded = await uploadImage(
+        'comments',
+        attachment.file,
+        attachment.category,
+        brand || undefined,
+      );
+      if (!uploaded.success || !uploaded.data) return null;
+      resolved.push({
+        imageId: uploaded.data.imageId,
+        imageUrl: uploaded.data.url,
+        category: uploaded.data.category ?? attachment.category,
+        brand: uploaded.data.brand ?? brand,
+      });
+    }
+    return resolved;
   }
 
   async function publish() {
@@ -245,7 +260,11 @@ export default function AddCommentForm({
     // reply) ?expand={parentId} opens that comment's reply list so the reply is
     // not hidden behind the collapse toggle. Passing these only on submit keeps a
     // plain navigation in from auto-scrolling or auto-expanding.
-    const resolvedImages = resolveImages(images);
+    const resolvedImages = await resolveImages(images);
+    if (resolvedImages === null) {
+      setSubmitting(false);
+      return;
+    }
     const params = new URLSearchParams();
     if (isEditingComment) {
       const ok = updatePendingComment(postId, editCommentId!, {
