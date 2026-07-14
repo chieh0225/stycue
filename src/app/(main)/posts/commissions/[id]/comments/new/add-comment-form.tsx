@@ -18,22 +18,15 @@ import {
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { createComment, createReply, updateComment } from '@/lib/comment-api';
+import { uploadImage } from '@/lib/image-api';
 import { cn } from '@/lib/utils';
-import { getAuthedUser } from '../../../../../../auth';
 import {
   categoryLabel,
   DEFAULT_IMAGE_CATEGORY_ID,
   IMAGE_CATEGORIES,
   type ImageCategoryId,
 } from '../../image-categories';
-import {
-  addPendingComment,
-  addPendingReply,
-  getPendingComment,
-  getPendingReply,
-  updatePendingComment,
-  updatePendingReply,
-} from '../../pending-comments';
 import type { CommentImage } from '../comment-board';
 
 // Attachment limits mirror the design copy (最多可上傳 9 張圖片，單張 10MB).
@@ -90,6 +83,8 @@ export default function AddCommentForm({
   replyTo,
   editCommentId,
   editReplyId,
+  initialContent,
+  initialImages,
 }: {
   postId: string;
   // When set, this screen composes a reply under the given parent commentId
@@ -102,11 +97,15 @@ export default function AddCommentForm({
   // id), this screen edits the given existing reply instead of composing a
   // new one. Without a matching replyTo this collapses to non-edit behavior.
   editReplyId?: string;
+  // Prefill for edit mode, fetched server-side (by the page) from the real
+  // comment list — undefined when composing a new comment/reply.
+  initialContent?: string;
+  initialImages?: CommentImage[];
 }) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [text, setText] = useState('');
-  const [images, setImages] = useState<Attachment[]>([]);
+  const [text, setText] = useState(initialContent ?? '');
+  const [images, setImages] = useState<Attachment[]>(() => toExistingAttachments(initialImages));
   const [submitting, setSubmitting] = useState(false);
   // id of the attachment whose tag dropdown is open (only one at a time).
   const [openTagId, setOpenTagId] = useState<string | null>(null);
@@ -123,34 +122,6 @@ export default function AddCommentForm({
   const isEditingComment = Boolean(editCommentId);
   const isEditingReply = Boolean(editReplyId && replyTo);
   const isEdit = isEditingComment || isEditingReply;
-
-  // Prefill from the pending store when opened in edit mode. Editable content
-  // only ever lives in the pending store (see the ownership check that gates
-  // the 編輯 link in comment-board.tsx) — a missing/stale id (cleared
-  // sessionStorage, bad link) falls back to a plain cancel-navigation.
-  useEffect(() => {
-    if (isEditingComment) {
-      const pending = getPendingComment(postId, editCommentId!);
-      if (!pending) {
-        router.replace(cancelHref);
-        return;
-      }
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setText(pending.content);
-      setImages(toExistingAttachments(pending.images));
-    } else if (isEditingReply) {
-      const pending = getPendingReply(postId, replyTo!, editReplyId!);
-      if (!pending) {
-        router.replace(cancelHref);
-        return;
-      }
-      setText(pending.content);
-      setImages(toExistingAttachments(pending.images));
-    }
-    // Prefill runs once on mount only — the edit target doesn't change within
-    // a single visit to this screen.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // Mirrors `images` so the unmount cleanup below can see the latest list
   // without re-subscribing the effect (and thus re-registering the cleanup)
@@ -209,96 +180,102 @@ export default function AddCommentForm({
     setImages((prev) => prev.map((img) => (img.id === id ? { ...img, ...patch } : img)));
   }
 
-  // No uploads backend exists yet, so `kind === 'new'` attachments simulate
-  // POST /api/v1/uploads' response shape ({ imageId, imageUrl }) — once that
-  // endpoint lands, this becomes a real upload call made per-attachment on
-  // publish, and only the returned imageId needs to travel to the
-  // comment/reply call. `kind === 'existing'` attachments (from an edit) are
-  // already "uploaded" — passed through unchanged, possibly re-tagged.
-  function resolveImages(attachments: Attachment[]): CommentImage[] {
-    return attachments.map((attachment, index) =>
-      attachment.kind === 'existing'
-        ? {
-            imageId: attachment.imageId,
-            imageUrl: attachment.url,
-            category: attachment.category,
-            brand: attachment.brand.trim(),
-          }
-        : {
-            imageId: Date.now() + index,
-            imageUrl: attachment.url,
-            category: attachment.category,
-            brand: attachment.brand.trim(),
-          },
-    );
+  // `kind === 'existing'` attachments (from an edit) are already uploaded —
+  // passed through unchanged, possibly re-tagged. `kind === 'new'` attachments
+  // are uploaded here, one at a time (not Promise.all, so a failure partway
+  // through is easy to reason about and doesn't hammer the endpoint with up
+  // to 9 concurrent multipart requests), via the same real POST
+  // /api/images/comments endpoint the commission-post photo picker already
+  // uses. Returns null if any upload fails, so the caller can abort the
+  // publish rather than send a comment with partially-fake image ids.
+  async function resolveImages(attachments: Attachment[]): Promise<CommentImage[] | null> {
+    const resolved: CommentImage[] = [];
+    for (const attachment of attachments) {
+      if (attachment.kind === 'existing') {
+        resolved.push({
+          imageId: attachment.imageId,
+          imageUrl: attachment.url,
+          category: attachment.category,
+          brand: attachment.brand.trim(),
+        });
+        continue;
+      }
+      const brand = attachment.brand.trim();
+      const uploaded = await uploadImage(
+        'comments',
+        attachment.file,
+        attachment.category,
+        brand || undefined,
+      );
+      if (!uploaded.success || !uploaded.data) return null;
+      resolved.push({
+        imageId: uploaded.data.imageId,
+        imageUrl: uploaded.data.url,
+        category: uploaded.data.category ?? attachment.category,
+        brand: uploaded.data.brand ?? brand,
+      });
+    }
+    return resolved;
   }
 
-  function publish() {
+  async function publish() {
     if (!canPublish) return;
     setSubmitting(true);
     const content = text.trim();
-    // No comments backend exists yet, so the submission is stored optimistically
-    // in the shared pending store (sessionStorage) and rendered by the board on
-    // its next mount. This is where the real write would go once the API lands:
-    //   reply  (replyTo set): POST /api/v1/comments/{replyTo}/replies
-    //   top-level          : POST /api/v1/commissions/{postId}/comments
-    //   body (both): { content, imageIds: number[] } — referencing the ids
-    //   returned by the per-attachment POST /api/v1/uploads call above.
     // `postId` here is the commission id (commissions are served under /posts/commissions/[id]).
     // Tell the board what to do once it re-mounts, via query params it reads and
     // then strips: ?focus={domId} scrolls the new item into view, and (for a
     // reply) ?expand={parentId} opens that comment's reply list so the reply is
     // not hidden behind the collapse toggle. Passing these only on submit keeps a
     // plain navigation in from auto-scrolling or auto-expanding.
-    const resolvedImages = resolveImages(images);
+    const resolvedImages = await resolveImages(images);
+    if (resolvedImages === null) {
+      setSubmitting(false);
+      return;
+    }
     const params = new URLSearchParams();
     if (isEditingComment) {
-      const ok = updatePendingComment(postId, editCommentId!, {
+      const result = await updateComment(editCommentId!, {
         content,
-        images: resolvedImages,
+        imageIds: resolvedImages.map((image) => image.imageId),
       });
-      if (!ok) {
-        router.push(cancelHref);
+      if (!result.success || !result.data) {
+        setSubmitting(false);
         return;
       }
       params.set('focus', `comment-${editCommentId}`);
     } else if (isEditingReply) {
-      const ok = updatePendingReply(postId, replyTo!, editReplyId!, {
+      const result = await updateComment(editReplyId!, {
         content,
-        images: resolvedImages,
+        imageIds: resolvedImages.map((image) => image.imageId),
       });
-      if (!ok) {
-        router.push(cancelHref);
+      if (!result.success || !result.data) {
+        setSubmitting(false);
         return;
       }
       params.set('focus', `reply-${editReplyId}`);
       params.set('expand', replyTo!);
     } else if (replyTo) {
-      const authedUser = getAuthedUser();
-      const replyId = crypto.randomUUID();
-      addPendingReply(postId, replyTo, {
-        replyId,
-        nickName: authedUser?.nickName ?? '你',
-        timeLabel: '剛剛',
+      const result = await createReply(replyTo, {
         content,
-        images: resolvedImages,
-        authorEmail: authedUser?.email,
+        imageIds: resolvedImages.map((image) => image.imageId),
       });
-      params.set('focus', `reply-${replyId}`);
+      if (!result.success || !result.data) {
+        setSubmitting(false);
+        return;
+      }
+      params.set('focus', `reply-${result.data.commentId}`);
       params.set('expand', replyTo);
     } else {
-      const authedUser = getAuthedUser();
-      const commentId = crypto.randomUUID();
-      addPendingComment(postId, {
-        commentId,
-        nickName: authedUser?.nickName ?? '你',
-        timeLabel: '剛剛',
+      const result = await createComment(postId, {
         content,
-        likeCount: 0,
-        images: resolvedImages,
-        authorEmail: authedUser?.email,
+        imageIds: resolvedImages.map((image) => image.imageId),
       });
-      params.set('focus', `comment-${commentId}`);
+      if (!result.success || !result.data) {
+        setSubmitting(false);
+        return;
+      }
+      params.set('focus', `comment-${result.data.commentId}`);
     }
     router.push(`${cancelHref}?${params.toString()}`);
   }

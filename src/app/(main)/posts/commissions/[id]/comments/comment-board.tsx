@@ -6,8 +6,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { createComment, createReply, deleteComment as deleteCommentApi } from '@/lib/comment-api';
 import { getPointWallet } from '@/lib/points-api';
-import { getAuthedUser } from '../../../../../auth';
+import type { CommentResponse } from '@/types/comment';
+import type { ImageResponse } from '@/types/image';
 import CommentComposer from '../comment-composer';
 import {
   ChevronDownIcon,
@@ -25,13 +27,6 @@ import {
   InsufficientPointsModal,
 } from './comment-modals';
 import { categoryLabel } from '../image-categories';
-import {
-  addPendingComment,
-  addPendingReply,
-  mergePendingComments,
-  removePendingComment,
-  removePendingReply,
-} from '../pending-comments';
 
 // Shape returned by the (future) POST /uploads endpoint plus the category/brand
 // the user tagged it with — matches the backend's per-image record.
@@ -49,10 +44,11 @@ export type Reply = {
   content: string;
   isCommissioner?: boolean;
   images?: CommentImage[];
-  // Captured from the author's login identity at creation time — never
-  // rendered. Used only to gate the 編輯 entry point to the actual author,
-  // since nickName alone could collide between two real users.
-  authorEmail?: string;
+  // Sourced directly from the API's per-comment canEdit/canDelete flags
+  // (or defaulted true for an optimistic just-created item) rather than
+  // matched against a locally-known identity.
+  canEdit: boolean;
+  canDelete: boolean;
 };
 
 export type Comment = {
@@ -64,9 +60,54 @@ export type Comment = {
   likeCount: number;
   images?: CommentImage[];
   replies?: Reply[];
-  // Same as Reply.authorEmail — never rendered.
-  authorEmail?: string;
+  canEdit: boolean;
+  canDelete: boolean;
 };
+
+function toCommentImages(images: ImageResponse[]): CommentImage[] | undefined {
+  if (images.length === 0) return undefined;
+  return images.map((image) => ({
+    imageId: image.imageId,
+    imageUrl: image.url,
+    category: image.category ?? 99,
+    brand: image.brand ?? '',
+  }));
+}
+
+// Maps a just-created CommentResponse (from the create-comment API call) into
+// the board's render-friendly Comment shape. `floor` is passed in rather than
+// derived here since it depends on the comment's position in the caller's list.
+function toComment(response: CommentResponse, floor: string): Comment {
+  return {
+    commentId: String(response.commentId),
+    floor,
+    nickName: response.author.displayName,
+    timeLabel: '剛剛',
+    content: response.content,
+    likeCount: response.likeCount,
+    images: toCommentImages(response.images),
+    replies: [],
+    canEdit: response.canEdit,
+    canDelete: response.canDelete,
+  };
+}
+
+// Maps a just-created reply CommentResponse into the board's Reply shape.
+// `isCommissioner` is left unset — the board doesn't know the commission
+// author's userId (only the page-level SSR mapping in comments/page.tsx does),
+// so a freshly-added reply won't show the 委託人 badge until the next full
+// reload re-fetches with that context.
+function toReply(response: CommentResponse): Reply {
+  return {
+    replyId: String(response.commentId),
+    nickName: response.author.displayName,
+    timeLabel: '剛剛',
+    content: response.content,
+    images: toCommentImages(response.images),
+    canEdit: response.canEdit,
+    canDelete: response.canDelete,
+  };
+}
 
 function ImageCell({ label, variant }: { label?: string; variant: 'lg' | 'grid' }) {
   const isGrid = variant === 'grid';
@@ -279,7 +320,6 @@ function ReplyList({
   onReply,
   onDeleteReply,
   defaultExpanded,
-  currentUserEmail,
 }: {
   postId: string;
   commentId: string;
@@ -290,10 +330,6 @@ function ReplyList({
   // Start expanded when the user just replied here via the template, so the new
   // reply shows immediately instead of collapsed behind the toggle.
   defaultExpanded: boolean;
-  // The logged-in user's email, used to gate the 編輯 entry point to only the
-  // current user's own replies (matched against Reply.authorEmail, not the
-  // displayed nickname — two real users could share a nickname).
-  currentUserEmail: string | null;
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const hasReplies = replies.length > 0;
@@ -332,22 +368,22 @@ function ReplyList({
                   <time className="ml-auto text-label-md text-text-placeholder">
                     {reply.timeLabel}
                   </time>
-                  {reply.authorEmail !== undefined && reply.authorEmail === currentUserEmail ? (
-                    <>
-                      <Link
-                        href={`/posts/commissions/${postId}/comments/new?replyTo=${commentId}&editReplyId=${reply.replyId}`}
-                        className="text-label-md font-semibold text-text-muted"
-                      >
-                        編輯
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={() => onDeleteReply(reply.replyId)}
-                        className="text-label-md font-semibold text-text-muted"
-                      >
-                        刪除
-                      </button>
-                    </>
+                  {reply.canEdit ? (
+                    <Link
+                      href={`/posts/commissions/${postId}/comments/new?replyTo=${commentId}&editReplyId=${reply.replyId}`}
+                      className="text-label-md font-semibold text-text-muted"
+                    >
+                      編輯
+                    </Link>
+                  ) : null}
+                  {reply.canDelete ? (
+                    <button
+                      type="button"
+                      onClick={() => onDeleteReply(reply.replyId)}
+                      className="text-label-md font-semibold text-text-muted"
+                    >
+                      刪除
+                    </button>
                   ) : null}
                 </div>
                 <div className="mt-0.75 text-body-lg leading-[1.7] text-text-primary">
@@ -389,7 +425,6 @@ function CommentItem({
   awardedAmount,
   canAward,
   defaultExpanded,
-  currentUserEmail,
 }: {
   postId: string;
   comment: Comment;
@@ -405,10 +440,6 @@ function CommentItem({
   awardedAmount?: number;
   canAward: boolean;
   defaultExpanded: boolean;
-  // The logged-in user's email, used to gate the 編輯 entry point to only the
-  // current user's own comment/replies (matched against authorEmail, not the
-  // displayed nickName — two real users could share a nickname).
-  currentUserEmail: string | null;
 }) {
   return (
     <article className="flex flex-col gap-2.5">
@@ -433,22 +464,22 @@ function CommentItem({
             <Badge variant="green" className="rounded-lg">
               {comment.floor}
             </Badge>
-            {comment.authorEmail !== undefined && comment.authorEmail === currentUserEmail ? (
-              <>
-                <Link
-                  href={`/posts/commissions/${postId}/comments/new?editCommentId=${comment.commentId}`}
-                  className="text-label-md font-semibold text-text-muted"
-                >
-                  編輯
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => onDeleteComment(comment.commentId)}
-                  className="text-label-md font-semibold text-text-muted"
-                >
-                  刪除
-                </button>
-              </>
+            {comment.canEdit ? (
+              <Link
+                href={`/posts/commissions/${postId}/comments/new?editCommentId=${comment.commentId}`}
+                className="text-label-md font-semibold text-text-muted"
+              >
+                編輯
+              </Link>
+            ) : null}
+            {comment.canDelete ? (
+              <button
+                type="button"
+                onClick={() => onDeleteComment(comment.commentId)}
+                className="text-label-md font-semibold text-text-muted"
+              >
+                刪除
+              </button>
             ) : null}
           </div>
           <div className="mt-1 text-body-lg leading-[1.7] text-text-primary">{comment.content}</div>
@@ -476,7 +507,6 @@ function CommentItem({
           onReply={onReply}
           onDeleteReply={(replyId) => onDeleteReply(comment.commentId, replyId)}
           defaultExpanded={defaultExpanded}
-          currentUserEmail={currentUserEmail}
         />
       ) : null}
     </article>
@@ -517,17 +547,6 @@ export default function CommentBoard({
   // Only one comment's reply box is open at a time — cleaner on the mobile
   // width and keeps the composer focus unambiguous.
   const [activeReplyId, setActiveReplyId] = useState<string | null>(null);
-  // The logged-in user's email, used to gate the 編輯 entry point to only the
-  // current user's own comments/replies (matched against authorEmail, never
-  // the displayed nickName — two real users could share a nickname). Read in
-  // an effect (not inline during render) since it comes from localStorage and
-  // would otherwise mismatch between the server render and the client, same
-  // as the pending merge below.
-  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCurrentUserEmail(getAuthedUser()?.email ?? null);
-  }, []);
 
   // The give-points affordability check needs the real wallet balance, not
   // the MOCK_USER_POINTS placeholder. Defaults to 0 (rather than leaving it
@@ -555,28 +574,12 @@ export default function CommentBoard({
   // the pending merge brings the new comment in.
   const scrollTargetRef = useRef<string | null>(focusId ?? null);
 
-  // Set by a delete button (not yet wired to any UI — see deleteComment/
-  // deleteReply below) to drive the confirmation modal.
+  // Set by a delete button to drive the confirmation modal.
   const [deleteTarget, setDeleteTarget] = useState<
     | { type: 'comment'; commentId: string }
     | { type: 'reply'; commentId: string; replyId: string }
     | null
   >(null);
-
-  // Merge any optimistically-added comments/replies from earlier in the session
-  // (e.g. submitted via the full-page template, which navigates away and back)
-  // onto the server mock data. Runs on mount only; `mergePendingComments` is pure
-  // in `initialComments`, so re-running would produce the same list.
-  //
-  // This deliberately syncs state after mount rather than in a lazy `useState`
-  // initializer: the pending store lives in sessionStorage (client-only), so
-  // reading it during render would mismatch the server-rendered HTML. That is
-  // exactly the client-only-external-store case the set-state-in-effect rule
-  // does not account for, hence the disable.
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setComments(mergePendingComments(postId, initialComments));
-  }, [postId, initialComments]);
 
   // Scroll to the just-posted comment/reply once it appears in the list — either
   // an inline add this session or a return from the full-page template (?focus=).
@@ -606,37 +609,28 @@ export default function CommentBoard({
     if (focusId) router.replace(pathname, { scroll: false });
   }, [comments, focusId, pathname, router]);
 
-  // Optimistically append the new comment and persist it to the pending store so
-  // it survives navigation/reload within the session (no comments backend yet).
-  function addComment(text: string) {
-    const authedUser = getAuthedUser();
-    const comment = {
-      commentId: crypto.randomUUID(),
-      nickName: authedUser?.nickName ?? '你',
-      timeLabel: '剛剛',
-      content: text,
-      likeCount: 0,
-      authorEmail: authedUser?.email,
-    };
-    setComments((prev) => [...prev, { ...comment, floor: `B${prev.length + 1}` }]);
-    addPendingComment(postId, comment);
+  // Posts the new root comment to the real API, then appends the server's
+  // CommentResponse (source of truth for id/canEdit/canDelete/etc.) once it
+  // resolves. No optimistic placeholder — a failed request would otherwise
+  // leave a comment in the list with no way to reconcile it.
+  async function addComment(text: string) {
+    const result = await createComment(postId, { content: text });
+    if (!result.success || !result.data) return;
+    const comment = toComment(result.data, `B${comments.length + 1}`);
+    setComments((prev) => [...prev, comment]);
     // Scroll to it once it renders (the effect keyed on `comments` picks this up).
     scrollTargetRef.current = `comment-${comment.commentId}`;
   }
 
-  // Optimistically insert the reply into its parent comment and persist it. This
-  // is the quick text-only path; a reply with images goes through the
-  // reply-aware full template instead (see ReplyComposer). No rollback — there
-  // is no backend to reconcile against yet.
-  function addReply(commentId: string, text: string) {
-    const authedUser = getAuthedUser();
-    const reply = {
-      replyId: crypto.randomUUID(),
-      nickName: authedUser?.nickName ?? '你',
-      timeLabel: '剛剛',
-      content: text,
-      authorEmail: authedUser?.email,
-    };
+  // Posts the reply to the real API, then appends the server's CommentResponse
+  // to its parent comment's reply list once it resolves. This is the quick
+  // text-only path; a reply with images goes through the reply-aware full
+  // template instead (see ReplyComposer). No optimistic placeholder — same
+  // reasoning as addComment.
+  async function addReply(commentId: string, text: string) {
+    const result = await createReply(commentId, { content: text });
+    if (!result.success || !result.data) return;
+    const reply = toReply(result.data);
     setComments((prev) =>
       prev.map((comment) =>
         comment.commentId === commentId
@@ -644,7 +638,6 @@ export default function CommentBoard({
           : comment,
       ),
     );
-    addPendingReply(postId, commentId, reply);
     // Scroll the new reply into view once it renders (its parent's reply list is
     // expanded by the ReplyComposer's submit handler, so it is on screen).
     scrollTargetRef.current = `reply-${reply.replyId}`;
@@ -655,8 +648,12 @@ export default function CommentBoard({
   // Removes a top-level comment optimistically and drops it from the pending
   // store. Not yet wired to any button — the delete confirmation modal below
   // is ready for a teammate to trigger via setDeleteTarget.
-  function deleteComment(commentId: string) {
-    removePendingComment(postId, commentId);
+  // Soft-deletes the comment via the real API, then drops it from the list
+  // once the request succeeds — no optimistic removal, so a failed delete
+  // leaves the comment in place rather than disappearing and reappearing.
+  async function deleteComment(commentId: string) {
+    const result = await deleteCommentApi(commentId);
+    if (!result.success) return;
     setComments((prev) =>
       prev
         .filter((comment) => comment.commentId !== commentId)
@@ -667,8 +664,11 @@ export default function CommentBoard({
     setDeleteTarget(null);
   }
 
-  function deleteReply(commentId: string, replyId: string) {
-    removePendingReply(postId, commentId, replyId);
+  // Replies are comments too — deleted via the same PUT.../DELETE... endpoint,
+  // addressed by the reply's own id (not the parent comment's).
+  async function deleteReply(commentId: string, replyId: string) {
+    const result = await deleteCommentApi(replyId);
+    if (!result.success) return;
     setComments((prev) =>
       prev.map((comment) =>
         comment.commentId === commentId
@@ -757,7 +757,6 @@ export default function CommentBoard({
               awardedAmount={awarded?.amount}
               canAward={awarded === null}
               defaultExpanded={expandReplyId === comment.commentId}
-              currentUserEmail={currentUserEmail}
             />
             {index < comments.length - 1 ? <Separator aria-hidden="true" /> : null}
           </li>

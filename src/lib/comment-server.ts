@@ -1,23 +1,24 @@
 import { cookies } from 'next/headers';
 import { parseApiEnvelope } from '@/lib/api-envelope';
 import { catchError } from '@/lib/catch-error';
-import type { CommissionDetailResponse } from '@/types/commission';
+import type { CommentResponse } from '@/types/comment';
 import type { ApiEnvelope } from '@/types/image';
 
 const BACKEND_URL = 'https://stycue.rocket-coding.com/api/commissions';
 const ACCESS_TOKEN_COOKIE = 'stycue_access_token';
 
-// GET /api/commissions/{id} allows anonymous access, so callers get partial
-// data (no isOwner/canX flags) rather than an error when logged out.
-export async function getCommissionServer(
+// GET /api/commissions/{commissionId}/comments allows anonymous access, so
+// callers get partial data (no isOwner/canEdit/canDelete/isLiked flags)
+// rather than an error when logged out.
+export async function getCommentsServer(
   commissionId: string,
-): Promise<ApiEnvelope<CommissionDetailResponse>> {
+): Promise<ApiEnvelope<CommentResponse[]>> {
   const store = await cookies();
   const token = store.get(ACCESS_TOKEN_COOKIE)?.value;
   const authHeader = token ? { Authorization: `Bearer ${token}` } : undefined;
 
   const [res, fetchError] = await catchError(
-    fetch(`${BACKEND_URL}/${commissionId}`, { headers: authHeader, cache: 'no-store' }),
+    fetch(`${BACKEND_URL}/${commissionId}/comments`, { headers: authHeader, cache: 'no-store' }),
   );
   if (fetchError) {
     return {
@@ -28,5 +29,5 @@ export async function getCommissionServer(
     };
   }
 
-  return parseApiEnvelope<CommissionDetailResponse>(res, '無法取得委託文');
+  return parseApiEnvelope<CommentResponse[]>(res, '無法取得留言列表');
 }
