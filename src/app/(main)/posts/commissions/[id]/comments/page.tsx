@@ -11,8 +11,19 @@ import { MOCK_PUBLISH_POINTS } from '../mock-commission';
 // Relative-time label to match the design copy (e.g. "43 分前", "剛剛"). The
 // API only returns an ISO createdAt, so this is computed on render rather
 // than stored.
+//
+// The backend serializes createdAt without a timezone suffix (e.g.
+// "2026-07-14T15:35:15.4624895") even though the value is UTC. `new Date()`
+// treats an offset-less ISO string as local time, so without this it would
+// silently be off by the server/browser's UTC offset (8 hours in Taipei).
+// Append "Z" whenever the string has no explicit zone marker.
+function parseServerDate(iso: string): Date {
+  const hasTimezone = /[Zz]|[+-]\d{2}:\d{2}$/.test(iso);
+  return new Date(hasTimezone ? iso : `${iso}Z`);
+}
+
 function formatRelativeTime(iso: string): string {
-  const diffMs = Date.now() - new Date(iso).getTime();
+  const diffMs = Date.now() - parseServerDate(iso).getTime();
   const diffMinutes = Math.floor(diffMs / 60_000);
   if (diffMinutes < 1) return '剛剛';
   if (diffMinutes < 60) return `${diffMinutes} 分前`;
