@@ -36,3 +36,8 @@ export async function updateComment(
   });
   return (await res.json()) as ApiEnvelope<CommentResponse>;
 }
+
+export async function deleteComment(commentId: string): Promise<ApiEnvelope<unknown>> {
+  const res = await fetch(`/api/comments/${commentId}`, { method: 'DELETE' });
+  return (await res.json()) as ApiEnvelope<unknown>;
+}

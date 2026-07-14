@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { createComment, createReply } from '@/lib/comment-api';
+import { createComment, createReply, deleteComment as deleteCommentApi } from '@/lib/comment-api';
 import { getPointWallet } from '@/lib/points-api';
 import type { CommentResponse } from '@/types/comment';
 import type { ImageResponse } from '@/types/image';
@@ -27,11 +27,6 @@ import {
   InsufficientPointsModal,
 } from './comment-modals';
 import { categoryLabel } from '../image-categories';
-import {
-  mergePendingComments,
-  removePendingComment,
-  removePendingReply,
-} from '../pending-comments';
 
 // Shape returned by the (future) POST /uploads endpoint plus the category/brand
 // the user tagged it with — matches the backend's per-image record.
@@ -579,28 +574,12 @@ export default function CommentBoard({
   // the pending merge brings the new comment in.
   const scrollTargetRef = useRef<string | null>(focusId ?? null);
 
-  // Set by a delete button (not yet wired to any UI — see deleteComment/
-  // deleteReply below) to drive the confirmation modal.
+  // Set by a delete button to drive the confirmation modal.
   const [deleteTarget, setDeleteTarget] = useState<
     | { type: 'comment'; commentId: string }
     | { type: 'reply'; commentId: string; replyId: string }
     | null
   >(null);
-
-  // Merge any optimistically-added comments/replies from earlier in the session
-  // (e.g. submitted via the full-page template, which navigates away and back)
-  // onto the server mock data. Runs on mount only; `mergePendingComments` is pure
-  // in `initialComments`, so re-running would produce the same list.
-  //
-  // This deliberately syncs state after mount rather than in a lazy `useState`
-  // initializer: the pending store lives in sessionStorage (client-only), so
-  // reading it during render would mismatch the server-rendered HTML. That is
-  // exactly the client-only-external-store case the set-state-in-effect rule
-  // does not account for, hence the disable.
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setComments(mergePendingComments(postId, initialComments));
-  }, [postId, initialComments]);
 
   // Scroll to the just-posted comment/reply once it appears in the list — either
   // an inline add this session or a return from the full-page template (?focus=).
@@ -669,8 +648,12 @@ export default function CommentBoard({
   // Removes a top-level comment optimistically and drops it from the pending
   // store. Not yet wired to any button — the delete confirmation modal below
   // is ready for a teammate to trigger via setDeleteTarget.
-  function deleteComment(commentId: string) {
-    removePendingComment(postId, commentId);
+  // Soft-deletes the comment via the real API, then drops it from the list
+  // once the request succeeds — no optimistic removal, so a failed delete
+  // leaves the comment in place rather than disappearing and reappearing.
+  async function deleteComment(commentId: string) {
+    const result = await deleteCommentApi(commentId);
+    if (!result.success) return;
     setComments((prev) =>
       prev
         .filter((comment) => comment.commentId !== commentId)
@@ -681,8 +664,11 @@ export default function CommentBoard({
     setDeleteTarget(null);
   }
 
-  function deleteReply(commentId: string, replyId: string) {
-    removePendingReply(postId, commentId, replyId);
+  // Replies are comments too — deleted via the same PUT.../DELETE... endpoint,
+  // addressed by the reply's own id (not the parent comment's).
+  async function deleteReply(commentId: string, replyId: string) {
+    const result = await deleteCommentApi(replyId);
+    if (!result.success) return;
     setComments((prev) =>
       prev.map((comment) =>
         comment.commentId === commentId
