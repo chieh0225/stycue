@@ -13,6 +13,7 @@ import { TopBar } from '@/components/ui/top-bar';
 import { createCommission } from '@/lib/commission-api';
 import { getPointWallet } from '@/lib/points-api';
 import { cn } from '@/lib/utils';
+import { getAuthedUser } from '../../../../../auth';
 import {
   DRAFT_STORAGE_KEY,
   TITLE_MAX_LENGTH,
@@ -51,6 +52,17 @@ export default function NewPostPreviewPage() {
     return () => {
       active = false;
     };
+  }, []);
+
+  // Read from localStorage client-side only, so it starts null instead of a
+  // placeholder that would flash before the real nickname lands.
+  const [nickName, setNickName] = useState<string | null>(null);
+  useEffect(() => {
+    // Deferred to a microtask so this doesn't setState synchronously within
+    // the effect body (react-hooks/set-state-in-effect).
+    queueMicrotask(() => {
+      setNickName(getAuthedUser()?.nickName ?? null);
+    });
   }, []);
 
   const { title, description, height, weight, age, selectedBudget, postType, points, photos } =
@@ -230,9 +242,9 @@ export default function NewPostPreviewPage() {
         {/* Author row (not part of the entered content — shown for context only) */}
         <div className="mb-4.5 flex items-center gap-2.5">
           <Avatar size="xl">
-            <AvatarFallback>M</AvatarFallback>
+            <AvatarFallback>{(nickName ?? '').charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
-          <span className="text-label-md font-bold text-text-primary">Maple</span>
+          <span className="text-label-md font-bold text-text-primary">{nickName}</span>
         </div>
 
         <Separator className="mb-4.5" />
