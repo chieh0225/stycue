@@ -6,11 +6,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { createComment } from '@/lib/comment-api';
+import { createComment, createReply } from '@/lib/comment-api';
 import { getPointWallet } from '@/lib/points-api';
 import type { CommentResponse } from '@/types/comment';
 import type { ImageResponse } from '@/types/image';
-import { getAuthedUser } from '../../../../../auth';
 import CommentComposer from '../comment-composer';
 import {
   ChevronDownIcon,
@@ -29,7 +28,6 @@ import {
 } from './comment-modals';
 import { categoryLabel } from '../image-categories';
 import {
-  addPendingReply,
   mergePendingComments,
   removePendingComment,
   removePendingReply,
@@ -94,6 +92,23 @@ function toComment(response: CommentResponse, floor: string): Comment {
     likeCount: response.likeCount,
     images: toCommentImages(response.images),
     replies: [],
+    canEdit: response.canEdit,
+    canDelete: response.canDelete,
+  };
+}
+
+// Maps a just-created reply CommentResponse into the board's Reply shape.
+// `isCommissioner` is left unset — the board doesn't know the commission
+// author's userId (only the page-level SSR mapping in comments/page.tsx does),
+// so a freshly-added reply won't show the 委託人 badge until the next full
+// reload re-fetches with that context.
+function toReply(response: CommentResponse): Reply {
+  return {
+    replyId: String(response.commentId),
+    nickName: response.author.displayName,
+    timeLabel: '剛剛',
+    content: response.content,
+    images: toCommentImages(response.images),
     canEdit: response.canEdit,
     canDelete: response.canDelete,
   };
@@ -628,20 +643,15 @@ export default function CommentBoard({
     scrollTargetRef.current = `comment-${comment.commentId}`;
   }
 
-  // Optimistically insert the reply into its parent comment and persist it. This
-  // is the quick text-only path; a reply with images goes through the
-  // reply-aware full template instead (see ReplyComposer). No rollback — there
-  // is no backend to reconcile against yet.
-  function addReply(commentId: string, text: string) {
-    const authedUser = getAuthedUser();
-    const reply = {
-      replyId: crypto.randomUUID(),
-      nickName: authedUser?.nickName ?? '你',
-      timeLabel: '剛剛',
-      content: text,
-      canEdit: true,
-      canDelete: true,
-    };
+  // Posts the reply to the real API, then appends the server's CommentResponse
+  // to its parent comment's reply list once it resolves. This is the quick
+  // text-only path; a reply with images goes through the reply-aware full
+  // template instead (see ReplyComposer). No optimistic placeholder — same
+  // reasoning as addComment.
+  async function addReply(commentId: string, text: string) {
+    const result = await createReply(commentId, { content: text });
+    if (!result.success || !result.data) return;
+    const reply = toReply(result.data);
     setComments((prev) =>
       prev.map((comment) =>
         comment.commentId === commentId
@@ -649,7 +659,6 @@ export default function CommentBoard({
           : comment,
       ),
     );
-    addPendingReply(postId, commentId, reply);
     // Scroll the new reply into view once it renders (its parent's reply list is
     // expanded by the ReplyComposer's submit handler, so it is on screen).
     scrollTargetRef.current = `reply-${reply.replyId}`;

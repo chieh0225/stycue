@@ -18,9 +18,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import { createComment } from '@/lib/comment-api';
+import { createComment, createReply } from '@/lib/comment-api';
 import { cn } from '@/lib/utils';
-import { getAuthedUser } from '../../../../../../auth';
 import {
   categoryLabel,
   DEFAULT_IMAGE_CATEGORY_ID,
@@ -28,7 +27,6 @@ import {
   type ImageCategoryId,
 } from '../../image-categories';
 import {
-  addPendingReply,
   getPendingComment,
   getPendingReply,
   updatePendingComment,
@@ -271,18 +269,15 @@ export default function AddCommentForm({
       params.set('focus', `reply-${editReplyId}`);
       params.set('expand', replyTo!);
     } else if (replyTo) {
-      const authedUser = getAuthedUser();
-      const replyId = crypto.randomUUID();
-      addPendingReply(postId, replyTo, {
-        replyId,
-        nickName: authedUser?.nickName ?? '你',
-        timeLabel: '剛剛',
+      const result = await createReply(replyTo, {
         content,
-        images: resolvedImages,
-        canEdit: true,
-        canDelete: true,
+        imageIds: resolvedImages.map((image) => image.imageId),
       });
-      params.set('focus', `reply-${replyId}`);
+      if (!result.success || !result.data) {
+        setSubmitting(false);
+        return;
+      }
+      params.set('focus', `reply-${result.data.commentId}`);
       params.set('expand', replyTo);
     } else {
       const result = await createComment(postId, {

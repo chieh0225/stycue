@@ -54,11 +54,6 @@ function write(postId: string, store: PendingStore) {
   }
 }
 
-export function addPendingReply(postId: string, commentId: string, reply: Reply) {
-  const store = read(postId);
-  write(postId, { ...store, replies: [...store.replies, { commentId, reply }] });
-}
-
 export function getPendingComment(postId: string, commentId: string): PendingComment | undefined {
   return read(postId).comments.find((comment) => comment.commentId === commentId);
 }
