@@ -282,7 +282,8 @@ export default function AddCommentForm({
         timeLabel: '剛剛',
         content,
         images: resolvedImages,
-        authorEmail: authedUser?.email,
+        canEdit: true,
+        canDelete: true,
       });
       params.set('focus', `reply-${replyId}`);
       params.set('expand', replyTo);
@@ -296,7 +297,8 @@ export default function AddCommentForm({
         content,
         likeCount: 0,
         images: resolvedImages,
-        authorEmail: authedUser?.email,
+        canEdit: true,
+        canDelete: true,
       });
       params.set('focus', `comment-${commentId}`);
     }

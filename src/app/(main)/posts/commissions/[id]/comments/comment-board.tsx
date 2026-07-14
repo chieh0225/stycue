@@ -49,10 +49,11 @@ export type Reply = {
   content: string;
   isCommissioner?: boolean;
   images?: CommentImage[];
-  // Captured from the author's login identity at creation time — never
-  // rendered. Used only to gate the 編輯 entry point to the actual author,
-  // since nickName alone could collide between two real users.
-  authorEmail?: string;
+  // Sourced directly from the API's per-comment canEdit/canDelete flags
+  // (or defaulted true for an optimistic just-created item) rather than
+  // matched against a locally-known identity.
+  canEdit: boolean;
+  canDelete: boolean;
 };
 
 export type Comment = {
@@ -64,8 +65,8 @@ export type Comment = {
   likeCount: number;
   images?: CommentImage[];
   replies?: Reply[];
-  // Same as Reply.authorEmail — never rendered.
-  authorEmail?: string;
+  canEdit: boolean;
+  canDelete: boolean;
 };
 
 function ImageCell({ label, variant }: { label?: string; variant: 'lg' | 'grid' }) {
@@ -279,7 +280,6 @@ function ReplyList({
   onReply,
   onDeleteReply,
   defaultExpanded,
-  currentUserEmail,
 }: {
   postId: string;
   commentId: string;
@@ -290,10 +290,6 @@ function ReplyList({
   // Start expanded when the user just replied here via the template, so the new
   // reply shows immediately instead of collapsed behind the toggle.
   defaultExpanded: boolean;
-  // The logged-in user's email, used to gate the 編輯 entry point to only the
-  // current user's own replies (matched against Reply.authorEmail, not the
-  // displayed nickname — two real users could share a nickname).
-  currentUserEmail: string | null;
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const hasReplies = replies.length > 0;
@@ -332,22 +328,22 @@ function ReplyList({
                   <time className="ml-auto text-label-md text-text-placeholder">
                     {reply.timeLabel}
                   </time>
-                  {reply.authorEmail !== undefined && reply.authorEmail === currentUserEmail ? (
-                    <>
-                      <Link
-                        href={`/posts/commissions/${postId}/comments/new?replyTo=${commentId}&editReplyId=${reply.replyId}`}
-                        className="text-label-md font-semibold text-text-muted"
-                      >
-                        編輯
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={() => onDeleteReply(reply.replyId)}
-                        className="text-label-md font-semibold text-text-muted"
-                      >
-                        刪除
-                      </button>
-                    </>
+                  {reply.canEdit ? (
+                    <Link
+                      href={`/posts/commissions/${postId}/comments/new?replyTo=${commentId}&editReplyId=${reply.replyId}`}
+                      className="text-label-md font-semibold text-text-muted"
+                    >
+                      編輯
+                    </Link>
+                  ) : null}
+                  {reply.canDelete ? (
+                    <button
+                      type="button"
+                      onClick={() => onDeleteReply(reply.replyId)}
+                      className="text-label-md font-semibold text-text-muted"
+                    >
+                      刪除
+                    </button>
                   ) : null}
                 </div>
                 <div className="mt-0.75 text-body-lg leading-[1.7] text-text-primary">
@@ -389,7 +385,6 @@ function CommentItem({
   awardedAmount,
   canAward,
   defaultExpanded,
-  currentUserEmail,
 }: {
   postId: string;
   comment: Comment;
@@ -405,10 +400,6 @@ function CommentItem({
   awardedAmount?: number;
   canAward: boolean;
   defaultExpanded: boolean;
-  // The logged-in user's email, used to gate the 編輯 entry point to only the
-  // current user's own comment/replies (matched against authorEmail, not the
-  // displayed nickName — two real users could share a nickname).
-  currentUserEmail: string | null;
 }) {
   return (
     <article className="flex flex-col gap-2.5">
@@ -433,22 +424,22 @@ function CommentItem({
             <Badge variant="green" className="rounded-lg">
               {comment.floor}
             </Badge>
-            {comment.authorEmail !== undefined && comment.authorEmail === currentUserEmail ? (
-              <>
-                <Link
-                  href={`/posts/commissions/${postId}/comments/new?editCommentId=${comment.commentId}`}
-                  className="text-label-md font-semibold text-text-muted"
-                >
-                  編輯
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => onDeleteComment(comment.commentId)}
-                  className="text-label-md font-semibold text-text-muted"
-                >
-                  刪除
-                </button>
-              </>
+            {comment.canEdit ? (
+              <Link
+                href={`/posts/commissions/${postId}/comments/new?editCommentId=${comment.commentId}`}
+                className="text-label-md font-semibold text-text-muted"
+              >
+                編輯
+              </Link>
+            ) : null}
+            {comment.canDelete ? (
+              <button
+                type="button"
+                onClick={() => onDeleteComment(comment.commentId)}
+                className="text-label-md font-semibold text-text-muted"
+              >
+                刪除
+              </button>
             ) : null}
           </div>
           <div className="mt-1 text-body-lg leading-[1.7] text-text-primary">{comment.content}</div>
@@ -476,7 +467,6 @@ function CommentItem({
           onReply={onReply}
           onDeleteReply={(replyId) => onDeleteReply(comment.commentId, replyId)}
           defaultExpanded={defaultExpanded}
-          currentUserEmail={currentUserEmail}
         />
       ) : null}
     </article>
@@ -517,17 +507,6 @@ export default function CommentBoard({
   // Only one comment's reply box is open at a time — cleaner on the mobile
   // width and keeps the composer focus unambiguous.
   const [activeReplyId, setActiveReplyId] = useState<string | null>(null);
-  // The logged-in user's email, used to gate the 編輯 entry point to only the
-  // current user's own comments/replies (matched against authorEmail, never
-  // the displayed nickName — two real users could share a nickname). Read in
-  // an effect (not inline during render) since it comes from localStorage and
-  // would otherwise mismatch between the server render and the client, same
-  // as the pending merge below.
-  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCurrentUserEmail(getAuthedUser()?.email ?? null);
-  }, []);
 
   // The give-points affordability check needs the real wallet balance, not
   // the MOCK_USER_POINTS placeholder. Defaults to 0 (rather than leaving it
@@ -616,7 +595,8 @@ export default function CommentBoard({
       timeLabel: '剛剛',
       content: text,
       likeCount: 0,
-      authorEmail: authedUser?.email,
+      canEdit: true,
+      canDelete: true,
     };
     setComments((prev) => [...prev, { ...comment, floor: `B${prev.length + 1}` }]);
     addPendingComment(postId, comment);
@@ -635,7 +615,8 @@ export default function CommentBoard({
       nickName: authedUser?.nickName ?? '你',
       timeLabel: '剛剛',
       content: text,
-      authorEmail: authedUser?.email,
+      canEdit: true,
+      canDelete: true,
     };
     setComments((prev) =>
       prev.map((comment) =>
@@ -757,7 +738,6 @@ export default function CommentBoard({
               awardedAmount={awarded?.amount}
               canAward={awarded === null}
               defaultExpanded={expandReplyId === comment.commentId}
-              currentUserEmail={currentUserEmail}
             />
             {index < comments.length - 1 ? <Separator aria-hidden="true" /> : null}
           </li>

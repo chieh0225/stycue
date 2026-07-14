@@ -1,80 +1,69 @@
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { TopBar } from '@/components/ui/top-bar';
-import CommentBoard, { type Comment } from './comment-board';
+import { getCommentsServer } from '@/lib/comment-server';
+import { getCommissionServer } from '@/lib/commission-server';
+import type { CommentResponse } from '@/types/comment';
+import CommentBoard, { type Comment, type CommentImage, type Reply } from './comment-board';
 import HideScrollbar from '../hide-scrollbar';
 import { MOCK_PUBLISH_POINTS } from '../mock-commission';
 
-// Mock data shaped after GET /api/v1/commissions/{id}/comments — swap for the
-// real comments API once it exists.
-const comments: Comment[] = [
-  {
-    commentId: 'cmt_b1',
-    floor: 'B1',
-    nickName: 'Chris',
-    timeLabel: '43 分前',
-    content: '181cm 身高很有優勢，推薦 NET 寬鬆襯衫搭配直筒褲，簡單又有韓系感。',
-    likeCount: 100,
-    images: [
-      { imageId: 1, imageUrl: '', category: 1, brand: 'NET' },
-      { imageId: 2, imageUrl: '', category: 2, brand: 'NET' },
-      { imageId: 3, imageUrl: '', category: 1, brand: '' },
-    ],
-    replies: [
-      {
-        replyId: 'rpl_b1_1',
-        nickName: 'Maple',
-        timeLabel: '40 分前',
-        isCommissioner: true,
-        content: '謝謝！我最近剛好有看到 NET 的襯衫，之後會去試穿看看。',
-      },
-      {
-        replyId: 'rpl_b1_2',
-        nickName: 'GD',
-        timeLabel: '38 分前',
-        content: '補充一下，NET 可以先買襯衫，褲子我比較推薦 GU 的版型。',
-        images: [{ imageId: 4, imageUrl: '', category: 2, brand: 'GU' }],
-      },
-    ],
-  },
-  {
-    commentId: 'cmt_b2',
-    floor: 'B2',
-    nickName: 'GD',
-    timeLabel: '5 分前',
-    content: '身形比例不錯，可以試試白 T 加 GU 寬版西裝褲的 Clean 韓系穿搭。',
-    likeCount: 20,
-    images: [{ imageId: 5, imageUrl: '', category: 1, brand: '' }],
-  },
-  {
-    commentId: 'cmt_b3',
-    floor: 'B3',
-    nickName: 'Mao',
-    timeLabel: '3 分前',
-    content: '建議以黑白灰為主色系，搭配寬褲和薄襯衫，乾淨耐看又好上手。',
-    likeCount: 159,
-  },
-  {
-    commentId: 'cmt_b4',
-    floor: 'B4',
-    nickName: 'Hank',
-    timeLabel: '剛剛',
-    content:
-      '這裡分享一套完整的九宮格穿搭提案，建議可以嘗試大地色系的疊穿，增加層次感而不顯得雜亂。',
-    likeCount: 0,
-    images: [
-      { imageId: 6, imageUrl: '', category: 6, brand: 'ORIVOE' },
-      { imageId: 7, imageUrl: '', category: 1, brand: 'L.L.Bean' },
-      { imageId: 8, imageUrl: '', category: 1, brand: 'MUJI' },
-      { imageId: 9, imageUrl: '', category: 1, brand: '' },
-      { imageId: 10, imageUrl: '', category: 4, brand: 'Leather' },
-      { imageId: 11, imageUrl: '', category: 3, brand: 'Clarks' },
-      { imageId: 12, imageUrl: '', category: 2, brand: 'UNIQLO' },
-      { imageId: 13, imageUrl: '', category: 4, brand: 'Wool' },
-      { imageId: 14, imageUrl: '', category: 99, brand: 'ORIVOE' },
-    ],
-  },
-];
+// Relative-time label to match the design copy (e.g. "43 分前", "剛剛"). The
+// API only returns an ISO createdAt, so this is computed on render rather
+// than stored.
+function formatRelativeTime(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const diffMinutes = Math.floor(diffMs / 60_000);
+  if (diffMinutes < 1) return '剛剛';
+  if (diffMinutes < 60) return `${diffMinutes} 分前`;
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours} 小時前`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays} 天前`;
+}
+
+function toCommentImages(images: CommentResponse['images']): CommentImage[] | undefined {
+  if (images.length === 0) return undefined;
+  return images.map((image) => ({
+    imageId: image.imageId,
+    imageUrl: image.url,
+    category: image.category ?? 99,
+    brand: image.brand ?? '',
+  }));
+}
+
+function toReply(response: CommentResponse, commissionAuthorId: number | undefined): Reply {
+  return {
+    replyId: String(response.commentId),
+    nickName: response.author.displayName,
+    timeLabel: formatRelativeTime(response.createdAt),
+    content: response.content,
+    isCommissioner:
+      commissionAuthorId !== undefined && response.author.userId === commissionAuthorId,
+    images: toCommentImages(response.images),
+    canEdit: response.canEdit,
+    canDelete: response.canDelete,
+  };
+}
+
+function toComment(
+  response: CommentResponse,
+  index: number,
+  commissionAuthorId: number | undefined,
+): Comment {
+  return {
+    commentId: String(response.commentId),
+    floor: `B${index + 1}`,
+    nickName: response.author.displayName,
+    timeLabel: formatRelativeTime(response.createdAt),
+    content: response.content,
+    likeCount: response.likeCount,
+    images: toCommentImages(response.images),
+    replies: response.replies.map((reply) => toReply(reply, commissionAuthorId)),
+    canEdit: response.canEdit,
+    canDelete: response.canDelete,
+  };
+}
 
 export default async function PostCommentsPage({
   params,
@@ -93,6 +82,21 @@ export default async function PostCommentsPage({
   const focusId = typeof focus === 'string' ? focus : undefined;
   const expandReplyId = typeof expand === 'string' ? expand : undefined;
 
+  const [commentsResult, commissionResult] = await Promise.all([
+    getCommentsServer(id),
+    getCommissionServer(id),
+  ]);
+  const commissionAuthorId = commissionResult.success
+    ? commissionResult.data?.author.userId
+    : undefined;
+  const publishPoints = commissionResult.success
+    ? (commissionResult.data?.points ?? MOCK_PUBLISH_POINTS)
+    : MOCK_PUBLISH_POINTS;
+  const comments =
+    commentsResult.success && commentsResult.data
+      ? commentsResult.data.map((comment, index) => toComment(comment, index, commissionAuthorId))
+      : [];
+
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col bg-surface-base">
       <HideScrollbar />
@@ -110,7 +114,7 @@ export default async function PostCommentsPage({
       <CommentBoard
         postId={id}
         initialComments={comments}
-        publishPoints={MOCK_PUBLISH_POINTS}
+        publishPoints={publishPoints}
         focusId={focusId}
         expandReplyId={expandReplyId}
       />
