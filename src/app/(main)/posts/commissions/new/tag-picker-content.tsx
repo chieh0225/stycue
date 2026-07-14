@@ -80,7 +80,9 @@ export default function TagPickerContent({
   useEffect(() => {
     fetch('/api/posts/draft-tags')
       .then((res) => res.json())
-      .then((data: { tags: string[] }) => setSelected(data.tags))
+      .then((data: { tags: { tagId: number; name: string }[] }) =>
+        setSelected(data.tags.map((tag) => tag.name)),
+      )
       .catch(() => {});
   }, []);
 
@@ -113,7 +115,9 @@ export default function TagPickerContent({
     await fetch('/api/posts/draft-tags', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tags: selected }),
+      body: JSON.stringify({
+        tags: selected.map((name) => ({ tagId: tagMeta[name].tagId, name })),
+      }),
     }).catch(() => {});
     onClose();
   }

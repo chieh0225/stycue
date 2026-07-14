@@ -31,7 +31,7 @@ function toNumberOrUndefined(value: string): number | undefined {
 export default function NewPostPreviewPage() {
   const router = useRouter();
   const [form, setForm] = useState<Draft>(emptyDraft);
-  const [draftTags, setDraftTags] = useState<string[]>([]);
+  const [draftTags, setDraftTags] = useState<{ tagId: number; name: string }[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
   const [pointsMenuOpen, setPointsMenuOpen] = useState(false);
@@ -96,7 +96,7 @@ export default function NewPostPreviewPage() {
 
     fetch('/api/posts/draft-tags')
       .then((res) => res.json())
-      .then((data: { tags: string[] }) => setDraftTags(data.tags))
+      .then((data: { tags: { tagId: number; name: string }[] }) => setDraftTags(data.tags))
       .catch(() => {});
   }, []);
 
@@ -113,8 +113,8 @@ export default function NewPostPreviewPage() {
     }
   }, [loaded, title, router]);
 
-  function removeDraftTag(tag: string) {
-    const next = draftTags.filter((t) => t !== tag);
+  function removeDraftTag(tagId: number) {
+    const next = draftTags.filter((t) => t.tagId !== tagId);
     setDraftTags(next);
     fetch('/api/posts/draft-tags', {
       method: 'POST',
@@ -136,6 +136,7 @@ export default function NewPostPreviewPage() {
         budget: selectedBudget,
         points: toNumberOrUndefined(points),
         imageIds: photos.map((photo) => photo.imageId),
+        tagIds: draftTags.map((tag) => tag.tagId),
       });
       if (!result.success || !result.data) {
         setSubmitError(result.message || '委託文發表失敗，請稍後再試');
@@ -290,14 +291,14 @@ export default function NewPostPreviewPage() {
             <>
               {draftTags.map((tag) => (
                 <span
-                  key={tag}
+                  key={tag.tagId}
                   className="flex items-center gap-1 rounded-full border border-border-default bg-muted px-3.5 py-1.75 text-label-md text-text-primary"
                 >
-                  {tag}
+                  {tag.name}
                   <button
                     type="button"
-                    onClick={() => removeDraftTag(tag)}
-                    aria-label={`移除標籤 ${tag}`}
+                    onClick={() => removeDraftTag(tag.tagId)}
+                    aria-label={`移除標籤 ${tag.name}`}
                     className="text-text-muted"
                   >
                     <X className="h-3 w-3" />
