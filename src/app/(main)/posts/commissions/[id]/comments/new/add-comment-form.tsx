@@ -18,7 +18,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import { createComment, createReply } from '@/lib/comment-api';
+import { createComment, createReply, updateComment } from '@/lib/comment-api';
 import { uploadImage } from '@/lib/image-api';
 import { cn } from '@/lib/utils';
 import {
@@ -27,12 +27,6 @@ import {
   IMAGE_CATEGORIES,
   type ImageCategoryId,
 } from '../../image-categories';
-import {
-  getPendingComment,
-  getPendingReply,
-  updatePendingComment,
-  updatePendingReply,
-} from '../../pending-comments';
 import type { CommentImage } from '../comment-board';
 
 // Attachment limits mirror the design copy (最多可上傳 9 張圖片，單張 10MB).
@@ -89,6 +83,8 @@ export default function AddCommentForm({
   replyTo,
   editCommentId,
   editReplyId,
+  initialContent,
+  initialImages,
 }: {
   postId: string;
   // When set, this screen composes a reply under the given parent commentId
@@ -101,11 +97,15 @@ export default function AddCommentForm({
   // id), this screen edits the given existing reply instead of composing a
   // new one. Without a matching replyTo this collapses to non-edit behavior.
   editReplyId?: string;
+  // Prefill for edit mode, fetched server-side (by the page) from the real
+  // comment list — undefined when composing a new comment/reply.
+  initialContent?: string;
+  initialImages?: CommentImage[];
 }) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [text, setText] = useState('');
-  const [images, setImages] = useState<Attachment[]>([]);
+  const [text, setText] = useState(initialContent ?? '');
+  const [images, setImages] = useState<Attachment[]>(() => toExistingAttachments(initialImages));
   const [submitting, setSubmitting] = useState(false);
   // id of the attachment whose tag dropdown is open (only one at a time).
   const [openTagId, setOpenTagId] = useState<string | null>(null);
@@ -122,34 +122,6 @@ export default function AddCommentForm({
   const isEditingComment = Boolean(editCommentId);
   const isEditingReply = Boolean(editReplyId && replyTo);
   const isEdit = isEditingComment || isEditingReply;
-
-  // Prefill from the pending store when opened in edit mode. Editable content
-  // only ever lives in the pending store (see the ownership check that gates
-  // the 編輯 link in comment-board.tsx) — a missing/stale id (cleared
-  // sessionStorage, bad link) falls back to a plain cancel-navigation.
-  useEffect(() => {
-    if (isEditingComment) {
-      const pending = getPendingComment(postId, editCommentId!);
-      if (!pending) {
-        router.replace(cancelHref);
-        return;
-      }
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setText(pending.content);
-      setImages(toExistingAttachments(pending.images));
-    } else if (isEditingReply) {
-      const pending = getPendingReply(postId, replyTo!, editReplyId!);
-      if (!pending) {
-        router.replace(cancelHref);
-        return;
-      }
-      setText(pending.content);
-      setImages(toExistingAttachments(pending.images));
-    }
-    // Prefill runs once on mount only — the edit target doesn't change within
-    // a single visit to this screen.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // Mirrors `images` so the unmount cleanup below can see the latest list
   // without re-subscribing the effect (and thus re-registering the cleanup)
@@ -250,10 +222,6 @@ export default function AddCommentForm({
     if (!canPublish) return;
     setSubmitting(true);
     const content = text.trim();
-    // Editing and replying are still backed by the pending store (sessionStorage)
-    // until their steps land. This is where those real writes would go:
-    //   reply (replyTo set): POST /api/v1/comments/{replyTo}/replies
-    //   edit               : PUT  /api/v1/comments/{commentId}
     // `postId` here is the commission id (commissions are served under /posts/commissions/[id]).
     // Tell the board what to do once it re-mounts, via query params it reads and
     // then strips: ?focus={domId} scrolls the new item into view, and (for a
@@ -267,22 +235,22 @@ export default function AddCommentForm({
     }
     const params = new URLSearchParams();
     if (isEditingComment) {
-      const ok = updatePendingComment(postId, editCommentId!, {
+      const result = await updateComment(editCommentId!, {
         content,
-        images: resolvedImages,
+        imageIds: resolvedImages.map((image) => image.imageId),
       });
-      if (!ok) {
-        router.push(cancelHref);
+      if (!result.success || !result.data) {
+        setSubmitting(false);
         return;
       }
       params.set('focus', `comment-${editCommentId}`);
     } else if (isEditingReply) {
-      const ok = updatePendingReply(postId, replyTo!, editReplyId!, {
+      const result = await updateComment(editReplyId!, {
         content,
-        images: resolvedImages,
+        imageIds: resolvedImages.map((image) => image.imageId),
       });
-      if (!ok) {
-        router.push(cancelHref);
+      if (!result.success || !result.data) {
+        setSubmitting(false);
         return;
       }
       params.set('focus', `reply-${editReplyId}`);

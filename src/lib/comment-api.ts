@@ -24,3 +24,15 @@ export async function createReply(
   });
   return (await res.json()) as ApiEnvelope<CommentResponse>;
 }
+
+export async function updateComment(
+  commentId: string,
+  payload: UpsertCommentRequest,
+): Promise<ApiEnvelope<CommentResponse>> {
+  const res = await fetch(`/api/comments/${commentId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  return (await res.json()) as ApiEnvelope<CommentResponse>;
+}
