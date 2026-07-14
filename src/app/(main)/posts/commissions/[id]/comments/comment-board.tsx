@@ -6,7 +6,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { createComment } from '@/lib/comment-api';
 import { getPointWallet } from '@/lib/points-api';
+import type { CommentResponse } from '@/types/comment';
+import type { ImageResponse } from '@/types/image';
 import { getAuthedUser } from '../../../../../auth';
 import CommentComposer from '../comment-composer';
 import {
@@ -26,7 +29,6 @@ import {
 } from './comment-modals';
 import { categoryLabel } from '../image-categories';
 import {
-  addPendingComment,
   addPendingReply,
   mergePendingComments,
   removePendingComment,
@@ -68,6 +70,34 @@ export type Comment = {
   canEdit: boolean;
   canDelete: boolean;
 };
+
+function toCommentImages(images: ImageResponse[]): CommentImage[] | undefined {
+  if (images.length === 0) return undefined;
+  return images.map((image) => ({
+    imageId: image.imageId,
+    imageUrl: image.url,
+    category: image.category ?? 99,
+    brand: image.brand ?? '',
+  }));
+}
+
+// Maps a just-created CommentResponse (from the create-comment API call) into
+// the board's render-friendly Comment shape. `floor` is passed in rather than
+// derived here since it depends on the comment's position in the caller's list.
+function toComment(response: CommentResponse, floor: string): Comment {
+  return {
+    commentId: String(response.commentId),
+    floor,
+    nickName: response.author.displayName,
+    timeLabel: '剛剛',
+    content: response.content,
+    likeCount: response.likeCount,
+    images: toCommentImages(response.images),
+    replies: [],
+    canEdit: response.canEdit,
+    canDelete: response.canDelete,
+  };
+}
 
 function ImageCell({ label, variant }: { label?: string; variant: 'lg' | 'grid' }) {
   const isGrid = variant === 'grid';
@@ -585,21 +615,15 @@ export default function CommentBoard({
     if (focusId) router.replace(pathname, { scroll: false });
   }, [comments, focusId, pathname, router]);
 
-  // Optimistically append the new comment and persist it to the pending store so
-  // it survives navigation/reload within the session (no comments backend yet).
-  function addComment(text: string) {
-    const authedUser = getAuthedUser();
-    const comment = {
-      commentId: crypto.randomUUID(),
-      nickName: authedUser?.nickName ?? '你',
-      timeLabel: '剛剛',
-      content: text,
-      likeCount: 0,
-      canEdit: true,
-      canDelete: true,
-    };
-    setComments((prev) => [...prev, { ...comment, floor: `B${prev.length + 1}` }]);
-    addPendingComment(postId, comment);
+  // Posts the new root comment to the real API, then appends the server's
+  // CommentResponse (source of truth for id/canEdit/canDelete/etc.) once it
+  // resolves. No optimistic placeholder — a failed request would otherwise
+  // leave a comment in the list with no way to reconcile it.
+  async function addComment(text: string) {
+    const result = await createComment(postId, { content: text });
+    if (!result.success || !result.data) return;
+    const comment = toComment(result.data, `B${comments.length + 1}`);
+    setComments((prev) => [...prev, comment]);
     // Scroll to it once it renders (the effect keyed on `comments` picks this up).
     scrollTargetRef.current = `comment-${comment.commentId}`;
   }

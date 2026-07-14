@@ -18,6 +18,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { createComment } from '@/lib/comment-api';
 import { cn } from '@/lib/utils';
 import { getAuthedUser } from '../../../../../../auth';
 import {
@@ -27,7 +28,6 @@ import {
   type ImageCategoryId,
 } from '../../image-categories';
 import {
-  addPendingComment,
   addPendingReply,
   getPendingComment,
   getPendingReply,
@@ -233,17 +233,14 @@ export default function AddCommentForm({
     );
   }
 
-  function publish() {
+  async function publish() {
     if (!canPublish) return;
     setSubmitting(true);
     const content = text.trim();
-    // No comments backend exists yet, so the submission is stored optimistically
-    // in the shared pending store (sessionStorage) and rendered by the board on
-    // its next mount. This is where the real write would go once the API lands:
-    //   reply  (replyTo set): POST /api/v1/comments/{replyTo}/replies
-    //   top-level          : POST /api/v1/commissions/{postId}/comments
-    //   body (both): { content, imageIds: number[] } — referencing the ids
-    //   returned by the per-attachment POST /api/v1/uploads call above.
+    // Editing and replying are still backed by the pending store (sessionStorage)
+    // until their steps land. This is where those real writes would go:
+    //   reply (replyTo set): POST /api/v1/comments/{replyTo}/replies
+    //   edit               : PUT  /api/v1/comments/{commentId}
     // `postId` here is the commission id (commissions are served under /posts/commissions/[id]).
     // Tell the board what to do once it re-mounts, via query params it reads and
     // then strips: ?focus={domId} scrolls the new item into view, and (for a
@@ -288,19 +285,15 @@ export default function AddCommentForm({
       params.set('focus', `reply-${replyId}`);
       params.set('expand', replyTo);
     } else {
-      const authedUser = getAuthedUser();
-      const commentId = crypto.randomUUID();
-      addPendingComment(postId, {
-        commentId,
-        nickName: authedUser?.nickName ?? '你',
-        timeLabel: '剛剛',
+      const result = await createComment(postId, {
         content,
-        likeCount: 0,
-        images: resolvedImages,
-        canEdit: true,
-        canDelete: true,
+        imageIds: resolvedImages.map((image) => image.imageId),
       });
-      params.set('focus', `comment-${commentId}`);
+      if (!result.success || !result.data) {
+        setSubmitting(false);
+        return;
+      }
+      params.set('focus', `comment-${result.data.commentId}`);
     }
     router.push(`${cancelHref}?${params.toString()}`);
   }

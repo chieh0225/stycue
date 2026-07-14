@@ -54,11 +54,6 @@ function write(postId: string, store: PendingStore) {
   }
 }
 
-export function addPendingComment(postId: string, comment: PendingComment) {
-  const store = read(postId);
-  write(postId, { ...store, comments: [...store.comments, comment] });
-}
-
 export function addPendingReply(postId: string, commentId: string, reply: Reply) {
   const store = read(postId);
   write(postId, { ...store, replies: [...store.replies, { commentId, reply }] });
