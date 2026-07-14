@@ -1,12 +1,12 @@
 import { ChevronLeft, Image, User } from 'lucide-react';
 import Link from 'next/link';
-import { getCreatedPost } from '@/app/api/posts/store';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { TopBar } from '@/components/ui/top-bar';
+import { getCommissionServer } from '@/lib/commission-server';
 import CommentLauncher from './comment-launcher';
 import HideScrollbar from './hide-scrollbar';
 import { MOCK_PUBLISH_POINTS } from './mock-commission';
@@ -44,21 +44,25 @@ function formatDate(iso: string): string {
 
 export default async function PostDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const created = getCreatedPost(id);
+  const result = await getCommissionServer(id);
+  const created = result.success ? result.data : null;
 
-  const postTypeLabel = created?.postType || '委託';
+  const postTypeLabel = '委託';
   const title = created?.title || '希望能找到一套適合我的穿搭';
-  const bodyText = created?.description || fallbackBodyText;
-  const tags = created && created.tags.length > 0 ? created.tags : fallbackTags;
-  const height = created?.height || '175';
-  const weight = created?.weight || '67';
-  const age = created?.age || '25';
-  const budgetLabel = created ? `NT$ ${created.budget}` : 'NT$ 3,000 - 5,000';
-  const points = created?.points || String(MOCK_PUBLISH_POINTS);
+  const bodyText = created?.content || fallbackBodyText;
+  const tags =
+    created && created.tags.length > 0 ? created.tags.map((tag) => tag.name) : fallbackTags;
+  const height = created?.height ?? '175';
+  const weight = created?.weight ?? '67';
+  const age = created?.age ?? '25';
+  const budgetLabel = created?.budget ? `NT$ ${created.budget}` : 'NT$ 3,000 - 5,000';
+  const points = created?.points ?? MOCK_PUBLISH_POINTS;
   const createdAt = created?.createdAt ?? fallbackCreatedAt;
-  const deadline = created
-    ? new Date(new Date(created.createdAt).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString()
-    : fallbackDeadline;
+  const deadline = created?.expiredAt ?? fallbackDeadline;
+  const authorName = created?.author.displayName || 'Maple';
+  const photos = created?.images ?? [];
+  const likeCount = created?.likeCount ?? 222;
+  const commentCount = created?.commentCount ?? 50;
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col bg-surface-base">
@@ -94,7 +98,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-1 flex-col">
-            <span className="text-label-md font-bold text-text-primary">Maple</span>
+            <span className="text-label-md font-bold text-text-primary">{authorName}</span>
             <time dateTime={createdAt} className="text-label-md text-text-tertiary">
               {formatDate(createdAt)}
             </time>
@@ -113,8 +117,8 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
 
         {/* Body images: 身形照片 */}
         <div className="mb-5.5 flex gap-2">
-          {created && created.photos.length > 0
-            ? created.photos.map((photo, i) => (
+          {photos.length > 0
+            ? photos.map((photo, i) => (
                 // eslint-disable-next-line @next/next/no-img-element -- uploaded photo URL from real backend
                 <img
                   key={photo.imageId}
@@ -187,7 +191,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
         <Separator className="mb-4" />
 
         {/* 互動列 */}
-        <PostInteractions postId={id} initialLikes={222} comments={50} />
+        <PostInteractions postId={id} initialLikes={likeCount} comments={commentCount} />
       </article>
 
       {/* Bottom bar — a launcher into the comments list, not an inline composer */}

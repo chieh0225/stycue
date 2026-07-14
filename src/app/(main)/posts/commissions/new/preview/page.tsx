@@ -10,6 +10,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { TopBar } from '@/components/ui/top-bar';
+import { createCommission } from '@/lib/commission-api';
 import { getPointWallet } from '@/lib/points-api';
 import { cn } from '@/lib/utils';
 import {
@@ -22,6 +23,11 @@ import {
   type Draft,
 } from '../draft';
 
+function toNumberOrUndefined(value: string): number | undefined {
+  const trimmed = value.trim();
+  return trimmed === '' ? undefined : Number(trimmed);
+}
+
 export default function NewPostPreviewPage() {
   const router = useRouter();
   const [form, setForm] = useState<Draft>(emptyDraft);
@@ -30,6 +36,8 @@ export default function NewPostPreviewPage() {
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
   const [pointsMenuOpen, setPointsMenuOpen] = useState(false);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const titleRef = useRef<HTMLTextAreaElement>(null);
   // Defaults to 0 (rather than leaving it unset) so the affordability check
@@ -116,38 +124,36 @@ export default function NewPostPreviewPage() {
   }
 
   async function confirmSubmit() {
-    const res = await fetch('/api/posts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        postType,
+    setSubmitError(null);
+    setSubmitting(true);
+    try {
+      const result = await createCommission({
         title,
-        description,
-        height,
-        weight,
-        age,
+        content: description,
+        height: toNumberOrUndefined(height),
+        weight: toNumberOrUndefined(weight),
+        age: toNumberOrUndefined(age),
         budget: selectedBudget,
-        points,
-        tags: draftTags,
-      }),
-    });
-    const { id } = (await res.json()) as { id: string };
+        points: toNumberOrUndefined(points),
+        imageIds: photos.map((photo) => photo.imageId),
+      });
+      if (!result.success || !result.data) {
+        setSubmitError(result.message || '委託文發表失敗，請稍後再試');
+        return;
+      }
 
-    if (photos.length > 0) {
-      await fetch(`/api/posts/${id}/images`, {
+      localStorage.removeItem(DRAFT_STORAGE_KEY);
+      fetch('/api/posts/draft-tags', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ photos }),
-      });
+        body: JSON.stringify({ tags: [] }),
+      }).catch(() => {});
+      router.push(`/posts/commissions/${result.data.commissionId}`);
+    } catch {
+      setSubmitError('無法連線到伺服器，請稍後再試');
+    } finally {
+      setSubmitting(false);
     }
-
-    localStorage.removeItem(DRAFT_STORAGE_KEY);
-    fetch('/api/posts/draft-tags', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tags: [] }),
-    }).catch(() => {});
-    router.push(`/posts/commissions/${id}`);
   }
 
   if (!loaded || !title.trim()) return null;
@@ -449,6 +455,8 @@ export default function NewPostPreviewPage() {
             委託送出後就不能變更了，請仔細確認內容是否有遺漏。
           </p>
         </div>
+
+        {submitError && <p className="mt-4 text-xs text-red-500">{submitError}</p>}
       </div>
 
       {/* Bottom action bar */}
@@ -464,7 +472,7 @@ export default function NewPostPreviewPage() {
           variant="primary"
           size="md"
           onClick={confirmSubmit}
-          disabled={insufficientPoints}
+          disabled={insufficientPoints || submitting}
           className="flex-1"
         >
           確認送出
