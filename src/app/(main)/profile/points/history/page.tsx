@@ -1,12 +1,13 @@
 'use client';
 
 import {
-  BadgeCheck,
   ChevronLeft,
   CircleCheck,
   Clock,
   CreditCard,
   Inbox,
+  Info,
+  SquareCheckBig,
   Star,
   TrendingUp,
   Undo2,
@@ -15,10 +16,19 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { TopBar } from '@/components/ui/top-bar';
-import { getPointWallet } from '@/lib/points-api';
+import { getPointTransactions, getPointWallet } from '@/lib/points-api';
+import type { PointTransactionResponse, PointTransactionType } from '@/types/points';
 
 type RecordDirection = 'earn' | 'spend';
-type RecordKind = 'star' | 'undo' | 'circleCheck' | 'boost' | 'checkBadge' | 'card' | 'clock';
+type RecordKind =
+  | 'star'
+  | 'undo'
+  | 'circleCheck'
+  | 'boost'
+  | 'checkBadge'
+  | 'card'
+  | 'clock'
+  | 'info';
 
 type PointsHistoryRecord = {
   dir: RecordDirection;
@@ -29,96 +39,40 @@ type PointsHistoryRecord = {
   month: string;
 };
 
-const ALL_RECORDS: PointsHistoryRecord[] = [
-  {
-    dir: 'spend',
-    kind: 'star',
-    title: '委託者選擇最佳留言給予積分',
-    meta: '2026/07/09 21:42・想請大家幫我搭配韓系穿搭',
-    amount: -75,
-    month: '2026 年 7 月',
-  },
-  {
-    dir: 'spend',
-    kind: 'star',
-    title: '委託到期自動給予最高讚留言積分',
-    meta: '2026/07/09 20:00・想找一雙適合的白鞋',
-    amount: -50,
-    month: '2026 年 7 月',
-  },
-  {
-    dir: 'earn',
-    kind: 'undo',
-    title: '提前關閉委託退還積分',
-    meta: '2026/07/09 10:30・想找一雙適合的白鞋',
-    amount: 47,
-    month: '2026 年 7 月',
-  },
-  {
-    dir: 'spend',
-    kind: 'circleCheck',
-    title: '退還積分手續費',
-    meta: '2026/07/09 10:30・想找一雙適合的白鞋',
-    amount: -3,
-    month: '2026 年 7 月',
-  },
-  {
-    dir: 'spend',
-    kind: 'boost',
-    title: '委託加碼積分、延長時間',
-    meta: '2026/07/09 09:20・想找一雙適合的白鞋',
-    amount: -25,
-    month: '2026 年 7 月',
-  },
-  {
-    dir: 'earn',
-    kind: 'checkBadge',
-    title: '每日簽到',
-    meta: '2026/07/09 09:16',
-    amount: 10,
-    month: '2026 年 7 月',
-  },
-  {
-    dir: 'spend',
-    kind: 'clock',
-    title: '發佈委託扣除積分',
-    meta: '2026/07/09 09:10・想找一雙適合的白鞋',
-    amount: -50,
-    month: '2026 年 7 月',
-  },
-  {
-    dir: 'earn',
-    kind: 'card',
-    title: '儲值積分',
-    meta: '2026/07/09 09:05',
-    amount: 150,
-    month: '2026 年 7 月',
-  },
-  {
-    dir: 'spend',
-    kind: 'clock',
-    title: '發佈委託扣除積分',
-    meta: '2026/07/08 20:03・想請大家幫我搭配韓系穿搭',
-    amount: -50,
-    month: '2026 年 7 月',
-  },
-  {
-    dir: 'earn',
-    kind: 'checkBadge',
-    title: '首次登入每日簽到',
-    meta: '2026/06/20 10:00',
-    amount: 10,
-    month: '2026 年 6 月',
-  },
-  {
-    dir: 'earn',
-    kind: 'checkBadge',
-    title: '新手註冊獎勵',
-    meta: '2026/06/20 10:00',
-    amount: 50,
-    month: '2026 年 6 月',
-  },
-];
+const TRANSACTION_TYPE_KIND: Record<PointTransactionType, RecordKind> = {
+  1: 'checkBadge', // 註冊贈送
+  2: 'checkBadge', // 每日登入
+  3: 'clock', // 建立委託
+  4: 'boost', // 積分加碼
+  5: 'star', // 最佳留言積分
+  6: 'star', // 讚數最高留言積分
+  7: 'undo', // 退還積分
+  8: 'circleCheck', // 積分手續費
+};
+
+function formatDateTime(iso: string): string {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function formatMonth(iso: string): string {
+  const d = new Date(iso);
+  return `${d.getFullYear()} 年 ${d.getMonth() + 1} 月`;
+}
+
+const DEFAULT_KIND: RecordKind = 'info';
+
+function mapTransactionToRecord(tx: PointTransactionResponse): PointsHistoryRecord {
+  return {
+    dir: tx.amount > 0 ? 'earn' : 'spend',
+    kind: TRANSACTION_TYPE_KIND[tx.transactionType] ?? DEFAULT_KIND,
+    title: tx.description,
+    meta: formatDateTime(tx.createdAt),
+    amount: tx.amount,
+    month: formatMonth(tx.createdAt),
+  };
+}
 
 const FILTER_TABS: { key: 'all' | 'earn' | 'spend'; label: string }[] = [
   { key: 'all', label: '全部' },
@@ -138,11 +92,13 @@ function RecordIcon({ kind, className }: { kind: RecordKind; className: string }
     case 'boost':
       return <TrendingUp {...props} />;
     case 'checkBadge':
-      return <BadgeCheck {...props} />;
+      return <SquareCheckBig {...props} />;
     case 'card':
       return <CreditCard {...props} />;
     case 'clock':
       return <Clock {...props} />;
+    case 'info':
+      return <Info {...props} />;
   }
 }
 
@@ -150,6 +106,12 @@ export default function PointsHistoryPage() {
   const router = useRouter();
   const [filter, setFilter] = useState<'all' | 'earn' | 'spend'>('all');
   const [currentPoints, setCurrentPoints] = useState<number | null>(null);
+  const [transactions, setTransactions] = useState<PointTransactionResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<'unauthorized' | 'error' | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     getPointWallet()
@@ -161,12 +123,42 @@ export default function PointsHistoryPage() {
       .catch(() => {});
   }, []);
 
-  const visibleRecords = ALL_RECORDS.filter((r) => filter === 'all' || filter === r.dir).map(
-    (record, index, arr) => ({
+  useEffect(() => {
+    getPointTransactions({ page: 1, pageSize: 20 })
+      .then((res) => {
+        if (res.success && res.data) {
+          setTransactions(res.data.items);
+          setPage(res.data.page);
+          setTotalCount(res.data.totalCount);
+        } else {
+          setError(res.errorCode === 'NO_TOKEN' ? 'unauthorized' : 'error');
+        }
+      })
+      .catch(() => setError('error'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleLoadMore = () => {
+    setLoadingMore(true);
+    getPointTransactions({ page: page + 1, pageSize: 20 })
+      .then((res) => {
+        if (res.success && res.data) {
+          setTransactions((prev) => [...prev, ...res.data!.items]);
+          setPage(res.data.page);
+          setTotalCount(res.data.totalCount);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoadingMore(false));
+  };
+
+  const visibleRecords = transactions
+    .map(mapTransactionToRecord)
+    .filter((r) => filter === 'all' || filter === r.dir)
+    .map((record, index, arr) => ({
       ...record,
       showMonthHeader: index === 0 || record.month !== arr[index - 1].month,
-    }),
-  );
+    }));
 
   return (
     <div className="flex flex-1 flex-col">
@@ -238,52 +230,78 @@ export default function PointsHistoryPage() {
 
         {/* Records */}
         <div className="flex flex-col px-4.5 pb-8">
-          {visibleRecords.map((record, index) => {
-            const isLast = index === visibleRecords.length - 1;
-            const iconBg = record.dir === 'earn' ? 'bg-sage/16' : 'bg-gold/14';
-            const iconColor = record.dir === 'earn' ? 'text-tag-green' : 'text-gold-dark';
-            const amountColor = record.dir === 'earn' ? 'text-tag-green' : 'text-destructive';
-            const amountLabel = record.amount > 0 ? `+${record.amount}` : `${record.amount}`;
-            return (
-              <div key={`${record.month}-${index}`}>
-                {record.showMonthHeader && (
-                  <div className="px-1 pt-4 pb-2 text-label-md font-semibold text-text-tertiary">
-                    {record.month}
-                  </div>
-                )}
-                <div
-                  className={`flex items-center gap-3 px-1 py-3.5 ${isLast ? '' : 'border-b border-border-subtle'}`}
-                >
-                  <div
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${iconBg}`}
-                  >
-                    <RecordIcon kind={record.kind} className={iconColor} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-body-md font-semibold text-text-primary">
-                      {record.title}
-                    </div>
-                    {record.meta && (
-                      <div className="mt-0.5 truncate text-label-md text-text-tertiary">
-                        {record.meta}
-                      </div>
-                    )}
-                  </div>
-                  <span className={`shrink-0 text-body-lg font-bold ${amountColor}`}>
-                    {amountLabel}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+          {loading && <div className="py-14 text-center text-body-md text-text-muted">載入中…</div>}
 
-          {visibleRecords.length === 0 && (
+          {!loading && error && (
+            <div className="flex flex-col items-center px-5 py-14 text-center">
+              <div className="mb-3.5 flex h-14 w-14 items-center justify-center rounded-full bg-gold/12">
+                <Inbox width="26" height="26" className="text-gold" strokeWidth={1.8} />
+              </div>
+              <span className="text-body-md font-semibold text-text-muted">
+                {error === 'unauthorized' ? '請先登入查看積分紀錄' : '發生錯誤，請稍後再試'}
+              </span>
+            </div>
+          )}
+
+          {!loading &&
+            !error &&
+            visibleRecords.map((record, index) => {
+              const isLast = index === visibleRecords.length - 1;
+              const iconBg = record.dir === 'earn' ? 'bg-sage/16' : 'bg-gold/14';
+              const iconColor = record.dir === 'earn' ? 'text-tag-green' : 'text-gold-dark';
+              const amountColor = record.dir === 'earn' ? 'text-tag-green' : 'text-destructive';
+              const amountLabel = record.amount > 0 ? `+${record.amount}` : `${record.amount}`;
+              return (
+                <div key={`${record.month}-${index}`}>
+                  {record.showMonthHeader && (
+                    <div className="px-1 pt-4 pb-2 text-label-md font-semibold text-text-tertiary">
+                      {record.month}
+                    </div>
+                  )}
+                  <div
+                    className={`flex items-center gap-3 px-1 py-3.5 ${isLast ? '' : 'border-b border-border-subtle'}`}
+                  >
+                    <div
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${iconBg}`}
+                    >
+                      <RecordIcon kind={record.kind} className={iconColor} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-body-md font-semibold text-text-primary">
+                        {record.title}
+                      </div>
+                      {record.meta && (
+                        <div className="mt-0.5 truncate text-label-md text-text-tertiary">
+                          {record.meta}
+                        </div>
+                      )}
+                    </div>
+                    <span className={`shrink-0 text-body-lg font-bold ${amountColor}`}>
+                      {amountLabel}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+
+          {!loading && !error && visibleRecords.length === 0 && (
             <div className="flex flex-col items-center px-5 py-14 text-center">
               <div className="mb-3.5 flex h-14 w-14 items-center justify-center rounded-full bg-gold/12">
                 <Inbox width="26" height="26" className="text-gold" strokeWidth={1.8} />
               </div>
               <span className="text-body-md font-semibold text-text-muted">目前尚無支出紀錄</span>
             </div>
+          )}
+
+          {!loading && !error && transactions.length < totalCount && (
+            <button
+              type="button"
+              onClick={handleLoadMore}
+              disabled={loadingMore}
+              className="mt-4 rounded-[10px] border border-border py-3 text-center text-label-md font-semibold text-text-muted disabled:opacity-50"
+            >
+              {loadingMore ? '載入中…' : '載入更多'}
+            </button>
           )}
         </div>
       </div>
