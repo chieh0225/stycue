@@ -107,6 +107,8 @@ export default function PointsHistoryPage() {
   const [filter, setFilter] = useState<'all' | 'earn' | 'spend'>('all');
   const [currentPoints, setCurrentPoints] = useState<number | null>(null);
   const [transactions, setTransactions] = useState<PointTransactionResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<'unauthorized' | 'error' | null>(null);
 
   useEffect(() => {
     getPointWallet()
@@ -123,9 +125,12 @@ export default function PointsHistoryPage() {
       .then((res) => {
         if (res.success && res.data) {
           setTransactions(res.data.items);
+        } else {
+          setError(res.errorCode === 'NO_TOKEN' ? 'unauthorized' : 'error');
         }
       })
-      .catch(() => {});
+      .catch(() => setError('error'))
+      .finally(() => setLoading(false));
   }, []);
 
   const visibleRecords = transactions
@@ -206,46 +211,61 @@ export default function PointsHistoryPage() {
 
         {/* Records */}
         <div className="flex flex-col px-4.5 pb-8">
-          {visibleRecords.map((record, index) => {
-            const isLast = index === visibleRecords.length - 1;
-            const iconBg = record.dir === 'earn' ? 'bg-sage/16' : 'bg-gold/14';
-            const iconColor = record.dir === 'earn' ? 'text-tag-green' : 'text-gold-dark';
-            const amountColor = record.dir === 'earn' ? 'text-tag-green' : 'text-destructive';
-            const amountLabel = record.amount > 0 ? `+${record.amount}` : `${record.amount}`;
-            return (
-              <div key={`${record.month}-${index}`}>
-                {record.showMonthHeader && (
-                  <div className="px-1 pt-4 pb-2 text-label-md font-semibold text-text-tertiary">
-                    {record.month}
-                  </div>
-                )}
-                <div
-                  className={`flex items-center gap-3 px-1 py-3.5 ${isLast ? '' : 'border-b border-border-subtle'}`}
-                >
-                  <div
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${iconBg}`}
-                  >
-                    <RecordIcon kind={record.kind} className={iconColor} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-body-md font-semibold text-text-primary">
-                      {record.title}
-                    </div>
-                    {record.meta && (
-                      <div className="mt-0.5 truncate text-label-md text-text-tertiary">
-                        {record.meta}
-                      </div>
-                    )}
-                  </div>
-                  <span className={`shrink-0 text-body-lg font-bold ${amountColor}`}>
-                    {amountLabel}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+          {loading && <div className="py-14 text-center text-body-md text-text-muted">載入中…</div>}
 
-          {visibleRecords.length === 0 && (
+          {!loading && error && (
+            <div className="flex flex-col items-center px-5 py-14 text-center">
+              <div className="mb-3.5 flex h-14 w-14 items-center justify-center rounded-full bg-gold/12">
+                <Inbox width="26" height="26" className="text-gold" strokeWidth={1.8} />
+              </div>
+              <span className="text-body-md font-semibold text-text-muted">
+                {error === 'unauthorized' ? '請先登入查看積分紀錄' : '發生錯誤，請稍後再試'}
+              </span>
+            </div>
+          )}
+
+          {!loading &&
+            !error &&
+            visibleRecords.map((record, index) => {
+              const isLast = index === visibleRecords.length - 1;
+              const iconBg = record.dir === 'earn' ? 'bg-sage/16' : 'bg-gold/14';
+              const iconColor = record.dir === 'earn' ? 'text-tag-green' : 'text-gold-dark';
+              const amountColor = record.dir === 'earn' ? 'text-tag-green' : 'text-destructive';
+              const amountLabel = record.amount > 0 ? `+${record.amount}` : `${record.amount}`;
+              return (
+                <div key={`${record.month}-${index}`}>
+                  {record.showMonthHeader && (
+                    <div className="px-1 pt-4 pb-2 text-label-md font-semibold text-text-tertiary">
+                      {record.month}
+                    </div>
+                  )}
+                  <div
+                    className={`flex items-center gap-3 px-1 py-3.5 ${isLast ? '' : 'border-b border-border-subtle'}`}
+                  >
+                    <div
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${iconBg}`}
+                    >
+                      <RecordIcon kind={record.kind} className={iconColor} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-body-md font-semibold text-text-primary">
+                        {record.title}
+                      </div>
+                      {record.meta && (
+                        <div className="mt-0.5 truncate text-label-md text-text-tertiary">
+                          {record.meta}
+                        </div>
+                      )}
+                    </div>
+                    <span className={`shrink-0 text-body-lg font-bold ${amountColor}`}>
+                      {amountLabel}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+
+          {!loading && !error && visibleRecords.length === 0 && (
             <div className="flex flex-col items-center px-5 py-14 text-center">
               <div className="mb-3.5 flex h-14 w-14 items-center justify-center rounded-full bg-gold/12">
                 <Inbox width="26" height="26" className="text-gold" strokeWidth={1.8} />
