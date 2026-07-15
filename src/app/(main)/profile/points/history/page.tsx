@@ -109,6 +109,9 @@ export default function PointsHistoryPage() {
   const [transactions, setTransactions] = useState<PointTransactionResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<'unauthorized' | 'error' | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     getPointWallet()
@@ -125,6 +128,8 @@ export default function PointsHistoryPage() {
       .then((res) => {
         if (res.success && res.data) {
           setTransactions(res.data.items);
+          setPage(res.data.page);
+          setTotalCount(res.data.totalCount);
         } else {
           setError(res.errorCode === 'NO_TOKEN' ? 'unauthorized' : 'error');
         }
@@ -132,6 +137,20 @@ export default function PointsHistoryPage() {
       .catch(() => setError('error'))
       .finally(() => setLoading(false));
   }, []);
+
+  const handleLoadMore = () => {
+    setLoadingMore(true);
+    getPointTransactions({ page: page + 1, pageSize: 20 })
+      .then((res) => {
+        if (res.success && res.data) {
+          setTransactions((prev) => [...prev, ...res.data!.items]);
+          setPage(res.data.page);
+          setTotalCount(res.data.totalCount);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoadingMore(false));
+  };
 
   const visibleRecords = transactions
     .map(mapTransactionToRecord)
@@ -272,6 +291,17 @@ export default function PointsHistoryPage() {
               </div>
               <span className="text-body-md font-semibold text-text-muted">目前尚無支出紀錄</span>
             </div>
+          )}
+
+          {!loading && !error && transactions.length < totalCount && (
+            <button
+              type="button"
+              onClick={handleLoadMore}
+              disabled={loadingMore}
+              className="mt-4 rounded-[10px] border border-border py-3 text-center text-label-md font-semibold text-text-muted disabled:opacity-50"
+            >
+              {loadingMore ? '載入中…' : '載入更多'}
+            </button>
           )}
         </div>
       </div>
