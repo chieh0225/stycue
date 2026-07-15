@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { TopBar } from '@/components/ui/top-bar';
 import { getPointWallet } from '@/lib/points-api';
+import type { PointTransactionResponse, PointTransactionType } from '@/types/points';
 
 type RecordDirection = 'earn' | 'spend';
 type RecordKind = 'star' | 'undo' | 'circleCheck' | 'boost' | 'checkBadge' | 'card' | 'clock';
@@ -28,6 +29,39 @@ type PointsHistoryRecord = {
   amount: number;
   month: string;
 };
+
+const TRANSACTION_TYPE_KIND: Record<PointTransactionType, RecordKind> = {
+  1: 'checkBadge', // 註冊贈送
+  2: 'checkBadge', // 每日登入
+  3: 'clock', // 建立委託
+  4: 'boost', // 積分加碼
+  5: 'star', // 最佳留言積分
+  6: 'star', // 讚數最高留言積分
+  7: 'undo', // 退還積分
+  8: 'circleCheck', // 積分手續費
+};
+
+function formatDateTime(iso: string): string {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function formatMonth(iso: string): string {
+  const d = new Date(iso);
+  return `${d.getFullYear()} 年 ${d.getMonth() + 1} 月`;
+}
+
+function mapTransactionToRecord(tx: PointTransactionResponse): PointsHistoryRecord {
+  return {
+    dir: tx.amount > 0 ? 'earn' : 'spend',
+    kind: TRANSACTION_TYPE_KIND[tx.transactionType],
+    title: tx.description,
+    meta: formatDateTime(tx.createdAt),
+    amount: tx.amount,
+    month: formatMonth(tx.createdAt),
+  };
+}
 
 const ALL_RECORDS: PointsHistoryRecord[] = [
   {
