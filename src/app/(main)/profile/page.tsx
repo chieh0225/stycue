@@ -11,9 +11,10 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { buttonVariants } from '@/components/ui/button';
 import { TopBar } from '@/components/ui/top-bar';
+import { getPointWallet } from '@/lib/points-api';
 import { cn } from '@/lib/utils';
 import { clearAuthed, getAuthedUser } from '../../auth';
 
@@ -40,6 +41,20 @@ export default function ProfilePage() {
     }
   });
   const avatarInitial = nickname.charAt(0).toUpperCase();
+
+  const [points, setPoints] = useState<number | null>(null);
+  useEffect(() => {
+    let active = true;
+    getPointWallet()
+      .then((res) => {
+        if (!active) return;
+        if (res.success && res.data) setPoints(res.data.currentPoints);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -76,7 +91,7 @@ export default function ProfilePage() {
         {/* Stats card */}
         <div className="mx-4.5 mb-6 flex items-center rounded-panel bg-popover px-3 py-4.5 shadow-card">
           <div className="flex flex-1 flex-col items-center gap-1">
-            <span className="text-headline-sm font-bold text-text-primary">128</span>
+            <span className="text-headline-sm font-bold text-text-primary">{points ?? '—'}</span>
             <span className="text-label-md text-text-muted">積分</span>
           </div>
           <div className="h-8 w-px bg-border" />
