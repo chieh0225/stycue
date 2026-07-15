@@ -54,6 +54,7 @@ function toReply(response: CommentResponse, commissionAuthorId: number | undefin
     images: toCommentImages(response.images),
     likeCount: response.likeCount,
     isLiked: response.isLiked,
+    isOwner: response.isOwner,
     canEdit: response.canEdit,
     canDelete: response.canDelete,
   };
@@ -72,6 +73,7 @@ function toComment(
     content: response.content,
     likeCount: response.likeCount,
     isLiked: response.isLiked,
+    isOwner: response.isOwner,
     images: toCommentImages(response.images),
     replies: response.replies.map((reply) => toReply(reply, commissionAuthorId)),
     canEdit: response.canEdit,
