@@ -1,12 +1,13 @@
 'use client';
 
 import {
-  BadgeCheck,
   ChevronLeft,
   CircleCheck,
   Clock,
   CreditCard,
   Inbox,
+  Info,
+  SquareCheckBig,
   Star,
   TrendingUp,
   Undo2,
@@ -19,7 +20,15 @@ import { getPointWallet } from '@/lib/points-api';
 import type { PointTransactionResponse, PointTransactionType } from '@/types/points';
 
 type RecordDirection = 'earn' | 'spend';
-type RecordKind = 'star' | 'undo' | 'circleCheck' | 'boost' | 'checkBadge' | 'card' | 'clock';
+type RecordKind =
+  | 'star'
+  | 'undo'
+  | 'circleCheck'
+  | 'boost'
+  | 'checkBadge'
+  | 'card'
+  | 'clock'
+  | 'info';
 
 type PointsHistoryRecord = {
   dir: RecordDirection;
@@ -52,10 +61,12 @@ function formatMonth(iso: string): string {
   return `${d.getFullYear()} 年 ${d.getMonth() + 1} 月`;
 }
 
+const DEFAULT_KIND: RecordKind = 'info';
+
 function mapTransactionToRecord(tx: PointTransactionResponse): PointsHistoryRecord {
   return {
     dir: tx.amount > 0 ? 'earn' : 'spend',
-    kind: TRANSACTION_TYPE_KIND[tx.transactionType],
+    kind: TRANSACTION_TYPE_KIND[tx.transactionType] ?? DEFAULT_KIND,
     title: tx.description,
     meta: formatDateTime(tx.createdAt),
     amount: tx.amount,
@@ -172,11 +183,13 @@ function RecordIcon({ kind, className }: { kind: RecordKind; className: string }
     case 'boost':
       return <TrendingUp {...props} />;
     case 'checkBadge':
-      return <BadgeCheck {...props} />;
+      return <SquareCheckBig {...props} />;
     case 'card':
       return <CreditCard {...props} />;
     case 'clock':
       return <Clock {...props} />;
+    case 'info':
+      return <Info {...props} />;
   }
 }
 
