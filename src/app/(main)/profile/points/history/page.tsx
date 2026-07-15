@@ -1,5 +1,16 @@
 'use client';
 
+import {
+  BadgeCheck,
+  ChevronLeft,
+  CircleCheck,
+  Clock,
+  CreditCard,
+  Inbox,
+  Star,
+  TrendingUp,
+  Undo2,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -115,65 +126,22 @@ const FILTER_TABS: { key: 'all' | 'earn' | 'spend'; label: string }[] = [
 ];
 
 function RecordIcon({ kind, stroke }: { kind: RecordKind; stroke: string }) {
-  const props = {
-    width: 18,
-    height: 18,
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke,
-    strokeWidth: 1.8,
-    strokeLinecap: 'round' as const,
-    strokeLinejoin: 'round' as const,
-  };
+  const props = { width: 18, height: 18, strokeWidth: 1.8, style: { color: stroke } };
   switch (kind) {
     case 'star':
-      return (
-        <svg {...props}>
-          <path d="M12 2l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 16.9l-5.8 3 1.1-6.5-4.7-4.6 6.5-.9z" />
-        </svg>
-      );
+      return <Star {...props} />;
     case 'undo':
-      return (
-        <svg {...props}>
-          <path d="M9 14l-4-4 4-4" />
-          <path d="M5 10h9a5 5 0 015 5v1" />
-        </svg>
-      );
+      return <Undo2 {...props} />;
     case 'circleCheck':
-      return (
-        <svg {...props}>
-          <circle cx="12" cy="12" r="9" />
-          <path d="M9 12l2 2 4-4" />
-        </svg>
-      );
+      return <CircleCheck {...props} />;
     case 'boost':
-      return (
-        <svg {...props}>
-          <path d="M3 17l6-6 4 4 8-8" />
-          <path d="M15 7h6v6" />
-        </svg>
-      );
+      return <TrendingUp {...props} />;
     case 'checkBadge':
-      return (
-        <svg {...props}>
-          <path d="M9 11l3 3L22 4" />
-          <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
-        </svg>
-      );
+      return <BadgeCheck {...props} />;
     case 'card':
-      return (
-        <svg {...props}>
-          <rect x="2" y="6" width="20" height="13" rx="2" />
-          <path d="M2 10h20" />
-        </svg>
-      );
+      return <CreditCard {...props} />;
     case 'clock':
-      return (
-        <svg {...props}>
-          <circle cx="12" cy="12" r="9" />
-          <path d="M12 8v4l3 2" />
-        </svg>
-      );
+      return <Clock {...props} />;
   }
 }
 
@@ -202,24 +170,13 @@ export default function PointsHistoryPage() {
   return (
     <div className="flex flex-1 flex-col">
       {/* Header */}
-      <div className="static z-20 flex items-center justify-center border-b border-[#f0e4c0] bg-[#fff9e8] px-4.5 pt-4 pb-3.5 shadow-[0_4px_12px_rgba(217,154,61,0.08)]">
+      <div className="sticky top-0 z-20 flex items-center justify-center border-b border-[#f0e4c0] bg-[#fff9e8] px-4.5 pt-4 pb-3.5 shadow-[0_4px_12px_rgba(217,154,61,0.08)]">
         <button
           type="button"
           onClick={() => router.back()}
           className="absolute left-4.5 flex h-8 w-8 items-center justify-center"
         >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#403a32"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
+          <ChevronLeft width="20" height="20" stroke="#403a32" strokeWidth={2} />
         </button>
         <span className="text-[19px] font-bold tracking-[0.5px] text-[#403a32]">積分紀錄</span>
       </div>
@@ -318,21 +275,7 @@ export default function PointsHistoryPage() {
           {visibleRecords.length === 0 && (
             <div className="flex flex-col items-center px-5 py-14 text-center">
               <div className="mb-3.5 flex h-14 w-14 items-center justify-center rounded-full bg-[rgba(217,154,61,0.12)]">
-                <svg
-                  width="26"
-                  height="26"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#d99a3d"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="3" y="5" width="18" height="16" rx="2" />
-                  <path d="M3 10h18" />
-                  <path d="M8 3v4" />
-                  <path d="M16 3v4" />
-                </svg>
+                <Inbox width="26" height="26" stroke="#d99a3d" strokeWidth={1.8} />
               </div>
               <span className="text-[14.5px] font-semibold text-[#756c60]">目前尚無支出紀錄</span>
             </div>
