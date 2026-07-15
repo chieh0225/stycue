@@ -1,4 +1,5 @@
 import { ChevronLeft } from 'lucide-react';
+import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { TopBar } from '@/components/ui/top-bar';
 import { getCommentsServer } from '@/lib/comment-server';
@@ -89,6 +90,7 @@ export default async function PostCommentsPage({
   searchParams: Promise<{ focus?: string | string[]; expand?: string | string[] }>;
 }) {
   const { id } = await params;
+  const isLoggedIn = Boolean((await cookies()).get('stycue_access_token')?.value);
   // The full-page template redirects back with ?focus={domId} to scroll the
   // board to the just-posted item, and ?expand={parentId} when it was a reply so
   // its reply list opens. Read them here (server) and hand them to the board as
@@ -133,6 +135,7 @@ export default async function PostCommentsPage({
         publishPoints={publishPoints}
         focusId={focusId}
         expandReplyId={expandReplyId}
+        isLoggedIn={isLoggedIn}
       />
     </div>
   );

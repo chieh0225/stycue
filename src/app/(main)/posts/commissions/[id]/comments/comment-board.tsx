@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -554,6 +555,7 @@ export default function CommentBoard({
   publishPoints,
   focusId,
   expandReplyId,
+  isLoggedIn,
 }: {
   postId: string;
   initialComments: Comment[];
@@ -566,6 +568,7 @@ export default function CommentBoard({
   // comment id whose reply list should open so the new reply is not hidden
   // behind the collapse toggle.
   expandReplyId?: string;
+  isLoggedIn: boolean;
 }) {
   const giveAmounts = buildGivePointsAmounts(publishPoints);
   const [comments, setComments] = useState(initialComments);
@@ -751,6 +754,10 @@ export default function CommentBoard({
   // a reply, since ids are unique across both), then reconciles with the
   // backend's authoritative isLiked/likeCount — or rolls back on failure.
   async function toggleLike(id: string) {
+    if (!isLoggedIn) {
+      toast('請先登入才能按讚');
+      return;
+    }
     const current = findLikeState(comments, id);
     if (!current) return;
     const { isLiked: wasLiked, likeCount: prevCount } = current;
