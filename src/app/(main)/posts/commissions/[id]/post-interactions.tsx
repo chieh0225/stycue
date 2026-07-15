@@ -3,30 +3,47 @@
 import { Bookmark, Heart, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
+import { toast } from 'sonner';
+import { likeCommission, unlikeCommission } from '@/lib/like-api';
 
 export default function PostInteractions({
   postId,
   initialLikes,
+  initialLiked,
   comments,
+  isLoggedIn,
 }: {
   postId: string;
   initialLikes: number;
+  initialLiked: boolean;
   comments: number;
+  isLoggedIn: boolean;
 }) {
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked] = useState(initialLiked);
   const [likes, setLikes] = useState(initialLikes);
   const [bookmarked, setBookmarked] = useState(false);
 
-  function toggleLike() {
-    const next = !liked;
+  async function toggleLike() {
+    if (!isLoggedIn) {
+      toast('請先登入才能按讚');
+      return;
+    }
+    const wasLiked = liked;
+    const next = !wasLiked;
     setLiked(next);
     setLikes((prev) => prev + (next ? 1 : -1));
-    // Mock write — replace with the real posts API once it exists.
-    void fetch(`/api/posts/${postId}/like`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ liked: next }),
-    }).catch(() => {});
+
+    const result = wasLiked ? await unlikeCommission(postId) : await likeCommission(postId);
+    if (!result.success || !result.data) {
+      // Roll back the optimistic update on failure.
+      setLiked(wasLiked);
+      setLikes((prev) => prev + (wasLiked ? 1 : -1));
+      return;
+    }
+    // Reconcile with the backend's authoritative state (e.g. a duplicate
+    // like/unlike is a no-op there, not a count change).
+    setLiked(result.data.isLiked);
+    setLikes(result.data.likeCount);
   }
 
   function toggleBookmark() {

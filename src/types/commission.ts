@@ -52,6 +52,7 @@ export type CommissionDetailResponse = {
   canSelectBestComment: boolean;
   commentCount: number;
   likeCount: number;
+  isLiked: boolean;
   favoriteCount: number;
   images: ImageResponse[];
   tags: TagResponse[];

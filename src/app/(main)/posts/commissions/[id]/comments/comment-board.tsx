@@ -3,10 +3,12 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { createComment, createReply, deleteComment as deleteCommentApi } from '@/lib/comment-api';
+import { likeComment, unlikeComment } from '@/lib/like-api';
 import { getPointWallet } from '@/lib/points-api';
 import type { CommentResponse } from '@/types/comment';
 import type { ImageResponse } from '@/types/image';
@@ -44,6 +46,13 @@ export type Reply = {
   content: string;
   isCommissioner?: boolean;
   images?: CommentImage[];
+  likeCount: number;
+  isLiked: boolean;
+  // The backend allows self-liking a reply even though it rejects
+  // self-liking a top-level comment (an inconsistency, not intentional
+  // design — see homepage-api-todo). Disable the button ourselves here
+  // rather than waiting on the backend to fix the asymmetry.
+  isOwner: boolean;
   // Sourced directly from the API's per-comment canEdit/canDelete flags
   // (or defaulted true for an optimistic just-created item) rather than
   // matched against a locally-known identity.
@@ -58,6 +67,8 @@ export type Comment = {
   timeLabel: string;
   content: string;
   likeCount: number;
+  isLiked: boolean;
+  isOwner: boolean;
   images?: CommentImage[];
   replies?: Reply[];
   canEdit: boolean;
@@ -85,6 +96,8 @@ function toComment(response: CommentResponse, floor: string): Comment {
     timeLabel: '剛剛',
     content: response.content,
     likeCount: response.likeCount,
+    isLiked: response.isLiked,
+    isOwner: response.isOwner,
     images: toCommentImages(response.images),
     replies: [],
     canEdit: response.canEdit,
@@ -104,6 +117,9 @@ function toReply(response: CommentResponse): Reply {
     timeLabel: '剛剛',
     content: response.content,
     images: toCommentImages(response.images),
+    likeCount: response.likeCount,
+    isLiked: response.isLiked,
+    isOwner: response.isOwner,
     canEdit: response.canEdit,
     canDelete: response.canDelete,
   };
@@ -185,6 +201,7 @@ function AttachedImages({ images }: { images?: CommentImage[] }) {
 function CommentActions({
   likeCount,
   isLiked,
+  isOwner,
   onLike,
   isReplyOpen,
   onReplyClick,
@@ -195,6 +212,7 @@ function CommentActions({
 }: {
   likeCount: number;
   isLiked: boolean;
+  isOwner: boolean;
   onLike: () => void;
   isReplyOpen: boolean;
   onReplyClick: () => void;
@@ -203,19 +221,19 @@ function CommentActions({
   awardedAmount?: number;
   canAward: boolean;
 }) {
-  // Base count plus an optimistic +1 while the current user's like is on.
-  const displayLikeCount = likeCount + (isLiked ? 1 : 0);
   return (
     <div className="mt-4 flex items-center gap-4.5">
       <button
         type="button"
         onClick={onLike}
+        disabled={isOwner}
         aria-pressed={isLiked}
-        className={`flex items-center gap-1.5 ${isLiked ? 'text-accent-amber' : 'text-text-primary'}`}
+        aria-label={isOwner ? '不能對自己的留言按讚' : undefined}
+        className={`flex items-center gap-1.5 disabled:opacity-50 ${isLiked ? 'text-accent-amber' : 'text-text-primary'}`}
       >
         <HeartIcon className={isLiked ? 'h-4 w-4 fill-current' : 'h-4 w-4'} />
         <span className="sr-only">讚</span>
-        <span className="text-label-md">{displayLikeCount}</span>
+        <span className="text-label-md">{likeCount}</span>
       </button>
       <button
         type="button"
@@ -318,6 +336,7 @@ function ReplyList({
   replies,
   isReplyOpen,
   onReply,
+  onLikeReply,
   onDeleteReply,
   defaultExpanded,
 }: {
@@ -326,6 +345,7 @@ function ReplyList({
   replies: Reply[];
   isReplyOpen: boolean;
   onReply: (commentId: string, text: string) => void;
+  onLikeReply: (replyId: string) => void;
   onDeleteReply: (replyId: string) => void;
   // Start expanded when the user just replied here via the template, so the new
   // reply shows immediately instead of collapsed behind the toggle.
@@ -390,6 +410,20 @@ function ReplyList({
                   {reply.content}
                 </div>
                 <AttachedImages images={reply.images} />
+                <button
+                  type="button"
+                  onClick={() => onLikeReply(reply.replyId)}
+                  disabled={reply.isOwner}
+                  aria-pressed={reply.isLiked}
+                  aria-label={reply.isOwner ? '不能對自己的留言按讚' : undefined}
+                  className={`mt-2 flex items-center gap-1.5 disabled:opacity-50 ${reply.isLiked ? 'text-accent-amber' : 'text-text-primary'}`}
+                >
+                  <HeartIcon
+                    className={reply.isLiked ? 'h-3.5 w-3.5 fill-current' : 'h-3.5 w-3.5'}
+                  />
+                  <span className="sr-only">讚</span>
+                  <span className="text-label-md">{reply.likeCount}</span>
+                </button>
               </div>
             </li>
           ))}
@@ -487,6 +521,7 @@ function CommentItem({
           <CommentActions
             likeCount={comment.likeCount}
             isLiked={isLiked}
+            isOwner={comment.isOwner}
             onLike={() => onLike(comment.commentId)}
             isReplyOpen={isReplyOpen}
             onReplyClick={() => onReplyClick(comment.commentId)}
@@ -505,6 +540,7 @@ function CommentItem({
           replies={comment.replies ?? []}
           isReplyOpen={isReplyOpen}
           onReply={onReply}
+          onLikeReply={onLike}
           onDeleteReply={(replyId) => onDeleteReply(comment.commentId, replyId)}
           defaultExpanded={defaultExpanded}
         />
@@ -519,6 +555,7 @@ export default function CommentBoard({
   publishPoints,
   focusId,
   expandReplyId,
+  isLoggedIn,
 }: {
   postId: string;
   initialComments: Comment[];
@@ -531,12 +568,10 @@ export default function CommentBoard({
   // comment id whose reply list should open so the new reply is not hidden
   // behind the collapse toggle.
   expandReplyId?: string;
+  isLoggedIn: boolean;
 }) {
   const giveAmounts = buildGivePointsAmounts(publishPoints);
   const [comments, setComments] = useState(initialComments);
-  // Tracks which comments the current user has liked. The base like count lives
-  // on each comment; this only records the current user's optimistic toggle.
-  const [likedComments, setLikedComments] = useState<Record<string, boolean>>({});
   const [pointsTarget, setPointsTarget] = useState<{ id: string; name: string } | null>(null);
   const [selectedAmount, setSelectedAmount] = useState(publishPoints);
   const [insufficient, setInsufficient] = useState<{ name: string; amount: number } | null>(null);
@@ -682,17 +717,59 @@ export default function CommentBoard({
     setDeleteTarget(null);
   }
 
-  // Optimistically toggle the current user's like, then fire the (mock) write.
-  // Mirrors addReply: fire-and-forget, no rollback until POST
-  // /api/comments/{commentId}/like is wired up.
-  function toggleLike(commentId: string) {
-    const liked = !likedComments[commentId];
-    setLikedComments((prev) => ({ ...prev, [commentId]: liked }));
-    void fetch(`/api/comments/${commentId}/like`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ liked }),
-    }).catch(() => {});
+  // Applies a like-state update to whichever comment or reply (nested one
+  // level down) has this id — ids are unique across both regardless of nesting.
+  function applyLikeState(
+    comments: Comment[],
+    id: string,
+    isLiked: boolean,
+    likeCount: number,
+  ): Comment[] {
+    return comments.map((comment) => {
+      if (comment.commentId === id) return { ...comment, isLiked, likeCount };
+      if (!comment.replies?.some((reply) => reply.replyId === id)) return comment;
+      return {
+        ...comment,
+        replies: comment.replies.map((reply) =>
+          reply.replyId === id ? { ...reply, isLiked, likeCount } : reply,
+        ),
+      };
+    });
+  }
+
+  function findLikeState(
+    comments: Comment[],
+    id: string,
+  ): { isLiked: boolean; likeCount: number } | null {
+    for (const comment of comments) {
+      if (comment.commentId === id)
+        return { isLiked: comment.isLiked, likeCount: comment.likeCount };
+      const reply = comment.replies?.find((r) => r.replyId === id);
+      if (reply) return { isLiked: reply.isLiked, likeCount: reply.likeCount };
+    }
+    return null;
+  }
+
+  // Optimistically toggles like state (works for both a top-level comment and
+  // a reply, since ids are unique across both), then reconciles with the
+  // backend's authoritative isLiked/likeCount — or rolls back on failure.
+  async function toggleLike(id: string) {
+    if (!isLoggedIn) {
+      toast('請先登入才能按讚');
+      return;
+    }
+    const current = findLikeState(comments, id);
+    if (!current) return;
+    const { isLiked: wasLiked, likeCount: prevCount } = current;
+    const next = !wasLiked;
+    setComments((prev) => applyLikeState(prev, id, next, prevCount + (next ? 1 : -1)));
+
+    const result = wasLiked ? await unlikeComment(id) : await likeComment(id);
+    if (!result.success || !result.data) {
+      setComments((prev) => applyLikeState(prev, id, wasLiked, prevCount));
+      return;
+    }
+    setComments((prev) => applyLikeState(prev, id, result.data!.isLiked, result.data!.likeCount));
   }
 
   function openGivePoints(comment: Comment) {
@@ -743,7 +820,7 @@ export default function CommentBoard({
             <CommentItem
               postId={postId}
               comment={comment}
-              isLiked={likedComments[comment.commentId] ?? false}
+              isLiked={comment.isLiked}
               onLike={toggleLike}
               isReplyOpen={activeReplyId === comment.commentId}
               onReplyClick={(id) => setActiveReplyId((prev) => (prev === id ? null : id))}

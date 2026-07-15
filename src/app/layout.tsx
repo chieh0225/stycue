@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Noto_Sans_TC, Plus_Jakarta_Sans } from 'next/font/google';
+import { Toaster } from 'sonner';
 import './globals.css';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -29,6 +30,7 @@ export default function RootLayout({
     >
       <body className="flex min-h-full justify-center bg-zinc-200 font-sans">
         <div className="flex w-full max-w-md flex-col bg-surface-base">{children}</div>
+        <Toaster position="top-center" />
       </body>
     </html>
   );

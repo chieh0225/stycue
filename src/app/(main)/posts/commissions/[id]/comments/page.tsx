@@ -1,4 +1,5 @@
 import { ChevronLeft } from 'lucide-react';
+import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { TopBar } from '@/components/ui/top-bar';
 import { getCommentsServer } from '@/lib/comment-server';
@@ -52,6 +53,9 @@ function toReply(response: CommentResponse, commissionAuthorId: number | undefin
     isCommissioner:
       commissionAuthorId !== undefined && response.author.userId === commissionAuthorId,
     images: toCommentImages(response.images),
+    likeCount: response.likeCount,
+    isLiked: response.isLiked,
+    isOwner: response.isOwner,
     canEdit: response.canEdit,
     canDelete: response.canDelete,
   };
@@ -69,6 +73,8 @@ function toComment(
     timeLabel: formatRelativeTime(response.createdAt),
     content: response.content,
     likeCount: response.likeCount,
+    isLiked: response.isLiked,
+    isOwner: response.isOwner,
     images: toCommentImages(response.images),
     replies: response.replies.map((reply) => toReply(reply, commissionAuthorId)),
     canEdit: response.canEdit,
@@ -84,6 +90,7 @@ export default async function PostCommentsPage({
   searchParams: Promise<{ focus?: string | string[]; expand?: string | string[] }>;
 }) {
   const { id } = await params;
+  const isLoggedIn = Boolean((await cookies()).get('stycue_access_token')?.value);
   // The full-page template redirects back with ?focus={domId} to scroll the
   // board to the just-posted item, and ?expand={parentId} when it was a reply so
   // its reply list opens. Read them here (server) and hand them to the board as
@@ -128,6 +135,7 @@ export default async function PostCommentsPage({
         publishPoints={publishPoints}
         focusId={focusId}
         expandReplyId={expandReplyId}
+        isLoggedIn={isLoggedIn}
       />
     </div>
   );

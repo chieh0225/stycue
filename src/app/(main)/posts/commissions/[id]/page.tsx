@@ -1,4 +1,5 @@
 import { ChevronLeft, Image, User } from 'lucide-react';
+import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -46,6 +47,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
   const { id } = await params;
   const result = await getCommissionServer(id);
   const created = result.success ? result.data : null;
+  const isLoggedIn = Boolean((await cookies()).get('stycue_access_token')?.value);
 
   const postTypeLabel = '委託';
   const title = created?.title || '希望能找到一套適合我的穿搭';
@@ -62,6 +64,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
   const authorName = created?.author.displayName || 'Maple';
   const photos = created?.images ?? [];
   const likeCount = created?.likeCount ?? 222;
+  const isLiked = created?.isLiked ?? false;
   const commentCount = created?.commentCount ?? 50;
 
   return (
@@ -191,7 +194,13 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
         <Separator className="mb-4" />
 
         {/* 互動列 */}
-        <PostInteractions postId={id} initialLikes={likeCount} comments={commentCount} />
+        <PostInteractions
+          postId={id}
+          initialLikes={likeCount}
+          initialLiked={isLiked}
+          comments={commentCount}
+          isLoggedIn={isLoggedIn}
+        />
       </article>
 
       {/* Bottom bar — a launcher into the comments list, not an inline composer */}
