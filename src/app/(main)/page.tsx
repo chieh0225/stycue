@@ -22,6 +22,7 @@ import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetClose, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { TopBar } from '@/components/ui/top-bar';
 import { getHomepageFeed } from '@/lib/homepage-api';
+import { likeCommission, likePost, unlikeCommission, unlikePost } from '@/lib/like-api';
 import { claimDailyPoints, getPointTransactions } from '@/lib/points-api';
 import type { HomepageFilter, HomepageItemResponse } from '@/types/homepage';
 
@@ -184,7 +185,8 @@ export default function Home() {
         const next = { ...prev };
         for (const item of feed) {
           const key = itemKey(item);
-          if (!next[key]) next[key] = { liked: false, likes: item.likeCount, bookmarked: false };
+          if (!next[key])
+            next[key] = { liked: item.isLiked, likes: item.likeCount, bookmarked: false };
         }
         return next;
       });
@@ -193,18 +195,33 @@ export default function Home() {
 
   const [trendingBookmarks, setTrendingBookmarks] = useState<Record<string, boolean>>({});
 
-  function toggleLike(postId: string) {
-    const liked = !postInteractions[postId].liked;
+  async function toggleLike(item: HomepageItemResponse) {
+    const key = itemKey(item);
+    const wasLiked = postInteractions[key].liked;
+    const next = !wasLiked;
     setPostInteractions((prev) => ({
       ...prev,
-      [postId]: { ...prev[postId], liked, likes: prev[postId].likes + (liked ? 1 : -1) },
+      [key]: { ...prev[key], liked: next, likes: prev[key].likes + (next ? 1 : -1) },
     }));
-    // Mock write — replace with the real posts API once it exists.
-    void fetch(`/api/posts/${postId}/like`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ liked }),
-    }).catch(() => {});
+
+    const id = String(item.itemId);
+    const result =
+      item.itemType === 'commission'
+        ? await (wasLiked ? unlikeCommission(id) : likeCommission(id))
+        : await (wasLiked ? unlikePost(id) : likePost(id));
+    if (!result.success || !result.data) {
+      // Roll back the optimistic update on failure.
+      setPostInteractions((prev) => ({
+        ...prev,
+        [key]: { ...prev[key], liked: wasLiked, likes: prev[key].likes + (wasLiked ? 1 : -1) },
+      }));
+      return;
+    }
+    // Reconcile with the backend's authoritative state.
+    setPostInteractions((prev) => ({
+      ...prev,
+      [key]: { ...prev[key], liked: result.data!.isLiked, likes: result.data!.likeCount },
+    }));
   }
 
   function toggleBookmark(postId: string) {
@@ -450,7 +467,7 @@ export default function Home() {
                 <div className="flex items-center gap-4 p-4 pt-3 text-text-muted">
                   <button
                     type="button"
-                    onClick={() => toggleLike(key)}
+                    onClick={() => toggleLike(post)}
                     aria-pressed={interaction.liked}
                     className={`flex items-center gap-1 text-label-md ${interaction.liked ? 'text-accent-amber' : ''}`}
                   >

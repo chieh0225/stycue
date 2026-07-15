@@ -47,6 +47,11 @@ export type Reply = {
   images?: CommentImage[];
   likeCount: number;
   isLiked: boolean;
+  // The backend allows self-liking a reply even though it rejects
+  // self-liking a top-level comment (an inconsistency, not intentional
+  // design — see homepage-api-todo). Disable the button ourselves here
+  // rather than waiting on the backend to fix the asymmetry.
+  isOwner: boolean;
   // Sourced directly from the API's per-comment canEdit/canDelete flags
   // (or defaulted true for an optimistic just-created item) rather than
   // matched against a locally-known identity.
@@ -62,6 +67,7 @@ export type Comment = {
   content: string;
   likeCount: number;
   isLiked: boolean;
+  isOwner: boolean;
   images?: CommentImage[];
   replies?: Reply[];
   canEdit: boolean;
@@ -90,6 +96,7 @@ function toComment(response: CommentResponse, floor: string): Comment {
     content: response.content,
     likeCount: response.likeCount,
     isLiked: response.isLiked,
+    isOwner: response.isOwner,
     images: toCommentImages(response.images),
     replies: [],
     canEdit: response.canEdit,
@@ -111,6 +118,7 @@ function toReply(response: CommentResponse): Reply {
     images: toCommentImages(response.images),
     likeCount: response.likeCount,
     isLiked: response.isLiked,
+    isOwner: response.isOwner,
     canEdit: response.canEdit,
     canDelete: response.canDelete,
   };
@@ -192,6 +200,7 @@ function AttachedImages({ images }: { images?: CommentImage[] }) {
 function CommentActions({
   likeCount,
   isLiked,
+  isOwner,
   onLike,
   isReplyOpen,
   onReplyClick,
@@ -202,6 +211,7 @@ function CommentActions({
 }: {
   likeCount: number;
   isLiked: boolean;
+  isOwner: boolean;
   onLike: () => void;
   isReplyOpen: boolean;
   onReplyClick: () => void;
@@ -215,8 +225,10 @@ function CommentActions({
       <button
         type="button"
         onClick={onLike}
+        disabled={isOwner}
         aria-pressed={isLiked}
-        className={`flex items-center gap-1.5 ${isLiked ? 'text-accent-amber' : 'text-text-primary'}`}
+        aria-label={isOwner ? '不能對自己的留言按讚' : undefined}
+        className={`flex items-center gap-1.5 disabled:opacity-50 ${isLiked ? 'text-accent-amber' : 'text-text-primary'}`}
       >
         <HeartIcon className={isLiked ? 'h-4 w-4 fill-current' : 'h-4 w-4'} />
         <span className="sr-only">讚</span>
@@ -400,8 +412,10 @@ function ReplyList({
                 <button
                   type="button"
                   onClick={() => onLikeReply(reply.replyId)}
+                  disabled={reply.isOwner}
                   aria-pressed={reply.isLiked}
-                  className={`mt-2 flex items-center gap-1.5 ${reply.isLiked ? 'text-accent-amber' : 'text-text-primary'}`}
+                  aria-label={reply.isOwner ? '不能對自己的留言按讚' : undefined}
+                  className={`mt-2 flex items-center gap-1.5 disabled:opacity-50 ${reply.isLiked ? 'text-accent-amber' : 'text-text-primary'}`}
                 >
                   <HeartIcon
                     className={reply.isLiked ? 'h-3.5 w-3.5 fill-current' : 'h-3.5 w-3.5'}
@@ -506,6 +520,7 @@ function CommentItem({
           <CommentActions
             likeCount={comment.likeCount}
             isLiked={isLiked}
+            isOwner={comment.isOwner}
             onLike={() => onLike(comment.commentId)}
             isReplyOpen={isReplyOpen}
             onReplyClick={() => onReplyClick(comment.commentId)}
