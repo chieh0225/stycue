@@ -22,6 +22,7 @@ export type HomepageItemResponse = {
   createdAt: string;
   updatedAt: string | null;
   likeCount: number;
+  isLiked: boolean;
   commentCount: number;
   images: ImageResponse[];
   tags: TagResponse[];

@@ -20,3 +20,13 @@ export async function unlikeComment(commentId: string): Promise<ApiEnvelope<Like
   const res = await fetch(`/api/comments/${commentId}/likes`, { method: 'DELETE' });
   return (await res.json()) as ApiEnvelope<LikeResponse>;
 }
+
+export async function likePost(postId: string): Promise<ApiEnvelope<LikeResponse>> {
+  const res = await fetch(`/api/posts/${postId}/likes`, { method: 'POST' });
+  return (await res.json()) as ApiEnvelope<LikeResponse>;
+}
+
+export async function unlikePost(postId: string): Promise<ApiEnvelope<LikeResponse>> {
+  const res = await fetch(`/api/posts/${postId}/likes`, { method: 'DELETE' });
+  return (await res.json()) as ApiEnvelope<LikeResponse>;
+}

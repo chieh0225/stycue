@@ -62,6 +62,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
   const authorName = created?.author.displayName || 'Maple';
   const photos = created?.images ?? [];
   const likeCount = created?.likeCount ?? 222;
+  const isLiked = created?.isLiked ?? false;
   const commentCount = created?.commentCount ?? 50;
 
   return (
@@ -191,7 +192,12 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
         <Separator className="mb-4" />
 
         {/* 互動列 */}
-        <PostInteractions postId={id} initialLikes={likeCount} comments={commentCount} />
+        <PostInteractions
+          postId={id}
+          initialLikes={likeCount}
+          initialLiked={isLiked}
+          comments={commentCount}
+        />
       </article>
 
       {/* Bottom bar — a launcher into the comments list, not an inline composer */}
