@@ -16,7 +16,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { TopBar } from '@/components/ui/top-bar';
-import { getPointWallet } from '@/lib/points-api';
+import { getPointTransactions, getPointWallet } from '@/lib/points-api';
 import type { PointTransactionResponse, PointTransactionType } from '@/types/points';
 
 type RecordDirection = 'earn' | 'spend';
@@ -74,97 +74,6 @@ function mapTransactionToRecord(tx: PointTransactionResponse): PointsHistoryReco
   };
 }
 
-const ALL_RECORDS: PointsHistoryRecord[] = [
-  {
-    dir: 'spend',
-    kind: 'star',
-    title: '委託者選擇最佳留言給予積分',
-    meta: '2026/07/09 21:42・想請大家幫我搭配韓系穿搭',
-    amount: -75,
-    month: '2026 年 7 月',
-  },
-  {
-    dir: 'spend',
-    kind: 'star',
-    title: '委託到期自動給予最高讚留言積分',
-    meta: '2026/07/09 20:00・想找一雙適合的白鞋',
-    amount: -50,
-    month: '2026 年 7 月',
-  },
-  {
-    dir: 'earn',
-    kind: 'undo',
-    title: '提前關閉委託退還積分',
-    meta: '2026/07/09 10:30・想找一雙適合的白鞋',
-    amount: 47,
-    month: '2026 年 7 月',
-  },
-  {
-    dir: 'spend',
-    kind: 'circleCheck',
-    title: '退還積分手續費',
-    meta: '2026/07/09 10:30・想找一雙適合的白鞋',
-    amount: -3,
-    month: '2026 年 7 月',
-  },
-  {
-    dir: 'spend',
-    kind: 'boost',
-    title: '委託加碼積分、延長時間',
-    meta: '2026/07/09 09:20・想找一雙適合的白鞋',
-    amount: -25,
-    month: '2026 年 7 月',
-  },
-  {
-    dir: 'earn',
-    kind: 'checkBadge',
-    title: '每日簽到',
-    meta: '2026/07/09 09:16',
-    amount: 10,
-    month: '2026 年 7 月',
-  },
-  {
-    dir: 'spend',
-    kind: 'clock',
-    title: '發佈委託扣除積分',
-    meta: '2026/07/09 09:10・想找一雙適合的白鞋',
-    amount: -50,
-    month: '2026 年 7 月',
-  },
-  {
-    dir: 'earn',
-    kind: 'card',
-    title: '儲值積分',
-    meta: '2026/07/09 09:05',
-    amount: 150,
-    month: '2026 年 7 月',
-  },
-  {
-    dir: 'spend',
-    kind: 'clock',
-    title: '發佈委託扣除積分',
-    meta: '2026/07/08 20:03・想請大家幫我搭配韓系穿搭',
-    amount: -50,
-    month: '2026 年 7 月',
-  },
-  {
-    dir: 'earn',
-    kind: 'checkBadge',
-    title: '首次登入每日簽到',
-    meta: '2026/06/20 10:00',
-    amount: 10,
-    month: '2026 年 6 月',
-  },
-  {
-    dir: 'earn',
-    kind: 'checkBadge',
-    title: '新手註冊獎勵',
-    meta: '2026/06/20 10:00',
-    amount: 50,
-    month: '2026 年 6 月',
-  },
-];
-
 const FILTER_TABS: { key: 'all' | 'earn' | 'spend'; label: string }[] = [
   { key: 'all', label: '全部' },
   { key: 'earn', label: '獲得' },
@@ -197,6 +106,7 @@ export default function PointsHistoryPage() {
   const router = useRouter();
   const [filter, setFilter] = useState<'all' | 'earn' | 'spend'>('all');
   const [currentPoints, setCurrentPoints] = useState<number | null>(null);
+  const [transactions, setTransactions] = useState<PointTransactionResponse[]>([]);
 
   useEffect(() => {
     getPointWallet()
@@ -208,12 +118,23 @@ export default function PointsHistoryPage() {
       .catch(() => {});
   }, []);
 
-  const visibleRecords = ALL_RECORDS.filter((r) => filter === 'all' || filter === r.dir).map(
-    (record, index, arr) => ({
+  useEffect(() => {
+    getPointTransactions({ page: 1, pageSize: 20 })
+      .then((res) => {
+        if (res.success && res.data) {
+          setTransactions(res.data.items);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const visibleRecords = transactions
+    .map(mapTransactionToRecord)
+    .filter((r) => filter === 'all' || filter === r.dir)
+    .map((record, index, arr) => ({
       ...record,
       showMonthHeader: index === 0 || record.month !== arr[index - 1].month,
-    }),
-  );
+    }));
 
   return (
     <div className="flex flex-1 flex-col">
