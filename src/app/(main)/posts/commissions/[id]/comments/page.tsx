@@ -52,6 +52,8 @@ function toReply(response: CommentResponse, commissionAuthorId: number | undefin
     isCommissioner:
       commissionAuthorId !== undefined && response.author.userId === commissionAuthorId,
     images: toCommentImages(response.images),
+    likeCount: response.likeCount,
+    isLiked: response.isLiked,
     canEdit: response.canEdit,
     canDelete: response.canDelete,
   };
@@ -69,6 +71,7 @@ function toComment(
     timeLabel: formatRelativeTime(response.createdAt),
     content: response.content,
     likeCount: response.likeCount,
+    isLiked: response.isLiked,
     images: toCommentImages(response.images),
     replies: response.replies.map((reply) => toReply(reply, commissionAuthorId)),
     canEdit: response.canEdit,
