@@ -3,6 +3,7 @@
 import { Bookmark, Heart, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { likeCommission, unlikeCommission } from '@/lib/like-api';
 
 export default function PostInteractions({
@@ -10,17 +11,23 @@ export default function PostInteractions({
   initialLikes,
   initialLiked,
   comments,
+  isLoggedIn,
 }: {
   postId: string;
   initialLikes: number;
   initialLiked: boolean;
   comments: number;
+  isLoggedIn: boolean;
 }) {
   const [liked, setLiked] = useState(initialLiked);
   const [likes, setLikes] = useState(initialLikes);
   const [bookmarked, setBookmarked] = useState(false);
 
   async function toggleLike() {
+    if (!isLoggedIn) {
+      toast('請先登入才能按讚');
+      return;
+    }
     const wasLiked = liked;
     const next = !wasLiked;
     setLiked(next);
