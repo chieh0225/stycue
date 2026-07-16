@@ -134,23 +134,33 @@ export default function NewSharePostPage() {
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setTypeMenuOpen(false)} />
                 <div className="absolute top-full left-0 z-40 mt-2 w-max min-w-full overflow-hidden rounded-xl border border-border-default bg-white shadow-card">
-                  {postTypes.map((type) => (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => {
-                        setForm((prev) => ({ ...prev, postType: type }));
-                        setTypeMenuOpen(false);
-                      }}
-                      className={`block w-full px-4 py-2.5 text-left text-label-md font-medium ${
-                        type === postType
-                          ? 'bg-surface-soft text-accent-amber'
-                          : 'text-text-primary hover:bg-surface-soft'
-                      }`}
-                    >
-                      {type}
-                    </button>
-                  ))}
+                  {postTypes.map((type) =>
+                    type === '委託' ? (
+                      <Link
+                        key={type}
+                        href="/posts/commissions/new"
+                        className="block w-full px-4 py-2.5 text-left text-label-md font-medium text-text-primary hover:bg-surface-soft"
+                      >
+                        {type}
+                      </Link>
+                    ) : (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => {
+                          setForm((prev) => ({ ...prev, postType: type }));
+                          setTypeMenuOpen(false);
+                        }}
+                        className={`block w-full px-4 py-2.5 text-left text-label-md font-medium ${
+                          type === postType
+                            ? 'bg-surface-soft text-accent-amber'
+                            : 'text-text-primary hover:bg-surface-soft'
+                        }`}
+                      >
+                        {type}
+                      </button>
+                    ),
+                  )}
                 </div>
               </>
             ) : null}
