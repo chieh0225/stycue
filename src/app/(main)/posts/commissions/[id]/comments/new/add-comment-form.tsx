@@ -28,6 +28,7 @@ import {
   type ImageCategoryId,
 } from '../../image-categories';
 import type { CommentImage } from '../comment-board';
+import { ImageOffIcon, ImagePlaceholderIcon } from '../comment-icons';
 
 // Attachment limits mirror the design copy (最多可上傳 9 張圖片，單張 10MB).
 const MAX_IMAGES = 9;
@@ -76,6 +77,36 @@ function toExistingAttachments(images: CommentImage[] | undefined): ExistingAtta
     category: image.category as ImageCategoryId,
     brand: image.brand,
   }));
+}
+
+// Preview for a `kind === 'existing'` attachment — `src` is a real backend SAS
+// URL fetched server-side, so this shows a loading placeholder until it
+// resolves, and a distinct error icon if it fails (mirrors ImageCell in
+// comment-board.tsx, which the board itself uses for the same reason).
+function ExistingAttachmentImage({ src, alt }: { src: string; alt: string }) {
+  const [status, setStatus] = useState<'loading' | 'loaded' | 'error'>('loading');
+  return (
+    <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-[#EAE2CB]">
+      {status !== 'loaded' ? (
+        <div className="absolute inset-0 flex items-center justify-center">
+          {status === 'error' ? (
+            <ImageOffIcon className="h-6 w-6" />
+          ) : (
+            <ImagePlaceholderIcon className="h-6 w-6" />
+          )}
+        </div>
+      ) : null}
+      {/* eslint-disable-next-line @next/next/no-img-element -- backend SAS URL, not a next/image domain */}
+      <img
+        src={src}
+        alt={alt}
+        title={status === 'error' ? '圖片載入失敗' : undefined}
+        onLoad={() => setStatus('loaded')}
+        onError={() => setStatus('error')}
+        className={`h-full w-full object-cover transition-opacity ${status === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
+      />
+    </div>
+  );
 }
 
 export default function AddCommentForm({
@@ -365,15 +396,7 @@ export default function AddCommentForm({
                 className="h-20 w-20 flex-shrink-0 rounded-lg object-cover"
               />
             ) : (
-              // Existing attachment from an edit — `url` is the real backend
-              // SAS URL fetched server-side, so this renders the actual photo
-              // rather than a placeholder.
-              // eslint-disable-next-line @next/next/no-img-element -- backend SAS URL, not a next/image domain
-              <img
-                src={image.url}
-                alt={attachmentLabel(image)}
-                className="h-20 w-20 flex-shrink-0 rounded-lg object-cover"
-              />
+              <ExistingAttachmentImage src={image.url} alt={attachmentLabel(image)} />
             )}
             <div className="min-w-0 flex-1">
               {/* Filename + delete */}
