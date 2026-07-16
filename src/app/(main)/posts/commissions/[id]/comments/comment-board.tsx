@@ -16,6 +16,7 @@ import CommentComposer from '../comment-composer';
 import {
   ChevronDownIcon,
   HeartIcon,
+  ImageOffIcon,
   ImagePlaceholderIcon,
   ReplyIcon,
   SendIcon,
@@ -135,6 +136,11 @@ function ImageCell({
   variant: 'lg' | 'grid';
 }) {
   const isGrid = variant === 'grid';
+  const iconSize = isGrid ? 'h-4.5 w-4.5' : 'h-5.5 w-5.5';
+  // 'loading' until onLoad/onError settles it — 'error' gets a distinct icon
+  // (image-off) rather than reusing the loading placeholder, so a broken SAS
+  // URL doesn't look like the image is still on its way.
+  const [status, setStatus] = useState<'loading' | 'loaded' | 'error'>('loading');
   return (
     <div
       className={
@@ -143,8 +149,24 @@ function ImageCell({
           : 'relative h-28.5 w-28.5 flex-shrink-0 overflow-hidden rounded-[10px] bg-[#EAE2CB]'
       }
     >
+      {status !== 'loaded' ? (
+        <div className="absolute inset-0 flex items-center justify-center">
+          {status === 'error' ? (
+            <ImageOffIcon className={iconSize} />
+          ) : (
+            <ImagePlaceholderIcon className={iconSize} />
+          )}
+        </div>
+      ) : null}
       {/* eslint-disable-next-line @next/next/no-img-element -- backend SAS URL, not a next/image domain */}
-      <img src={url} alt={label ?? '穿搭參考圖'} className="h-full w-full object-cover" />
+      <img
+        src={url}
+        alt={label ?? '穿搭參考圖'}
+        title={status === 'error' ? '圖片載入失敗' : undefined}
+        onLoad={() => setStatus('loaded')}
+        onError={() => setStatus('error')}
+        className={`h-full w-full object-cover transition-opacity ${status === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
+      />
       {label ? (
         <span
           className={`absolute inset-x-0 bottom-0 bg-[rgba(64,58,50,0.55)] text-center text-label-md font-semibold text-surface-base ${

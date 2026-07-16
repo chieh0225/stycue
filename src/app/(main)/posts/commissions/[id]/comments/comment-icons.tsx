@@ -1,11 +1,18 @@
-import { ChevronDown, Heart, Image, Send, Star, TriangleAlert, User } from 'lucide-react';
+import { ChevronDown, Heart, Image, ImageOff, Send, Star, TriangleAlert, User } from 'lucide-react';
 
 export function UserIcon({ className = 'h-4.25 w-4.25' }: { className?: string }) {
   return <User className={className} />;
 }
 
+// Loading fallback — shown while an attached image hasn't finished loading yet.
 export function ImagePlaceholderIcon({ className = 'h-5.5 w-5.5' }: { className?: string }) {
   return <Image className={className} />;
+}
+
+// Error fallback — shown once an attached image's load has failed (expired
+// SAS URL, network error, etc.), distinct from the loading state above.
+export function ImageOffIcon({ className = 'h-5.5 w-5.5' }: { className?: string }) {
+  return <ImageOff className={className} />;
 }
 
 export function HeartIcon({ className = 'h-4 w-4' }: { className?: string }) {
