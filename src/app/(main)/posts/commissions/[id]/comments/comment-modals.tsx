@@ -1,5 +1,4 @@
-import Link from 'next/link';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -8,7 +7,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
 import { AlertTriangleIcon, StarIcon } from './comment-icons';
 
 // The give-points options start at the commission's 本次委託發佈積分 (the amount
@@ -26,6 +24,7 @@ export function buildGivePointsAmounts(publishPoints: number) {
 export function GivePointsModal({
   targetName,
   amounts,
+  publishPoints,
   selectedAmount,
   onSelectAmount,
   onClose,
@@ -33,11 +32,18 @@ export function GivePointsModal({
 }: {
   targetName: string;
   amounts: number[];
+  // The commission's originally configured amount — selecting anything else
+  // shows a warning, since the backend currently always awards this fixed
+  // amount regardless of what's selected here (see
+  // backend-request-custom-award-amount.md; the API has no amount field yet).
+  publishPoints: number;
   selectedAmount: number;
   onSelectAmount: (amount: number) => void;
   onClose: () => void;
   onConfirm: () => void;
 }) {
+  const isCustomAmount = selectedAmount !== publishPoints;
+
   return (
     <Dialog
       open
@@ -79,6 +85,17 @@ export function GivePointsModal({
           })}
         </div>
 
+        {isCustomAmount ? (
+          // TODO once backend implements backend-request-custom-award-amount.md:
+          // swap this copy for a real consequence, e.g. "將額外從你的積分錢包
+          // 扣除 {selectedAmount - publishPoints} 積分差額" — until then this
+          // must stay honest that the pick has no effect yet.
+          <p className="mt-3 text-label-md text-destructive">
+            系統目前僅會依委託設定發放 {publishPoints}{' '}
+            積分，選擇其他金額暫不會生效（此功能待後端支援後才會實際多收）。
+          </p>
+        ) : null}
+
         <Separator className="mt-5 mb-4" />
 
         <DialogFooter>
@@ -88,49 +105,6 @@ export function GivePointsModal({
           <Button type="button" variant="primary" size="md" onClick={onConfirm} className="flex-1">
             確認
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-export function InsufficientPointsModal({
-  targetName,
-  amount,
-  onClose,
-}: {
-  targetName: string;
-  amount: number;
-  onClose: () => void;
-}) {
-  return (
-    <Dialog
-      open
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
-    >
-      <DialogContent className="flex flex-col items-center px-5.5 pt-6.5 pb-5 text-center">
-        <div className="mb-4 flex size-13 items-center justify-center rounded-full bg-destructive/10 text-destructive">
-          <AlertTriangleIcon className="h-6.5 w-6.5" />
-        </div>
-        <DialogTitle className="mb-2 whitespace-nowrap">積分不足</DialogTitle>
-        <DialogDescription className="mb-5">
-          您目前的積分不足以給予 {targetName} {amount} 積分，請前往儲值積分！
-        </DialogDescription>
-
-        <Separator className="mb-4" />
-
-        <DialogFooter>
-          <Button type="button" variant="secondary" size="md" onClick={onClose} className="flex-1">
-            取消
-          </Button>
-          <Link
-            href="/profile/points/buy"
-            className={cn(buttonVariants({ variant: 'goldDark', size: 'md' }), 'flex-1')}
-          >
-            前往儲值
-          </Link>
         </DialogFooter>
       </DialogContent>
     </Dialog>
