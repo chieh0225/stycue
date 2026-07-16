@@ -1,6 +1,7 @@
 import { ChevronLeft, User } from 'lucide-react';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,34 +11,8 @@ import { TopBar } from '@/components/ui/top-bar';
 import { getCommissionServer } from '@/lib/commission-server';
 import CommentLauncher from './comment-launcher';
 import HideScrollbar from './hide-scrollbar';
-import { MOCK_PUBLISH_POINTS } from './mock-commission';
 import PhotoGallery from './photo-gallery';
 import PostInteractions from './post-interactions';
-
-const fallbackBodyText = `最近開始想認真學穿搭，但自己研究了一段時間後，還是不太確定什麼樣的版型和配色比較適合自己，所以想請大家根據我的身形給一些建議。
-
-我有附上幾張不同角度的身形照片，希望大家可以依照我的比例推薦一套適合我的韓系簡約穿搭。
-
-我平常主要會穿去上課、朋友聚餐或日常外出，希望整體看起來乾淨、舒服，不需要太浮誇，也不要太正式。
-
-目前衣櫃裡比較常穿的衣服有：
-・白色素 T
-・黑色直筒褲
-・深藍牛仔褲
-・小白鞋
-
-如果可以，希望能以現有單品搭配，再推薦一兩件需要添購的衣服即可。
-
-預算希望控制在 3000～5000 元左右，如果有平價品牌或台灣容易購買的店家也歡迎一起推薦。
-
-另外，如果你認為我其實不適合韓系，而是有其他更適合的風格，也歡迎直接提出建議，我都很願意參考。
-
-謝謝願意花時間幫忙回覆的人！`;
-
-const fallbackTags = ['韓系', '修身', '簡約', '約會'];
-
-const fallbackCreatedAt = '2026-07-02T14:30:00Z';
-const fallbackDeadline = '2026-07-08';
 
 function formatDate(iso: string): string {
   const date = new Date(iso);
@@ -50,23 +25,27 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
   const created = result.success ? result.data : null;
   const isLoggedIn = Boolean((await cookies()).get('stycue_access_token')?.value);
 
+  if (!created) notFound();
+
   const postTypeLabel = '委託';
-  const title = created?.title || '希望能找到一套適合我的穿搭';
-  const bodyText = created?.content || fallbackBodyText;
-  const tags =
-    created && created.tags.length > 0 ? created.tags.map((tag) => tag.name) : fallbackTags;
-  const height = created?.height ?? '175';
-  const weight = created?.weight ?? '67';
-  const age = created?.age ?? '25';
-  const budgetLabel = created?.budget ? `NT$ ${created.budget}` : 'NT$ 3,000 - 5,000';
-  const points = created?.points ?? MOCK_PUBLISH_POINTS;
-  const createdAt = created?.createdAt ?? fallbackCreatedAt;
-  const deadline = created?.expiredAt ?? fallbackDeadline;
-  const authorName = created?.author.displayName || 'Maple';
-  const photos = created?.images ?? [];
-  const likeCount = created?.likeCount ?? 222;
-  const isLiked = created?.isLiked ?? false;
-  const commentCount = created?.commentCount ?? 50;
+  const {
+    title,
+    content: bodyText,
+    height,
+    weight,
+    age,
+    budget,
+    points,
+    createdAt,
+    expiredAt: deadline,
+    author: { displayName: authorName },
+    images: photos,
+    likeCount,
+    isLiked,
+    commentCount,
+  } = created;
+  const tags = created.tags.map((tag) => tag.name);
+  const budgetLabel = budget ? `NT$ ${budget}` : null;
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col bg-surface-base">
@@ -125,11 +104,15 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
         {/* 穿搭標籤 */}
         <h2 className="mb-3 text-body-lg font-bold text-text-primary">穿搭標籤</h2>
         <div className="mb-6 flex flex-wrap gap-2">
-          {tags.map((tag) => (
-            <Badge key={tag} variant="neutral">
-              {tag}
-            </Badge>
-          ))}
+          {tags.length > 0 ? (
+            tags.map((tag) => (
+              <Badge key={tag} variant="neutral">
+                {tag}
+              </Badge>
+            ))
+          ) : (
+            <p className="text-label-md text-text-tertiary">尚未選擇標籤</p>
+          )}
         </div>
 
         {/* 委託條件 */}
@@ -139,26 +122,46 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
             <div className="flex flex-col items-center gap-0.75">
               <dt className="text-label-md text-text-tertiary">身高</dt>
               <dd className="text-body-lg font-bold text-text-primary">
-                {height} <span className="text-label-md font-medium text-text-tertiary">cm</span>
+                {height !== null ? (
+                  <>
+                    {height}{' '}
+                    <span className="text-label-md font-medium text-text-tertiary">cm</span>
+                  </>
+                ) : (
+                  <span className="text-label-md font-medium text-text-tertiary">未提供</span>
+                )}
               </dd>
             </div>
             <div className="flex flex-col items-center gap-0.75 border-x border-border-default">
               <dt className="text-label-md text-text-tertiary">體重</dt>
               <dd className="text-body-lg font-bold text-text-primary">
-                {weight} <span className="text-label-md font-medium text-text-tertiary">kg</span>
+                {weight !== null ? (
+                  <>
+                    {weight}{' '}
+                    <span className="text-label-md font-medium text-text-tertiary">kg</span>
+                  </>
+                ) : (
+                  <span className="text-label-md font-medium text-text-tertiary">未提供</span>
+                )}
               </dd>
             </div>
             <div className="flex flex-col items-center gap-0.75">
               <dt className="text-label-md text-text-tertiary">年齡</dt>
               <dd className="text-body-lg font-bold text-text-primary">
-                {age} <span className="text-label-md font-medium text-text-tertiary">歲</span>
+                {age !== null ? (
+                  <>
+                    {age} <span className="text-label-md font-medium text-text-tertiary">歲</span>
+                  </>
+                ) : (
+                  <span className="text-label-md font-medium text-text-tertiary">未提供</span>
+                )}
               </dd>
             </div>
           </dl>
           <Separator className="mx-3.5 mb-3 w-auto" />
           <dl className="flex items-center justify-between px-3.5">
             <dt className="text-label-md text-text-tertiary">預算範圍</dt>
-            <dd className="text-body-md font-bold text-text-primary">{budgetLabel}</dd>
+            <dd className="text-body-md font-bold text-text-primary">{budgetLabel ?? '未提供'}</dd>
           </dl>
         </Card>
 
