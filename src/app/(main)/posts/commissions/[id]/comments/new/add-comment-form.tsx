@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertCircle, ChevronDown, Image, ImagePlus, Trash2, User } from 'lucide-react';
+import { AlertCircle, ChevronDown, ImagePlus, Trash2, User } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -365,17 +365,15 @@ export default function AddCommentForm({
                 className="h-20 w-20 flex-shrink-0 rounded-lg object-cover"
               />
             ) : (
-              // Existing attachment from an edit — no live preview available
-              // (its object URL was revoked once the original post finished
-              // publishing), so this shows the same placeholder glyph the
-              // board itself renders for every comment image.
-              <div
-                role="img"
-                aria-label={attachmentLabel(image)}
-                className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-lg bg-[#EAE2CB] text-[#B8AF9E]"
-              >
-                <Image className="h-6 w-6" />
-              </div>
+              // Existing attachment from an edit — `url` is the real backend
+              // SAS URL fetched server-side, so this renders the actual photo
+              // rather than a placeholder.
+              // eslint-disable-next-line @next/next/no-img-element -- backend SAS URL, not a next/image domain
+              <img
+                src={image.url}
+                alt={attachmentLabel(image)}
+                className="h-20 w-20 flex-shrink-0 rounded-lg object-cover"
+              />
             )}
             <div className="min-w-0 flex-1">
               {/* Filename + delete */}
