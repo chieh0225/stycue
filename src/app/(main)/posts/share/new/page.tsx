@@ -210,25 +210,26 @@ export default function NewSharePostPage() {
 
         {/* Upload / tags */}
         <div className="flex flex-col gap-2.5">
-          <div className="flex flex-wrap items-center gap-2">
+          <div>
             <Link
               href="/posts/share/new/photo"
               onClick={saveDraft}
-              className="flex items-center gap-1.5 rounded-lg border border-border-default bg-surface-soft px-3 py-2 text-label-md text-text-primary"
+              className="flex w-fit items-center gap-1.5 rounded-lg border border-border-default bg-surface-soft px-3 py-2 text-label-md text-text-primary"
             >
               <ImagePlus className="h-4 w-4" aria-hidden /> 新增圖片
             </Link>
-            <Link
-              href="/posts/share/new/tags"
-              prefetch={false}
-              className="flex items-center gap-1.5 rounded-lg border border-border-default bg-surface-soft px-3 py-2 text-label-md text-text-primary"
-            >
-              <Tag className="h-4 w-4" aria-hidden /> 選擇標籤
-            </Link>
           </div>
-          {draftTags.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2">
-              {draftTags.map((tag) => (
+          <div className="flex flex-wrap items-center gap-2">
+            {draftTags.length === 0 ? (
+              <Link
+                href="/posts/share/new/tags"
+                prefetch={false}
+                className="flex items-center gap-1.5 rounded-lg border border-border-default bg-surface-soft px-3 py-2 text-label-md text-text-primary"
+              >
+                <Tag className="h-4 w-4" aria-hidden /> 選擇標籤
+              </Link>
+            ) : (
+              draftTags.map((tag) => (
                 <span
                   key={tag.tagId}
                   className="flex items-center gap-1 rounded-full border border-border-default bg-surface-soft px-3 py-1.5 text-label-md text-text-primary"
@@ -243,10 +244,12 @@ export default function NewSharePostPage() {
                     <X className="h-3 w-3" />
                   </button>
                 </span>
-              ))}
-            </div>
-          )}
+              ))
+            )}
+          </div>
         </div>
+
+        <hr className="border-border-default" />
 
         {/* 穿搭資訊 */}
         <div className="flex flex-col gap-2">
