@@ -21,6 +21,7 @@ import {
   postTypes,
   pointsOptions,
   emptyDraft,
+  clearDraftState,
   type Draft,
 } from '../draft';
 
@@ -155,12 +156,7 @@ export default function NewPostPreviewPage() {
         return;
       }
 
-      localStorage.removeItem(DRAFT_STORAGE_KEY);
-      fetch('/api/posts/draft-tags', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tags: [] }),
-      }).catch(() => {});
+      clearDraftState();
       router.push(`/posts/commissions/${result.data.commissionId}`);
     } catch {
       setSubmitError('無法連線到伺服器，請稍後再試');

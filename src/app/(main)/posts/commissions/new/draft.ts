@@ -37,3 +37,16 @@ export const emptyDraft: Draft = {
   points: pointsOptions[0],
   photos: [],
 };
+
+// Both the localStorage draft and the server-side draft-tags store are
+// global, not scoped per account, so they leak into the next login on the
+// same browser unless cleared explicitly — call this on logout and after a
+// successful submit.
+export function clearDraftState(): void {
+  localStorage.removeItem(DRAFT_STORAGE_KEY);
+  fetch('/api/posts/draft-tags', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tags: [] }),
+  }).catch(() => {});
+}

@@ -17,12 +17,14 @@ import { TopBar } from '@/components/ui/top-bar';
 import { getPointWallet } from '@/lib/points-api';
 import { cn } from '@/lib/utils';
 import { clearAuthed, getAuthedUser } from '../../auth';
+import { clearDraftState } from '../posts/commissions/new/draft';
 
 export default function ProfilePage() {
   const router = useRouter();
 
   function handleLogout() {
     clearAuthed();
+    clearDraftState();
     router.push('/login');
   }
 
