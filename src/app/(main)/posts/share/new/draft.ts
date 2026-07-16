@@ -1,6 +1,6 @@
 export const DRAFT_STORAGE_KEY = 'stycue:share-post-draft';
 export const TITLE_MAX_LENGTH = 40;
-export const postTypes = ['分享', '提問'] as const;
+export const postTypes = ['分享', '委託', '提問'] as const;
 
 export type Draft = {
   title: string;
