@@ -125,19 +125,26 @@ function toReply(response: CommentResponse): Reply {
   };
 }
 
-function ImageCell({ label, variant }: { label?: string; variant: 'lg' | 'grid' }) {
+function ImageCell({
+  url,
+  label,
+  variant,
+}: {
+  url: string;
+  label?: string;
+  variant: 'lg' | 'grid';
+}) {
   const isGrid = variant === 'grid';
   return (
     <div
-      role="img"
-      aria-label={label ?? '穿搭參考圖'}
       className={
         isGrid
-          ? 'relative flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-[#EAE2CB] text-text-placeholder'
-          : 'relative flex h-28.5 w-28.5 flex-shrink-0 items-center justify-center overflow-hidden rounded-[10px] bg-[#EAE2CB] text-text-placeholder'
+          ? 'relative aspect-square overflow-hidden rounded-lg bg-[#EAE2CB]'
+          : 'relative h-28.5 w-28.5 flex-shrink-0 overflow-hidden rounded-[10px] bg-[#EAE2CB]'
       }
     >
-      <ImagePlaceholderIcon className={isGrid ? 'h-4.5 w-4.5' : 'h-5.5 w-5.5'} />
+      {/* eslint-disable-next-line @next/next/no-img-element -- backend SAS URL, not a next/image domain */}
+      <img src={url} alt={label ?? '穿搭參考圖'} className="h-full w-full object-cover" />
       {label ? (
         <span
           className={`absolute inset-x-0 bottom-0 bg-[rgba(64,58,50,0.55)] text-center text-label-md font-semibold text-surface-base ${
@@ -174,7 +181,12 @@ function AttachedImages({ images }: { images?: CommentImage[] }) {
     return (
       <div className="mt-2.5 grid grid-cols-3 gap-1.5">
         {images.map((image) => (
-          <ImageCell key={image.imageId} label={imageLabel(image)} variant="grid" />
+          <ImageCell
+            key={image.imageId}
+            url={image.imageUrl}
+            label={imageLabel(image)}
+            variant="grid"
+          />
         ))}
       </div>
     );
@@ -183,7 +195,7 @@ function AttachedImages({ images }: { images?: CommentImage[] }) {
   if (layout === 'single') {
     return (
       <div className="mt-2.5">
-        <ImageCell label={imageLabel(images[0])} variant="lg" />
+        <ImageCell url={images[0].imageUrl} label={imageLabel(images[0])} variant="lg" />
       </div>
     );
   }
@@ -192,7 +204,12 @@ function AttachedImages({ images }: { images?: CommentImage[] }) {
   return (
     <div className="mt-2.5 flex [scrollbar-width:none] gap-2 overflow-x-auto [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
       {images.map((image) => (
-        <ImageCell key={image.imageId} label={imageLabel(image)} variant="lg" />
+        <ImageCell
+          key={image.imageId}
+          url={image.imageUrl}
+          label={imageLabel(image)}
+          variant="lg"
+        />
       ))}
     </div>
   );
