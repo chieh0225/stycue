@@ -8,8 +8,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { createComment, createReply, deleteComment as deleteCommentApi } from '@/lib/comment-api';
+import { selectBestComment } from '@/lib/commission-api';
 import { likeComment, unlikeComment } from '@/lib/like-api';
-import { getPointWallet } from '@/lib/points-api';
 import type { CommentResponse } from '@/types/comment';
 import type { ImageResponse } from '@/types/image';
 import CommentComposer from '../comment-composer';
@@ -23,12 +23,7 @@ import {
   StarIcon,
   UserIcon,
 } from './comment-icons';
-import {
-  buildGivePointsAmounts,
-  DeleteConfirmModal,
-  GivePointsModal,
-  InsufficientPointsModal,
-} from './comment-modals';
+import { buildGivePointsAmounts, DeleteConfirmModal, GivePointsModal } from './comment-modals';
 import { categoryLabel } from '../image-categories';
 
 // Shape returned by the (future) POST /uploads endpoint plus the category/brand
@@ -613,7 +608,6 @@ export default function CommentBoard({
   const [comments, setComments] = useState(initialComments);
   const [pointsTarget, setPointsTarget] = useState<{ id: string; name: string } | null>(null);
   const [selectedAmount, setSelectedAmount] = useState(publishPoints);
-  const [insufficient, setInsufficient] = useState<{ name: string; amount: number } | null>(null);
   // A commission's reward is awarded at most once. Once set, the winning
   // comment shows the best-comment style and every comment's give-points button
   // is hidden — mirroring the best-comment API, which 409s on a second award.
@@ -621,20 +615,6 @@ export default function CommentBoard({
   // Only one comment's reply box is open at a time — cleaner on the mobile
   // width and keeps the composer focus unambiguous.
   const [activeReplyId, setActiveReplyId] = useState<string | null>(null);
-
-  // The give-points affordability check needs the real wallet balance, not
-  // the MOCK_USER_POINTS placeholder. Defaults to 0 (rather than leaving it
-  // unset) so the check fails closed while the fetch is in flight.
-  const [userPoints, setUserPoints] = useState(0);
-  useEffect(() => {
-    let active = true;
-    getPointWallet().then((res) => {
-      if (active && res.success && res.data) setUserPoints(res.data.currentPoints);
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
 
   const router = useRouter();
   const pathname = usePathname();
@@ -820,29 +800,25 @@ export default function CommentBoard({
     setPointsTarget(null);
   }
 
-  function confirmGivePoints() {
+  // The backend's SelectBestCommentRequest today only honors commentId — the
+  // `selectedAmount` sent below has no effect yet (see
+  // backend-request-custom-award-amount.md); the backend always awards the
+  // commission's own configured points minus a platform fee. So the actual
+  // awarded amount shown afterwards comes from the response's rewardPoints,
+  // not the amount picked in the modal.
+  async function confirmGivePoints() {
     if (!pointsTarget) return;
-    // Not enough points: surface the insufficient-points modal instead.
-    if (selectedAmount > userPoints) {
-      setInsufficient({ name: pointsTarget.name, amount: selectedAmount });
-      setPointsTarget(null);
+    const commentId = pointsTarget.id;
+    setPointsTarget(null);
+    const result = await selectBestComment(postId, commentId, selectedAmount);
+    if (!result.success || !result.data) {
+      // TODO once backend defines the insufficient-funds errorCode from
+      // backend-request-custom-award-amount.md: special-case it here with a
+      // dedicated "積分不足" prompt instead of the generic toast.
+      toast(result.message || '給予積分失敗，請稍後再試');
       return;
     }
-    // Optimistically mark the winning comment, then fire the award write. The
-    // Idempotency-Key guards against a double confirm resulting in two awards;
-    // fire-and-forget with no rollback mirrors addComment/addReply until the
-    // real best-comment API is wired up.
-    const commentId = pointsTarget.id;
-    setAwarded({ commentId, amount: selectedAmount });
-    setPointsTarget(null);
-    void fetch(`/api/commissions/${postId}/best-comment`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Idempotency-Key': crypto.randomUUID(),
-      },
-      body: JSON.stringify({ commentId }),
-    }).catch(() => {});
+    setAwarded({ commentId, amount: result.data.rewardPoints });
   }
 
   return (
@@ -889,18 +865,11 @@ export default function CommentBoard({
         <GivePointsModal
           targetName={pointsTarget.name}
           amounts={giveAmounts}
+          publishPoints={publishPoints}
           selectedAmount={selectedAmount}
           onSelectAmount={setSelectedAmount}
           onClose={closeGivePoints}
           onConfirm={confirmGivePoints}
-        />
-      ) : null}
-
-      {insufficient ? (
-        <InsufficientPointsModal
-          targetName={insufficient.name}
-          amount={insufficient.amount}
-          onClose={() => setInsufficient(null)}
         />
       ) : null}
 
