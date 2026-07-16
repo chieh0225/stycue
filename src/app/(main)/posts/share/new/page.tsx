@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { buttonVariants } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { TopBar } from '@/components/ui/top-bar';
 import { cn } from '@/lib/utils';
 import { DRAFT_STORAGE_KEY, TITLE_MAX_LENGTH, postTypes, emptyDraft, type Draft } from './draft';
@@ -16,7 +17,8 @@ export default function NewSharePostPage() {
   const [descriptionFocused, setDescriptionFocused] = useState(false);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const [form, setForm] = useState<Draft>(emptyDraft);
-  const { title, description, postType } = form;
+  const { title, description, postType, outfitStyle, outfitOccasion, outfitDate, outfitLocation } =
+    form;
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
   const [draftTags, setDraftTags] = useState<{ tagId: number; name: string }[]>([]);
   const titleRef = useRef<HTMLTextAreaElement>(null);
@@ -246,7 +248,77 @@ export default function NewSharePostPage() {
           )}
         </div>
 
-        <hr className="border-border-default" />
+        {/* 穿搭資訊 */}
+        <div className="flex flex-col gap-2">
+          <h2 className="text-body-lg font-semibold text-text-primary">穿搭資訊</h2>
+          <Card variant="info" className="p-4">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-4">
+              <div className="flex flex-col gap-1">
+                <label htmlFor="outfit-style" className="text-label-md text-text-tertiary">
+                  穿搭風格
+                </label>
+                <input
+                  id="outfit-style"
+                  type="text"
+                  value={outfitStyle}
+                  onChange={(event) =>
+                    setForm((prev) => ({ ...prev, outfitStyle: event.target.value }))
+                  }
+                  placeholder="例如：韓系簡約"
+                  className="bg-transparent text-body-md font-bold text-text-primary placeholder-text-muted outline-none placeholder:font-normal"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label htmlFor="outfit-occasion" className="text-label-md text-text-tertiary">
+                  穿搭場合
+                </label>
+                <input
+                  id="outfit-occasion"
+                  type="text"
+                  value={outfitOccasion}
+                  onChange={(event) =>
+                    setForm((prev) => ({ ...prev, outfitOccasion: event.target.value }))
+                  }
+                  placeholder="例如：日常外出"
+                  className="bg-transparent text-body-md font-bold text-text-primary placeholder-text-muted outline-none placeholder:font-normal"
+                />
+              </div>
+              <div className="flex flex-col items-start gap-1">
+                <label htmlFor="outfit-date" className="text-label-md text-text-tertiary">
+                  穿搭日期
+                </label>
+                <input
+                  id="outfit-date"
+                  type="date"
+                  value={outfitDate}
+                  onChange={(event) =>
+                    setForm((prev) => ({ ...prev, outfitDate: event.target.value }))
+                  }
+                  onClick={(event) => {
+                    const target = event.target as HTMLInputElement & { showPicker?: () => void };
+                    target.showPicker?.();
+                  }}
+                  className="w-fit cursor-pointer bg-transparent text-body-md font-bold text-text-primary outline-none"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label htmlFor="outfit-location" className="text-label-md text-text-tertiary">
+                  穿搭地點
+                </label>
+                <input
+                  id="outfit-location"
+                  type="text"
+                  value={outfitLocation}
+                  onChange={(event) =>
+                    setForm((prev) => ({ ...prev, outfitLocation: event.target.value }))
+                  }
+                  placeholder="例如：台灣・高雄"
+                  className="bg-transparent text-body-md font-bold text-text-primary placeholder-text-muted outline-none placeholder:font-normal"
+                />
+              </div>
+            </div>
+          </Card>
+        </div>
 
         {/* Submit */}
         <Link

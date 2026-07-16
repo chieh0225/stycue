@@ -6,12 +6,20 @@ export type Draft = {
   title: string;
   description: string;
   postType: (typeof postTypes)[number];
+  outfitStyle: string;
+  outfitOccasion: string;
+  outfitDate: string;
+  outfitLocation: string;
 };
 
 export const emptyDraft: Draft = {
   title: '',
   description: '',
   postType: postTypes[0],
+  outfitStyle: '',
+  outfitOccasion: '',
+  outfitDate: '',
+  outfitLocation: '',
 };
 
 // Both the localStorage draft and the server-side draft-tags store are
