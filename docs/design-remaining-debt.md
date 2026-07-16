@@ -77,6 +77,13 @@
 **阻塞原因**：牽涉互動流程/路由架構，超出「不改互動流程」邊界，非遺漏而是刻意排除。
 **下一步**：若之後要重新評估，需要先確認能否在不動路由架構的前提下套用 Base UI Sheet（可能需要額外的 portal container 設計）。
 
+### `posts/share/new` 切換到「委託」類型後，`posts/commissions/new` 不保證顯示「委託」
+
+**現況**：`posts/share/new` 的類型下拉選單新增了「委託」選項（連到 `posts/commissions/new` 的 `<Link>`），但 `posts/commissions/new` 的 `postType` 顯示值是由 `emptyDraft.postType`(`postTypes[0]`="委託") 與瀏覽器 `localStorage`（`stycue:commission-post-draft`）裡的舊草稿合併決定的——若使用者瀏覽器裡還留著 `postType` 不是「委託」的舊草稿，跳轉過去後下拉選單不會顯示「委託」。
+**阻塞原因**：要保證顯示，需要在連結加上 query param（如 `?type=委託`）並修改 `posts/commissions/new/page.tsx` 讀取後覆蓋還原後的 `postType`——這會動到 `posts/commissions/new` 這個檔案，牽涉另一個既有頁面的邏輯，目前尚未實作，待確認是否要做。
+**附帶的既有資料結構限制**（非本次連結新增，原本就存在）：`postType` 與標題/內文/身高/體重/預算等欄位同屬一個 `Draft` 物件，不是各類型分開存放。若使用者已填寫委託專屬欄位（身高/體重/預算）後才把下拉選單切成其他類型，且之後觸發 `saveDraft()`（點「取消」或「送出」），存進 `localStorage` 的會是同一份草稿、`postType` 已變更，但先前填寫的委託專屬欄位內容仍在其中，形成欄位語意與類型不一致的殘留資料。單純點擊下拉選單切換類型本身**不會**立即寫入 `localStorage`（`onClick` 只呼叫 `setForm`，未呼叫 `saveDraft`），只有在後續明確觸發存草稿的動作時才會連帶寫入。
+**下一步**：確認是否要加 query param 讓「委託」入口保證顯示正確類型；若要處理欄位殘留問題，需要先決定草稿資料結構是否要依 `postType` 分開存放，或送出前針對非對應類型的欄位做清除。
+
 ---
 
 ## Resolved
