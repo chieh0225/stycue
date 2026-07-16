@@ -1,4 +1,4 @@
-import { ChevronLeft, Image, User } from 'lucide-react';
+import { ChevronLeft, User } from 'lucide-react';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -11,6 +11,7 @@ import { getCommissionServer } from '@/lib/commission-server';
 import CommentLauncher from './comment-launcher';
 import HideScrollbar from './hide-scrollbar';
 import { MOCK_PUBLISH_POINTS } from './mock-commission';
+import PhotoGallery from './photo-gallery';
 import PostInteractions from './post-interactions';
 
 const fallbackBodyText = `最近開始想認真學穿搭，但自己研究了一段時間後，還是不太確定什麼樣的版型和配色比較適合自己，所以想請大家根據我的身形給一些建議。
@@ -119,30 +120,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
         </div>
 
         {/* Body images: 身形照片 */}
-        <div className="mb-5.5 flex gap-2 overflow-x-auto">
-          {photos.length > 0
-            ? photos.map((photo, i) => (
-                // eslint-disable-next-line @next/next/no-img-element -- uploaded photo URL from real backend
-                <img
-                  key={photo.imageId}
-                  src={photo.url}
-                  alt={`身形照片 ${i + 1}`}
-                  className="w-45 shrink-0 overflow-hidden rounded-xl object-cover"
-                  style={{ aspectRatio: '1 / 1.2' }}
-                />
-              ))
-            : [0, 1, 2].map((i) => (
-                <div
-                  key={i}
-                  role="img"
-                  aria-label={`身形照片 ${i + 1}`}
-                  className="flex w-[200px] shrink-0 items-center justify-center rounded-xl bg-[#D9D2C0] text-text-primary"
-                  style={{ aspectRatio: '1 / 1.2' }}
-                >
-                  <Image className="h-9 w-9" />
-                </div>
-              ))}
-        </div>
+        <PhotoGallery photos={photos} />
 
         {/* 穿搭標籤 */}
         <h2 className="mb-3 text-body-lg font-bold text-text-primary">穿搭標籤</h2>
