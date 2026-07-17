@@ -587,6 +587,7 @@ export default function CommentBoard({
   postId,
   initialComments,
   publishPoints,
+  canSelectBestComment,
   focusId,
   expandReplyId,
   isLoggedIn,
@@ -594,6 +595,10 @@ export default function CommentBoard({
   postId: string;
   initialComments: Comment[];
   publishPoints: number;
+  // Whether the current viewer is this commission's owner and it hasn't been
+  // awarded/closed/expired yet — gates the give-points button. The backend
+  // already computes this rather than reimplementing the rules on the client.
+  canSelectBestComment: boolean;
   // Set (from ?focus=) when the user just posted via the full-page template: the
   // DOM id (`comment-{id}` / `reply-{id}`) to scroll into view once the pending
   // merge brings it in. Undefined on a plain navigation in.
@@ -842,7 +847,7 @@ export default function CommentBoard({
               onGivePoints={openGivePoints}
               isAwarded={awarded?.commentId === comment.commentId}
               awardedAmount={awarded?.amount}
-              canAward={awarded === null}
+              canAward={canSelectBestComment && awarded === null}
               defaultExpanded={expandReplyId === comment.commentId}
             />
             {index < comments.length - 1 ? <Separator aria-hidden="true" /> : null}
