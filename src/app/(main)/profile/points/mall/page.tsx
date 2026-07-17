@@ -159,7 +159,7 @@ export default function PointsMallPage() {
       {/* Scroll body */}
       <div className="no-scrollbar flex-1 overflow-y-auto bg-muted">
         {/* Category filter */}
-        <div className="mx-4.5 my-4 flex rounded-[10px] border border-border bg-popover p-0.75">
+        <div className="mx-4.5 my-4 flex rounded-[10px] border border-border bg-popover p-1">
           <button
             type="button"
             onClick={() => setCategory('all')}
@@ -250,24 +250,24 @@ export default function PointsMallPage() {
 
                     {isRedeemable ? (
                       <div
-                        className="rounded-lg bg-gold py-1.75 text-center text-label-md font-bold text-background"
+                        className="rounded-lg bg-gold py-2 text-center text-label-md font-bold text-background"
                         style={{ boxShadow: '0 3px 8px rgba(217,154,61,0.28)' }}
                       >
                         {it.points} 積分
                       </div>
                     ) : null}
                     {isOwnedCoupon ? (
-                      <div className="rounded-lg bg-foreground py-1.75 text-center text-label-md font-bold text-background">
+                      <div className="rounded-lg bg-foreground py-2 text-center text-label-md font-bold text-background">
                         使用
                       </div>
                     ) : null}
                     {isOwnedThemeApplied ? (
-                      <div className="rounded-lg bg-border-subtle py-1.75 text-center text-label-md font-bold text-[#b0a784]">
+                      <div className="rounded-lg bg-border-subtle py-2 text-center text-label-md font-bold text-[#b0a784]">
                         使用中
                       </div>
                     ) : null}
                     {isOwnedThemeUnapplied ? (
-                      <div className="rounded-lg bg-foreground py-1.75 text-center text-label-md font-bold text-background">
+                      <div className="rounded-lg bg-foreground py-2 text-center text-label-md font-bold text-background">
                         套用
                       </div>
                     ) : null}
