@@ -23,7 +23,12 @@ import {
   StarIcon,
   UserIcon,
 } from './comment-icons';
-import { buildGivePointsAmounts, DeleteConfirmModal, GivePointsModal } from './comment-modals';
+import {
+  buildGivePointsAmounts,
+  DeleteConfirmModal,
+  GivePointsModal,
+  InsufficientPointsModal,
+} from './comment-modals';
 import { categoryLabel } from '../image-categories';
 
 // Shape returned by the (future) POST /uploads endpoint plus the category/brand
@@ -613,6 +618,7 @@ export default function CommentBoard({
   const [comments, setComments] = useState(initialComments);
   const [pointsTarget, setPointsTarget] = useState<{ id: string; name: string } | null>(null);
   const [selectedAmount, setSelectedAmount] = useState(publishPoints);
+  const [insufficient, setInsufficient] = useState<{ name: string; amount: number } | null>(null);
   // A commission's reward is awarded at most once. Once set, the winning
   // comment shows the best-comment style and every comment's give-points button
   // is hidden — mirroring the best-comment API, which 409s on a second award.
@@ -806,15 +812,21 @@ export default function CommentBoard({
   }
 
   // Awards `selectedAmount` — if it's above the commission's own configured
-  // points, the difference is charged to the commissioner's wallet. The
-  // backend validates and returns a Chinese message for both failure cases
-  // (amount too low / wallet balance too low), which is shown as-is.
+  // points, the difference is charged to the commissioner's wallet.
+  // INSUFFICIENT_POINTS gets a dedicated modal with a link to top up; any
+  // other failure (e.g. amount below the commission's own points) shows the
+  // backend's Chinese message as-is via toast.
   async function confirmGivePoints() {
     if (!pointsTarget) return;
-    const commentId = pointsTarget.id;
+    const { id: commentId, name } = pointsTarget;
+    const amount = selectedAmount;
     setPointsTarget(null);
-    const result = await selectBestComment(postId, commentId, selectedAmount);
+    const result = await selectBestComment(postId, commentId, amount);
     if (!result.success || !result.data) {
+      if (result.errorCode === 'INSUFFICIENT_POINTS') {
+        setInsufficient({ name, amount });
+        return;
+      }
       toast(result.message || '給予積分失敗，請稍後再試');
       return;
     }
@@ -870,6 +882,14 @@ export default function CommentBoard({
           onSelectAmount={setSelectedAmount}
           onClose={closeGivePoints}
           onConfirm={confirmGivePoints}
+        />
+      ) : null}
+
+      {insufficient ? (
+        <InsufficientPointsModal
+          targetName={insufficient.name}
+          amount={insufficient.amount}
+          onClose={() => setInsufficient(null)}
         />
       ) : null}
 

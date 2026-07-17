@@ -1,4 +1,5 @@
-import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { Button, buttonVariants } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -7,6 +8,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 import { AlertTriangleIcon, StarIcon } from './comment-icons';
 
 // The give-points options start at the commission's 本次委託發佈積分 (the amount
@@ -98,6 +100,49 @@ export function GivePointsModal({
           <Button type="button" variant="primary" size="md" onClick={onConfirm} className="flex-1">
             確認
           </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function InsufficientPointsModal({
+  targetName,
+  amount,
+  onClose,
+}: {
+  targetName: string;
+  amount: number;
+  onClose: () => void;
+}) {
+  return (
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
+      <DialogContent className="flex flex-col items-center px-5.5 pt-6.5 pb-5 text-center">
+        <div className="mb-4 flex size-13 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+          <AlertTriangleIcon className="h-6.5 w-6.5" />
+        </div>
+        <DialogTitle className="mb-2 whitespace-nowrap">積分不足</DialogTitle>
+        <DialogDescription className="mb-5">
+          您目前的積分不足以給予 {targetName} {amount} 積分，請前往儲值積分！
+        </DialogDescription>
+
+        <Separator className="mb-4" />
+
+        <DialogFooter>
+          <Button type="button" variant="secondary" size="md" onClick={onClose} className="flex-1">
+            取消
+          </Button>
+          <Link
+            href="/profile/points/buy"
+            className={cn(buttonVariants({ variant: 'goldDark', size: 'md' }), 'flex-1')}
+          >
+            前往儲值
+          </Link>
         </DialogFooter>
       </DialogContent>
     </Dialog>
