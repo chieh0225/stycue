@@ -88,7 +88,7 @@ const menuLinkGroups = [
   ],
   [
     { label: '管理委託', icon: ClipboardList, href: '/profile/commissions/sent' },
-    { label: '積分商城', icon: Coins, href: '/profile/points' },
+    { label: '積分商城', icon: Coins, href: '/profile/points/mall' },
     { label: '免責聲明', icon: FileText, href: '/disclaimer' },
   ],
 ] as const;
