@@ -43,6 +43,8 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
     likeCount,
     isLiked,
     commentCount,
+    favoriteCount,
+    isFavorited,
   } = created;
   const tags = created.tags.map((tag) => tag.name);
   const budgetLabel = budget ? `NT$ ${budget}` : null;
@@ -179,6 +181,8 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
           postId={id}
           initialLikes={likeCount}
           initialLiked={isLiked}
+          initialFavorites={favoriteCount}
+          initialFavorited={isFavorited}
           comments={commentCount}
           isLoggedIn={isLoggedIn}
         />
