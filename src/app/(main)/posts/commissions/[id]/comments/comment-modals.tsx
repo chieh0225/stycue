@@ -32,10 +32,8 @@ export function GivePointsModal({
 }: {
   targetName: string;
   amounts: number[];
-  // The commission's originally configured amount — selecting anything else
-  // shows a warning, since the backend currently always awards this fixed
-  // amount regardless of what's selected here (see
-  // backend-request-custom-award-amount.md; the API has no amount field yet).
+  // The commission's originally configured amount — the minimum award; picking
+  // higher charges the difference to the commissioner's own wallet.
   publishPoints: number;
   selectedAmount: number;
   onSelectAmount: (amount: number) => void;
@@ -86,13 +84,8 @@ export function GivePointsModal({
         </div>
 
         {isCustomAmount ? (
-          // TODO once backend implements backend-request-custom-award-amount.md:
-          // swap this copy for a real consequence, e.g. "將額外從你的積分錢包
-          // 扣除 {selectedAmount - publishPoints} 積分差額" — until then this
-          // must stay honest that the pick has no effect yet.
           <p className="mt-3 text-label-md text-destructive">
-            系統目前僅會依委託設定發放 {publishPoints}{' '}
-            積分，選擇其他金額暫不會生效（此功能待後端支援後才會實際多收）。
+            將額外從你的積分錢包扣除 {selectedAmount - publishPoints} 積分差額。
           </p>
         ) : null}
 

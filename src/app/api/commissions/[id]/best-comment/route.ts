@@ -22,7 +22,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     );
   }
 
-  const body = (await request.json()) as { commentId: string };
+  const body = (await request.json()) as { commentId: string; awardPoints?: number };
 
   const [backendResponse, fetchError] = await catchError(
     fetch(`${BACKEND_URL}/${id}/best-comment`, {

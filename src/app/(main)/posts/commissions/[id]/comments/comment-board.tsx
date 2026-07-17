@@ -800,21 +800,16 @@ export default function CommentBoard({
     setPointsTarget(null);
   }
 
-  // The backend's SelectBestCommentRequest today only honors commentId — the
-  // `selectedAmount` sent below has no effect yet (see
-  // backend-request-custom-award-amount.md); the backend always awards the
-  // commission's own configured points minus a platform fee. So the actual
-  // awarded amount shown afterwards comes from the response's rewardPoints,
-  // not the amount picked in the modal.
+  // Awards `selectedAmount` — if it's above the commission's own configured
+  // points, the difference is charged to the commissioner's wallet. The
+  // backend validates and returns a Chinese message for both failure cases
+  // (amount too low / wallet balance too low), which is shown as-is.
   async function confirmGivePoints() {
     if (!pointsTarget) return;
     const commentId = pointsTarget.id;
     setPointsTarget(null);
     const result = await selectBestComment(postId, commentId, selectedAmount);
     if (!result.success || !result.data) {
-      // TODO once backend defines the insufficient-funds errorCode from
-      // backend-request-custom-award-amount.md: special-case it here with a
-      // dedicated "積分不足" prompt instead of the generic toast.
       toast(result.message || '給予積分失敗，請稍後再試');
       return;
     }
