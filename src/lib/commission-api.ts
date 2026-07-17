@@ -19,11 +19,10 @@ export async function createCommission(
 export async function selectBestComment(
   commissionId: string,
   commentId: string,
-  // Placeholder for the custom-amount feature in
-  // backend-request-custom-award-amount.md — the backend currently ignores
-  // any field besides commentId, so passing this today has no effect. Once
-  // the backend confirms the real field name (spec calls it `awardPoints`),
-  // rename this to match and drop this comment.
+  // The amount to award — must be >= the commission's own configured points;
+  // anything above that is charged to the commissioner's wallet as the
+  // difference (backend errorCode COMMISSION_POINTS_TOO_LOW /
+  // INSUFFICIENT_POINTS on the two failure cases).
   awardPoints?: number,
 ): Promise<ApiEnvelope<CommissionRewardResponse>> {
   const res = await fetch(`/api/commissions/${commissionId}/best-comment`, {
