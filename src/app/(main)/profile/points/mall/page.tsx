@@ -1,5 +1,6 @@
 'use client';
 
+import { ChevronLeft, Inbox, PaintRoller, Ticket } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
@@ -87,77 +88,6 @@ const OWNED_THEMES: MallItem[] = [
   { id: 'goose', type: 'theme', name: '鵝黃經典', tag: '預設', from: '#F6D978', to: '#F6D978' },
 ];
 
-function TicketIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="#835500"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
-      <path d="M13 5v2" />
-      <path d="M13 17v2" />
-      <path d="M13 11v2" />
-    </svg>
-  );
-}
-
-function PaintRollerIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="rgba(255,255,255,0.92)"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect width="16" height="6" x="2" y="2" rx="2" />
-      <path d="M10 8v3" />
-      <rect width="8" height="12" x="6" y="11" rx="2" />
-      <path d="M6 17h8" />
-    </svg>
-  );
-}
-
-function InboxIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="#D99A3D"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M22 12h-6l-2 3h-4l-2-3H2" />
-      <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11Z" />
-    </svg>
-  );
-}
-
-function ChevronLeftIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="#403A32"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m15 18-6-6 6-6" />
-    </svg>
-  );
-}
-
 export default function PointsMallPage() {
   const router = useRouter();
   const [tab, setTab] = useState<'redeem' | 'owned'>('redeem');
@@ -188,7 +118,7 @@ export default function PointsMallPage() {
           aria-label="返回"
           className="absolute top-1/2 left-4.5 -translate-y-1/2"
         >
-          <ChevronLeftIcon className="h-5 w-5" />
+          <ChevronLeft className="h-5 w-5 text-[#403a32]" />
         </button>
         <h1
           className="text-center text-[19px] font-bold text-[#403a32]"
@@ -273,7 +203,7 @@ export default function PointsMallPage() {
         {items.length === 0 ? (
           <div className="flex flex-col items-center px-5 py-14 text-center">
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[rgba(217,154,61,0.12)]">
-              <InboxIcon className="h-6 w-6" />
+              <Inbox className="h-6 w-6 text-[#d99a3d]" />
             </div>
             <p className="text-[14.5px] font-semibold text-[#756c60]">並無兌換記錄</p>
           </div>
@@ -299,7 +229,7 @@ export default function PointsMallPage() {
                       className="flex h-25 flex-col items-center justify-center gap-1.5"
                       style={{ background: 'linear-gradient(135deg,#fff4d6 0%,#fce7b0 100%)' }}
                     >
-                      <TicketIcon className="h-6 w-6" />
+                      <Ticket className="h-6 w-6 text-[#835500]" />
                       <span className="text-[20px] font-extrabold text-[#6b4a18]">{it.amount}</span>
                     </div>
                   ) : (
@@ -307,7 +237,7 @@ export default function PointsMallPage() {
                       className="flex h-25 items-center justify-center"
                       style={{ background: it.from }}
                     >
-                      <PaintRollerIcon className="h-6 w-6" />
+                      <PaintRoller className="h-6 w-6 text-[rgba(255,255,255,0.92)]" />
                     </div>
                   )}
 
