@@ -3,6 +3,7 @@
 import { ChevronLeft, Inbox, PaintRoller, Ticket } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
+import { TopBar } from '@/components/ui/top-bar';
 
 type MallItem = {
   id: string;
@@ -103,47 +104,41 @@ export default function PointsMallPage() {
   }, [tab, category]);
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-1 flex-col bg-[#fffdf7]">
+    <div className="mx-auto flex w-full max-w-md flex-1 flex-col bg-popover">
       {/* Header */}
-      <div
-        className="relative flex-shrink-0 py-3.5 pr-4.5 pl-4.5"
-        style={{
-          background: 'linear-gradient(135deg,#f6d978 0%,#f0c458 100%)',
-          boxShadow: '0 4px 12px rgba(217,154,61,0.18)',
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => router.back()}
-          aria-label="返回"
-          className="absolute top-1/2 left-4.5 -translate-y-1/2"
-        >
-          <ChevronLeft className="h-5 w-5 text-[#403a32]" />
-        </button>
-        <h1
-          className="text-center text-[19px] font-bold text-[#403a32]"
-          style={{ letterSpacing: '0.5px' }}
-        >
-          積分商城
-        </h1>
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="absolute top-1/2 right-4.5 -translate-y-1/2 text-[14px] font-semibold text-[#6b4a18]"
-        >
-          關閉
-        </button>
-      </div>
+      <TopBar
+        left={
+          <button
+            type="button"
+            onClick={() => router.back()}
+            aria-label="返回"
+            className="flex h-8 w-8 items-center justify-center"
+          >
+            <ChevronLeft className="h-5 w-5 text-foreground" />
+          </button>
+        }
+        title="積分商城"
+        right={
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="text-label-md font-semibold text-gold-deep"
+          >
+            關閉
+          </button>
+        }
+        className="border-b-0 bg-[linear-gradient(135deg,var(--primary)_0%,#f0c458_100%)] py-4 shadow-cta-strong"
+      />
 
       {/* Tab bar */}
-      <div className="flex border-b border-[#f0e4c0] bg-[#fffdf7]">
+      <div className="flex border-b border-border-subtle bg-popover">
         <button
           type="button"
           onClick={() => setTab('redeem')}
-          className={`flex-1 py-3.5 pb-3 text-center text-[14.5px] ${
+          className={`flex-1 py-3.5 pb-3 text-center text-label-md ${
             tab === 'redeem'
-              ? 'border-b-2 border-[#d99a3d] font-bold text-[#403a32]'
-              : 'border-b-2 border-transparent font-medium text-[#9a9080]'
+              ? 'border-b-2 border-gold font-bold text-foreground'
+              : 'border-b-2 border-transparent font-medium text-text-tertiary'
           }`}
         >
           可兌換商品
@@ -151,10 +146,10 @@ export default function PointsMallPage() {
         <button
           type="button"
           onClick={() => setTab('owned')}
-          className={`flex-1 py-3.5 pb-3 text-center text-[14.5px] ${
+          className={`flex-1 py-3.5 pb-3 text-center text-label-md ${
             tab === 'owned'
-              ? 'border-b-2 border-[#d99a3d] font-bold text-[#403a32]'
-              : 'border-b-2 border-transparent font-medium text-[#9a9080]'
+              ? 'border-b-2 border-gold font-bold text-foreground'
+              : 'border-b-2 border-transparent font-medium text-text-tertiary'
           }`}
         >
           已兌換商品
@@ -162,16 +157,16 @@ export default function PointsMallPage() {
       </div>
 
       {/* Scroll body */}
-      <div className="no-scrollbar flex-1 overflow-y-auto bg-[#fdf7e9]">
+      <div className="no-scrollbar flex-1 overflow-y-auto bg-muted">
         {/* Category filter */}
-        <div className="mx-4.5 my-4 flex rounded-[10px] border border-[#e5ddbf] bg-[#fffdf7] p-[3px]">
+        <div className="mx-4.5 my-4 flex rounded-[10px] border border-border bg-popover p-0.75">
           <button
             type="button"
             onClick={() => setCategory('all')}
-            className={`flex-1 rounded-[8px] py-2 text-center text-[13px] ${
+            className={`flex-1 rounded-lg py-2 text-center text-label-md ${
               category === 'all'
-                ? 'bg-[#d99a3d] font-bold text-[#fffdf7]'
-                : 'font-medium text-[#756c60]'
+                ? 'bg-gold font-bold text-background'
+                : 'font-medium text-text-muted'
             }`}
           >
             全部
@@ -179,10 +174,10 @@ export default function PointsMallPage() {
           <button
             type="button"
             onClick={() => setCategory('coupon')}
-            className={`flex-1 rounded-[8px] py-2 text-center text-[13px] ${
+            className={`flex-1 rounded-lg py-2 text-center text-label-md ${
               category === 'coupon'
-                ? 'bg-[#d99a3d] font-bold text-[#fffdf7]'
-                : 'font-medium text-[#756c60]'
+                ? 'bg-gold font-bold text-background'
+                : 'font-medium text-text-muted'
             }`}
           >
             購物折價券
@@ -190,10 +185,10 @@ export default function PointsMallPage() {
           <button
             type="button"
             onClick={() => setCategory('theme')}
-            className={`flex-1 rounded-[8px] py-2 text-center text-[13px] ${
+            className={`flex-1 rounded-lg py-2 text-center text-label-md ${
               category === 'theme'
-                ? 'bg-[#d99a3d] font-bold text-[#fffdf7]'
-                : 'font-medium text-[#756c60]'
+                ? 'bg-gold font-bold text-background'
+                : 'font-medium text-text-muted'
             }`}
           >
             主題
@@ -202,10 +197,10 @@ export default function PointsMallPage() {
 
         {items.length === 0 ? (
           <div className="flex flex-col items-center px-5 py-14 text-center">
-            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[rgba(217,154,61,0.12)]">
-              <Inbox className="h-6 w-6 text-[#d99a3d]" />
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gold/12">
+              <Inbox className="h-6 w-6 text-gold" />
             </div>
-            <p className="text-[14.5px] font-semibold text-[#756c60]">並無兌換記錄</p>
+            <p className="text-body-md font-semibold text-text-muted">並無兌換記錄</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3.5 px-4.5 pt-1 pb-8">
@@ -222,15 +217,17 @@ export default function PointsMallPage() {
                 <div
                   key={it.id}
                   onClick={clickable ? () => setAppliedThemeId(it.id) : undefined}
-                  className={`overflow-hidden rounded-[14px] border border-[#e5ddbf] bg-[#fffdf7] ${clickable ? 'cursor-pointer' : ''}`}
+                  className={`overflow-hidden rounded-panel border border-border bg-popover ${clickable ? 'cursor-pointer' : ''}`}
                 >
                   {it.type === 'coupon' ? (
                     <div
                       className="flex h-25 flex-col items-center justify-center gap-1.5"
                       style={{ background: 'linear-gradient(135deg,#fff4d6 0%,#fce7b0 100%)' }}
                     >
-                      <Ticket className="h-6 w-6 text-[#835500]" />
-                      <span className="text-[20px] font-extrabold text-[#6b4a18]">{it.amount}</span>
+                      <Ticket className="h-6 w-6 text-gold-dark" />
+                      <span className="text-headline-sm font-extrabold text-gold-deep">
+                        {it.amount}
+                      </span>
                     </div>
                   ) : (
                     <div
@@ -243,32 +240,34 @@ export default function PointsMallPage() {
 
                   <div className="flex flex-col gap-2 p-3 pb-3.5">
                     {it.tag ? (
-                      <span className="text-[11px] font-semibold text-[#9a9080]">{it.tag}</span>
+                      <span className="text-label-md font-semibold text-text-tertiary">
+                        {it.tag}
+                      </span>
                     ) : null}
-                    <span className="text-[14px] leading-[1.3] font-bold text-[#403a32]">
+                    <span className="text-body-md leading-[1.3] font-bold text-foreground">
                       {it.name}
                     </span>
 
                     {isRedeemable ? (
                       <div
-                        className="rounded-[8px] bg-[#d99a3d] py-1.75 text-center text-[13px] font-bold text-white"
+                        className="rounded-lg bg-gold py-1.75 text-center text-label-md font-bold text-background"
                         style={{ boxShadow: '0 3px 8px rgba(217,154,61,0.28)' }}
                       >
                         {it.points} 積分
                       </div>
                     ) : null}
                     {isOwnedCoupon ? (
-                      <div className="rounded-[8px] bg-[#403a32] py-1.75 text-center text-[13px] font-bold text-white">
+                      <div className="rounded-lg bg-foreground py-1.75 text-center text-label-md font-bold text-background">
                         使用
                       </div>
                     ) : null}
                     {isOwnedThemeApplied ? (
-                      <div className="rounded-[8px] bg-[#f0e4c0] py-1.75 text-center text-[13px] font-bold text-[#b0a784]">
+                      <div className="rounded-lg bg-border-subtle py-1.75 text-center text-label-md font-bold text-[#b0a784]">
                         使用中
                       </div>
                     ) : null}
                     {isOwnedThemeUnapplied ? (
-                      <div className="rounded-[8px] bg-[#403a32] py-1.75 text-center text-[13px] font-bold text-white">
+                      <div className="rounded-lg bg-foreground py-1.75 text-center text-label-md font-bold text-background">
                         套用
                       </div>
                     ) : null}
