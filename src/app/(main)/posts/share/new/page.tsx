@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { TopBar } from '@/components/ui/top-bar';
+import { deleteImage } from '@/lib/image-api';
 import { cn } from '@/lib/utils';
 import { DRAFT_STORAGE_KEY, TITLE_MAX_LENGTH, postTypes, emptyDraft, type Draft } from './draft';
 import { getAuthedUser } from '../../../../auth';
@@ -17,8 +18,16 @@ export default function NewSharePostPage() {
   const [descriptionFocused, setDescriptionFocused] = useState(false);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const [form, setForm] = useState<Draft>(emptyDraft);
-  const { title, description, postType, outfitStyle, outfitOccasion, outfitDate, outfitLocation } =
-    form;
+  const {
+    title,
+    description,
+    postType,
+    outfitStyle,
+    outfitOccasion,
+    outfitDate,
+    outfitLocation,
+    photos,
+  } = form;
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
   const [draftTags, setDraftTags] = useState<{ tagId: number; name: string }[]>([]);
   const titleRef = useRef<HTMLTextAreaElement>(null);
@@ -95,6 +104,16 @@ export default function NewSharePostPage() {
 
   function saveDraft() {
     localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(form));
+  }
+
+  async function removePhoto(imageId: number) {
+    const response = await deleteImage(imageId);
+    if (!response.success) return;
+    setForm((prev) => {
+      const next = { ...prev, photos: prev.photos.filter((photo) => photo.imageId !== imageId) };
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
   }
 
   return (
@@ -227,8 +246,30 @@ export default function NewSharePostPage() {
               className="flex w-fit items-center gap-1.5 rounded-lg border border-border-default bg-surface-soft px-3 py-2 text-label-md text-text-primary"
             >
               <ImagePlus className="h-4 w-4" aria-hidden /> 新增圖片
+              {photos.length > 0 ? ` (${photos.length}/9)` : ''}
             </Link>
           </div>
+          {photos.length > 0 && (
+            <div className="grid grid-cols-3 gap-3">
+              {photos.map((photo) => (
+                <div
+                  key={photo.imageId}
+                  className="relative aspect-square overflow-hidden rounded-xl"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element -- uploaded photo URL from real backend */}
+                  <img src={photo.url} alt="" className="h-full w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(photo.imageId)}
+                    aria-label="移除圖片"
+                    className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[rgba(64,58,50,0.55)] text-surface-base"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="flex flex-wrap items-center gap-2">
             {draftTags.length === 0 ? (
               <Link
