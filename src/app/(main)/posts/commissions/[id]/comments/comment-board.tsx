@@ -8,8 +8,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { createComment, createReply, deleteComment as deleteCommentApi } from '@/lib/comment-api';
+import { selectBestComment } from '@/lib/commission-api';
 import { likeComment, unlikeComment } from '@/lib/like-api';
-import { getPointWallet } from '@/lib/points-api';
 import type { CommentResponse } from '@/types/comment';
 import type { ImageResponse } from '@/types/image';
 import CommentComposer from '../comment-composer';
@@ -592,6 +592,7 @@ export default function CommentBoard({
   postId,
   initialComments,
   publishPoints,
+  canSelectBestComment,
   focusId,
   expandReplyId,
   isLoggedIn,
@@ -599,6 +600,10 @@ export default function CommentBoard({
   postId: string;
   initialComments: Comment[];
   publishPoints: number;
+  // Whether the current viewer is this commission's owner and it hasn't been
+  // awarded/closed/expired yet — gates the give-points button. The backend
+  // already computes this rather than reimplementing the rules on the client.
+  canSelectBestComment: boolean;
   // Set (from ?focus=) when the user just posted via the full-page template: the
   // DOM id (`comment-{id}` / `reply-{id}`) to scroll into view once the pending
   // merge brings it in. Undefined on a plain navigation in.
@@ -621,20 +626,6 @@ export default function CommentBoard({
   // Only one comment's reply box is open at a time — cleaner on the mobile
   // width and keeps the composer focus unambiguous.
   const [activeReplyId, setActiveReplyId] = useState<string | null>(null);
-
-  // The give-points affordability check needs the real wallet balance, not
-  // the MOCK_USER_POINTS placeholder. Defaults to 0 (rather than leaving it
-  // unset) so the check fails closed while the fetch is in flight.
-  const [userPoints, setUserPoints] = useState(0);
-  useEffect(() => {
-    let active = true;
-    getPointWallet().then((res) => {
-      if (active && res.success && res.data) setUserPoints(res.data.currentPoints);
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
 
   const router = useRouter();
   const pathname = usePathname();
@@ -820,29 +811,26 @@ export default function CommentBoard({
     setPointsTarget(null);
   }
 
-  function confirmGivePoints() {
+  // Awards `selectedAmount` — if it's above the commission's own configured
+  // points, the difference is charged to the commissioner's wallet.
+  // INSUFFICIENT_POINTS gets a dedicated modal with a link to top up; any
+  // other failure (e.g. amount below the commission's own points) shows the
+  // backend's Chinese message as-is via toast.
+  async function confirmGivePoints() {
     if (!pointsTarget) return;
-    // Not enough points: surface the insufficient-points modal instead.
-    if (selectedAmount > userPoints) {
-      setInsufficient({ name: pointsTarget.name, amount: selectedAmount });
-      setPointsTarget(null);
+    const { id: commentId, name } = pointsTarget;
+    const amount = selectedAmount;
+    setPointsTarget(null);
+    const result = await selectBestComment(postId, commentId, amount);
+    if (!result.success || !result.data) {
+      if (result.errorCode === 'INSUFFICIENT_POINTS') {
+        setInsufficient({ name, amount });
+        return;
+      }
+      toast(result.message || '給予積分失敗，請稍後再試');
       return;
     }
-    // Optimistically mark the winning comment, then fire the award write. The
-    // Idempotency-Key guards against a double confirm resulting in two awards;
-    // fire-and-forget with no rollback mirrors addComment/addReply until the
-    // real best-comment API is wired up.
-    const commentId = pointsTarget.id;
-    setAwarded({ commentId, amount: selectedAmount });
-    setPointsTarget(null);
-    void fetch(`/api/commissions/${postId}/best-comment`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Idempotency-Key': crypto.randomUUID(),
-      },
-      body: JSON.stringify({ commentId }),
-    }).catch(() => {});
+    setAwarded({ commentId, amount: result.data.rewardPoints });
   }
 
   return (
@@ -871,7 +859,7 @@ export default function CommentBoard({
               onGivePoints={openGivePoints}
               isAwarded={awarded?.commentId === comment.commentId}
               awardedAmount={awarded?.amount}
-              canAward={awarded === null}
+              canAward={canSelectBestComment && awarded === null}
               defaultExpanded={expandReplyId === comment.commentId}
             />
             {index < comments.length - 1 ? <Separator aria-hidden="true" /> : null}
@@ -889,6 +877,7 @@ export default function CommentBoard({
         <GivePointsModal
           targetName={pointsTarget.name}
           amounts={giveAmounts}
+          publishPoints={publishPoints}
           selectedAmount={selectedAmount}
           onSelectAmount={setSelectedAmount}
           onClose={closeGivePoints}

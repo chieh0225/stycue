@@ -110,6 +110,12 @@ export default async function PostCommentsPage({
   const publishPoints = commissionResult.success
     ? (commissionResult.data?.points ?? MOCK_PUBLISH_POINTS)
     : MOCK_PUBLISH_POINTS;
+  // Only the commission owner may select a best comment — the backend already
+  // computes this (ownership + not-yet-awarded + not expired/closed) rather
+  // than reimplementing those rules on the client.
+  const canSelectBestComment = commissionResult.success
+    ? (commissionResult.data?.canSelectBestComment ?? false)
+    : false;
   const comments =
     commentsResult.success && commentsResult.data
       ? commentsResult.data.map((comment, index) => toComment(comment, index, commissionAuthorId))
@@ -133,6 +139,7 @@ export default async function PostCommentsPage({
         postId={id}
         initialComments={comments}
         publishPoints={publishPoints}
+        canSelectBestComment={canSelectBestComment}
         focusId={focusId}
         expandReplyId={expandReplyId}
         isLoggedIn={isLoggedIn}

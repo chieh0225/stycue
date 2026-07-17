@@ -26,6 +26,7 @@ export function buildGivePointsAmounts(publishPoints: number) {
 export function GivePointsModal({
   targetName,
   amounts,
+  publishPoints,
   selectedAmount,
   onSelectAmount,
   onClose,
@@ -33,11 +34,16 @@ export function GivePointsModal({
 }: {
   targetName: string;
   amounts: number[];
+  // The commission's originally configured amount — the minimum award; picking
+  // higher charges the difference to the commissioner's own wallet.
+  publishPoints: number;
   selectedAmount: number;
   onSelectAmount: (amount: number) => void;
   onClose: () => void;
   onConfirm: () => void;
 }) {
+  const isCustomAmount = selectedAmount !== publishPoints;
+
   return (
     <Dialog
       open
@@ -78,6 +84,12 @@ export function GivePointsModal({
             );
           })}
         </div>
+
+        {isCustomAmount ? (
+          <p className="mt-3 text-label-md text-destructive">
+            將額外從你的積分錢包扣除 {selectedAmount - publishPoints} 積分差額。
+          </p>
+        ) : null}
 
         <Separator className="mt-5 mb-4" />
 

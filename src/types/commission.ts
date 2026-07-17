@@ -1,4 +1,5 @@
 import type { ImageResponse } from '@/types/image';
+import type { PointWalletResponse } from '@/types/points';
 import type { TagResponse } from '@/types/tag';
 
 export type UserSummaryResponse = {
@@ -24,6 +25,16 @@ export type CommissionStatus = 1 | 2 | 3 | 4 | 5;
 
 export type CommissionRepostResponse = {
   [key: string]: unknown;
+};
+
+export type CommissionRewardResponse = {
+  commissionId: number;
+  status: CommissionStatus;
+  awardedCommentId: number;
+  rewardReceiverUserId: number;
+  rewardPoints: number;
+  awardedAt: string;
+  receiverWallet: PointWalletResponse;
 };
 
 export type CommissionDetailResponse = {
