@@ -3,6 +3,7 @@
 import { AlertCircle, ChevronLeft, CircleCheck, CreditCard } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { BottomBar } from '@/components/ui/bottom-bar';
 import { TopBar } from '@/components/ui/top-bar';
 import {
   createPointPurchase,
@@ -11,6 +12,7 @@ import {
   PENDING_POINT_PURCHASE_ORDER_ID_KEY,
 } from '@/lib/points-api';
 import type { PointProductResponse } from '@/types/points';
+import HideScrollbar from './hide-scrollbar';
 
 function submitToEcpay(actionUrl: string, fields: Record<string, string>) {
   const form = document.createElement('form');
@@ -86,6 +88,7 @@ export default function BuyPointsPage() {
 
   return (
     <div className="flex flex-1 flex-col bg-muted">
+      <HideScrollbar />
       {/* Header */}
       <TopBar
         left={
@@ -188,7 +191,7 @@ export default function BuyPointsPage() {
       </div>
 
       {/* Sticky footer CTA */}
-      <div className="flex-shrink-0 border-t border-border-subtle bg-popover px-4.5 pt-3.5 pb-6">
+      <BottomBar className="flex-col bg-popover px-4.5 pt-3.5 pb-6">
         {errorMessage && (
           <div className="mb-3 flex items-center gap-1.25 rounded-lg bg-destructive-bg px-3.5 py-2.5 text-label-md font-semibold text-destructive">
             <AlertCircle className="h-4 w-4 shrink-0" />
@@ -208,7 +211,7 @@ export default function BuyPointsPage() {
               : `確認並前往付款${selectedPlan ? `・NT$${selectedPlan.priceTwd}` : ''}`}
           </span>
         </button>
-      </div>
+      </BottomBar>
     </div>
   );
 }
