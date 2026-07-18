@@ -65,6 +65,7 @@ export type CommissionDetailResponse = {
   likeCount: number;
   isLiked: boolean;
   favoriteCount: number;
+  isFavorited: boolean;
   images: ImageResponse[];
   tags: TagResponse[];
   reposts: CommissionRepostResponse[];

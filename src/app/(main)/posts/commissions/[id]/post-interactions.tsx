@@ -5,23 +5,33 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { likeCommission, unlikeCommission } from '@/lib/like-api';
+import { useFavoriteToggle } from './use-favorite-toggle';
 
 export default function PostInteractions({
   postId,
   initialLikes,
   initialLiked,
+  initialFavorites,
+  initialFavorited,
   comments,
   isLoggedIn,
 }: {
   postId: string;
   initialLikes: number;
   initialLiked: boolean;
+  initialFavorites: number;
+  initialFavorited: boolean;
   comments: number;
   isLoggedIn: boolean;
 }) {
   const [liked, setLiked] = useState(initialLiked);
   const [likes, setLikes] = useState(initialLikes);
-  const [bookmarked, setBookmarked] = useState(false);
+  const { isFavorited, toggleFavorite } = useFavoriteToggle(
+    postId,
+    initialFavorited,
+    initialFavorites,
+    isLoggedIn,
+  );
 
   async function toggleLike() {
     if (!isLoggedIn) {
@@ -46,16 +56,6 @@ export default function PostInteractions({
     setLikes(result.data.likeCount);
   }
 
-  function toggleBookmark() {
-    const next = !bookmarked;
-    setBookmarked(next);
-    void fetch(`/api/posts/${postId}/bookmark`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bookmarked: next }),
-    }).catch(() => {});
-  }
-
   return (
     <div className="flex items-center gap-5.5 text-text-primary">
       <button
@@ -75,12 +75,12 @@ export default function PostInteractions({
       </Link>
       <button
         type="button"
-        onClick={toggleBookmark}
+        onClick={toggleFavorite}
         aria-label="收藏"
-        aria-pressed={bookmarked}
-        className={`ml-auto ${bookmarked ? 'text-accent-amber' : ''}`}
+        aria-pressed={isFavorited}
+        className={`ml-auto ${isFavorited ? 'text-accent-amber' : ''}`}
       >
-        <Bookmark fill={bookmarked ? 'currentColor' : 'none'} className="h-5 w-5" />
+        <Bookmark fill={isFavorited ? 'currentColor' : 'none'} className="h-5 w-5" />
       </button>
     </div>
   );
