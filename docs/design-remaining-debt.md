@@ -86,6 +86,22 @@
 
 ---
 
+### `/payment-result` 查詢訂單狀態的 API 是否要求登入態尚未確認
+
+**現況**：`GET /api/points/purchases/{orderId}`（`ai-preview/Points.md` 規劃、尚未上線）預計是 `/payment-result` 頁面用來查詢訂單成功/失敗狀態的 API。積分實際入帳的時機點是 `POST /api/payments/ecpay/return`（ECPay 伺服器對伺服器呼叫，訂單建立時就已綁定 `userId`，不依賴瀏覽器登入狀態）——所以「加分」本身不受影響。但如果 `GET /api/points/purchases/{orderId}` 沿用現有 BFF 慣例要求 JWT（見 `src/app/api/points/me/route.ts` 等既有路由的 `getAuthHeader()` 模式），使用者從 ECPay 導回時若 session 剛好失效（例如跨站導轉遺失 cookie），結果頁會查不到訂單狀態、顯示不出來——即使積分已經確實入帳。
+**阻塞原因**：這支 API 後端尚未上線，`/payment-result` 目前（`feat/points-recharge-page` 分支）只做純轉換、還沒真的接上這支查詢，無法實際驗證後端的認證設計。
+**下一步**：後端 API 真的要接上時，需要跟後端確認 `GET /api/points/purchases/{orderId}` 是否可以只憑 `orderId` 本身查詢（不強制要求登入），或是否有其他機制（如簽章過的一次性 token）讓結果頁在未登入/session 過期時仍能顯示正確結果。
+
+---
+
+### `comment-modals.tsx` 的「餘額不足」入口未帶 `source`/`returnTo` 導回留言串
+
+**現況**：`/payment-result` 頁已經做好讀取 `source`/`returnTo` query param 的邏輯（`source==='comment'` 時主按鈕文字改成「返回留言，選擇最佳留言」、連結導向 `returnTo`），但目前全站唯一會導向 `/profile/points/buy` 的「餘額不足」入口——`posts/commissions/[id]/comments/comment-modals.tsx` 的 `InsufficientPointsModal`——連結時沒有帶上這兩個 query param，所以這段邏輯目前無法被觸發。
+**阻塞原因**：不是這個分支新增的連結（`InsufficientPointsModal` 本來就存在），而且就算現在補上 query param，整條鏈路目前仍是斷的——儲值頁的 `confirmPurchase` 是 no-op（無法真的送出付款、離開該頁），也沒有真的 ECPay 導轉與 `GET /api/points/purchases/{orderId}` 查詢——使用者實際上走不到會用上這兩個 query param 的那一步。屬於「兩端都要等後端 API 上線、真的把 ECPay 全鏈路接上時才有意義一起處理」的項目，跟前一筆（結果頁查詢 API 認證方式）是同一條鏈路的兩截缺口。
+**下一步**：等 `POST /api/points/purchases`、ECPay 導轉、`GET /api/points/purchases/{orderId}` 都接上真的之後，同一個 commit/分支裡把 `comment-modals.tsx` 的連結補上 `?source=comment&returnTo=...`（`returnTo` 指回該筆委託的留言頁），並實測整條「餘額不足→儲值→付款完成→導回留言選最佳留言」的路徑。
+
+---
+
 ## Resolved
 
 ### `text-[11px]` 等自創字級小數值未決定去留（Resolved 2026-07-11，commit 待補）
