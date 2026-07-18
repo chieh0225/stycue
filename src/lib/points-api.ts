@@ -1,5 +1,6 @@
 import type { ApiEnvelope } from '@/types/image';
 import type {
+  CreatePointPurchaseResponse,
   DailyPointClaimResponse,
   PagedResponse,
   PointProductResponse,
@@ -16,6 +17,17 @@ export async function getPointWallet(): Promise<ApiEnvelope<PointWalletResponse>
 export async function getPointProducts(): Promise<ApiEnvelope<PointProductResponse[]>> {
   const res = await fetch('/api/points/products');
   return (await res.json()) as ApiEnvelope<PointProductResponse[]>;
+}
+
+export async function createPointPurchase(
+  pointProductId: number,
+): Promise<ApiEnvelope<CreatePointPurchaseResponse>> {
+  const res = await fetch('/api/points/purchases', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pointProductId }),
+  });
+  return (await res.json()) as ApiEnvelope<CreatePointPurchaseResponse>;
 }
 
 export async function claimDailyPoints(): Promise<ApiEnvelope<DailyPointClaimResponse>> {

@@ -1,17 +1,36 @@
 'use client';
 
-import { ChevronLeft, CircleCheck, CreditCard } from 'lucide-react';
+import { AlertCircle, ChevronLeft, CircleCheck, CreditCard } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { TopBar } from '@/components/ui/top-bar';
-import { getPointProducts, getPointWallet } from '@/lib/points-api';
+import { createPointPurchase, getPointProducts, getPointWallet } from '@/lib/points-api';
 import type { PointProductResponse } from '@/types/points';
+
+function submitToEcpay(actionUrl: string, fields: Record<string, string>) {
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = actionUrl;
+
+  for (const [name, value] of Object.entries(fields)) {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    input.value = value;
+    form.appendChild(input);
+  }
+
+  document.body.appendChild(form);
+  form.submit();
+}
 
 export default function BuyPointsPage() {
   const router = useRouter();
   const [products, setProducts] = useState<PointProductResponse[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [currentPoints, setCurrentPoints] = useState<number | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -43,7 +62,21 @@ export default function BuyPointsPage() {
   }, []);
 
   const selectedPlan = products.find((product) => product.id === selectedId) ?? products[0];
-  const confirmPurchase = () => {};
+
+  const confirmPurchase = async () => {
+    if (submitting || !selectedPlan) return;
+    setSubmitting(true);
+    setErrorMessage(null);
+
+    const res = await createPointPurchase(selectedPlan.id);
+    if (res.success && res.data) {
+      submitToEcpay(res.data.checkout.paymentActionUrl, res.data.checkout.paymentFormFields);
+      // submit 後會離開頁面，不用重設 submitting
+    } else {
+      setErrorMessage(res.message || '建立訂單失敗，請稍後再試');
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="flex flex-1 flex-col bg-muted">
@@ -150,15 +183,23 @@ export default function BuyPointsPage() {
 
       {/* Sticky footer CTA */}
       <div className="flex-shrink-0 border-t border-border-subtle bg-popover px-4.5 pt-3.5 pb-6">
+        {errorMessage && (
+          <div className="mb-3 flex items-center gap-1.25 rounded-lg bg-destructive-bg px-3.5 py-2.5 text-label-md font-semibold text-destructive">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            {errorMessage}
+          </div>
+        )}
         <button
           type="button"
           onClick={confirmPurchase}
-          disabled={!selectedPlan}
+          disabled={!selectedPlan || submitting}
           className="flex w-full items-center justify-center rounded-card bg-foreground py-4 disabled:opacity-50"
           style={{ boxShadow: '0 4px 12px rgba(64,58,50,0.22)' }}
         >
           <span className="text-label-md font-bold text-background">
-            確認並前往付款{selectedPlan ? `・NT$${selectedPlan.priceTwd}` : ''}
+            {submitting
+              ? '處理中…'
+              : `確認並前往付款${selectedPlan ? `・NT$${selectedPlan.priceTwd}` : ''}`}
           </span>
         </button>
       </div>

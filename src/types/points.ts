@@ -14,6 +14,25 @@ export type PointProductResponse = {
   points: number;
 };
 
+// enum 值待跟後端確認（openapi/v1.json 只標記為 integer，沒有列出對照表）
+export type PointPurchaseStatus = number;
+
+export type CreatePointPurchaseRequest = {
+  pointProductId: number;
+};
+
+export type EcpayCheckoutFormResponse = {
+  paymentActionUrl: string;
+  paymentFormFields: Record<string, string>;
+};
+
+export type CreatePointPurchaseResponse = {
+  orderId: number;
+  merchantTradeNo: string;
+  status: PointPurchaseStatus;
+  checkout: EcpayCheckoutFormResponse;
+};
+
 export type DailyPointClaimResponse = {
   isClaimed: boolean;
   claimDate: string;
