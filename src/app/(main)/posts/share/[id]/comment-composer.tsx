@@ -1,15 +1,22 @@
 'use client';
 
-import { Send, User } from 'lucide-react';
+import { Image, Send, User } from 'lucide-react';
+import Link from 'next/link';
 import { useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { BottomBar } from '@/components/ui/bottom-bar';
 
 // Same structure as posts/commissions/[id]/comment-composer.tsx, kept as its
-// own copy per the share-post convention (see plan notes) — minus the
-// template-href image button, since there's no image-attached comment
-// template built for share posts yet (text-only comments for now).
-export default function CommentComposer({ onSubmit }: { onSubmit?: (text: string) => void }) {
+// own copy per the share-post convention (see plan notes).
+export default function CommentComposer({
+  onSubmit,
+  templateHref,
+}: {
+  onSubmit?: (text: string) => void;
+  // When provided, a button is shown linking to the dedicated share-post
+  // comment template (text + tagged photos).
+  templateHref?: string;
+}) {
   const [text, setText] = useState('');
   const trimmed = text.trim();
 
@@ -37,10 +44,19 @@ export default function CommentComposer({ onSubmit }: { onSubmit?: (text: string
               submit();
             }
           }}
-          placeholder="加入討論..."
+          placeholder={templateHref ? '加入討論，或附上圖片' : '加入討論...'}
           aria-label="加入討論"
           className="h-full min-w-0 flex-1 bg-transparent text-body-md text-text-primary placeholder:text-text-placeholder focus:outline-none"
         />
+        {templateHref ? (
+          <Link
+            href={templateHref}
+            aria-label="用整頁模板附上圖片"
+            className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-text-muted"
+          >
+            <Image className="h-4.25 w-4.25" />
+          </Link>
+        ) : null}
       </div>
       <button
         type="button"
