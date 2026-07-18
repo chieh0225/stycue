@@ -44,11 +44,12 @@ function isActive(pathname: string, href: string) {
 
 // The post detail page (/posts/commissions/{id}), its comment board
 // (/posts/commissions/{id}/comments), the new-comment screen
-// (/posts/commissions/{id}/comments/new), and the new-post preview page each
-// have their own fixed bottom bar, so the global nav is hidden there to avoid
-// stacking two bars.
+// (/posts/commissions/{id}/comments/new), the new-post preview page, and the
+// points recharge page each have their own fixed bottom bar, so the global
+// nav is hidden there to avoid stacking two bars.
 function hidesBottomNav(pathname: string) {
   if (pathname === '/posts/commissions/new/preview') return true;
+  if (pathname === '/profile/points/buy') return true;
   return (
     /^\/posts\/commissions\/[^/]+(?:\/comments(?:\/new)?)?$/.test(pathname) &&
     pathname !== '/posts/commissions/new'
