@@ -10,6 +10,10 @@ import type {
   PointWalletResponse,
 } from '@/types/points';
 
+// ECPay 的 ClientBackURL 是後端寫死的裸網址，不會帶 orderId query string，
+// 所以導去 ECPay 前要自己先把 orderId 存起來，付款結果頁再讀回來。
+export const PENDING_POINT_PURCHASE_ORDER_ID_KEY = 'stycue:pending-point-purchase-order-id';
+
 export async function getPointWallet(): Promise<ApiEnvelope<PointWalletResponse>> {
   const res = await fetch('/api/points/me');
   return (await res.json()) as ApiEnvelope<PointWalletResponse>;

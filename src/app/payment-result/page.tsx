@@ -5,7 +5,11 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import { TopBar } from '@/components/ui/top-bar';
-import { getPointPurchase, getPointWallet } from '@/lib/points-api';
+import {
+  getPointPurchase,
+  getPointWallet,
+  PENDING_POINT_PURCHASE_ORDER_ID_KEY,
+} from '@/lib/points-api';
 import type { PointPurchaseResponse } from '@/types/points';
 
 const POLL_INTERVAL_MS = 2000;
@@ -15,14 +19,31 @@ function PaymentResultContent() {
   const searchParams = useSearchParams();
   const source = searchParams.get('source') === 'comment' ? 'comment' : 'mall';
   const returnTo = searchParams.get('returnTo');
-  const orderIdParam = searchParams.get('orderId');
-  const orderId = orderIdParam !== null ? Number(orderIdParam) : null;
-  const hasValidOrderId = orderId !== null && !Number.isNaN(orderId);
 
   const [currentPoints, setCurrentPoints] = useState<number | null>(null);
   const [order, setOrder] = useState<PointPurchaseResponse | null>(null);
   const [queryError, setQueryError] = useState(false);
   const [timedOut, setTimedOut] = useState(false);
+
+  // ECPay 的 ClientBackURL 是後端寫死的裸網址，不會帶 orderId query string，
+  // 所以要靠儲值頁在導去 ECPay 前存進 sessionStorage 的值；query string 當備援，
+  // 之後後端若改成會帶 orderId 也能直接吃到。
+  const [orderId, setOrderId] = useState<number | null>(null);
+  const [orderIdResolved, setOrderIdResolved] = useState(false);
+
+  useEffect(() => {
+    // Deferred to a microtask so this doesn't setState synchronously within
+    // the effect body (react-hooks/set-state-in-effect).
+    queueMicrotask(() => {
+      const fromQuery = searchParams.get('orderId');
+      const fromStorage = sessionStorage.getItem(PENDING_POINT_PURCHASE_ORDER_ID_KEY);
+      const raw = fromQuery ?? fromStorage;
+      const parsed = raw !== null ? Number(raw) : null;
+      setOrderId(parsed !== null && !Number.isNaN(parsed) ? parsed : null);
+      setOrderIdResolved(true);
+      if (fromStorage) sessionStorage.removeItem(PENDING_POINT_PURCHASE_ORDER_ID_KEY);
+    });
+  }, [searchParams]);
 
   useEffect(() => {
     let active = true;
@@ -39,12 +60,12 @@ function PaymentResultContent() {
   }, []);
 
   useEffect(() => {
-    if (!hasValidOrderId) return;
+    if (orderId === null) return;
     let active = true;
     const startedAt = Date.now();
 
     const poll = async () => {
-      const res = await getPointPurchase(orderId!);
+      const res = await getPointPurchase(orderId);
       if (!active) return;
       if (res.success && res.data) {
         setOrder(res.data);
@@ -64,14 +85,14 @@ function PaymentResultContent() {
     return () => {
       active = false;
     };
-  }, [hasValidOrderId, orderId]);
+  }, [orderId]);
 
   const isPaid = order?.paidAt != null;
 
   const primaryLabel = source === 'comment' ? '返回留言，選擇最佳留言' : '前往積分商城';
   const primaryHref = source === 'comment' && returnTo ? returnTo : '/profile/points/mall';
 
-  if (!hasValidOrderId) {
+  if (orderIdResolved && orderId === null) {
     return (
       <div className="flex flex-1 flex-col bg-muted">
         <TopBar title="儲值結果" className="px-4.5 py-4" />

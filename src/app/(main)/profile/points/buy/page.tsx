@@ -4,7 +4,12 @@ import { AlertCircle, ChevronLeft, CircleCheck, CreditCard } from 'lucide-react'
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { TopBar } from '@/components/ui/top-bar';
-import { createPointPurchase, getPointProducts, getPointWallet } from '@/lib/points-api';
+import {
+  createPointPurchase,
+  getPointProducts,
+  getPointWallet,
+  PENDING_POINT_PURCHASE_ORDER_ID_KEY,
+} from '@/lib/points-api';
 import type { PointProductResponse } from '@/types/points';
 
 function submitToEcpay(actionUrl: string, fields: Record<string, string>) {
@@ -70,6 +75,7 @@ export default function BuyPointsPage() {
 
     const res = await createPointPurchase(selectedPlan.id);
     if (res.success && res.data) {
+      sessionStorage.setItem(PENDING_POINT_PURCHASE_ORDER_ID_KEY, String(res.data.orderId));
       submitToEcpay(res.data.checkout.paymentActionUrl, res.data.checkout.paymentFormFields);
       // submit 後會離開頁面，不用重設 submitting
     } else {
