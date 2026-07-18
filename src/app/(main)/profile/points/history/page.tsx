@@ -40,14 +40,15 @@ type PointsHistoryRecord = {
 };
 
 const TRANSACTION_TYPE_KIND: Record<PointTransactionType, RecordKind> = {
-  1: 'checkBadge', // 註冊贈送
-  2: 'checkBadge', // 每日登入
-  3: 'clock', // 建立委託
-  4: 'boost', // 積分加碼
-  5: 'star', // 最佳留言積分
-  6: 'star', // 讚數最高留言積分
-  7: 'undo', // 退還積分
-  8: 'circleCheck', // 積分手續費
+  registrationReward: 'checkBadge', // 註冊贈送
+  dailyReward: 'checkBadge', // 每日登入
+  commissionCreate: 'clock', // 建立委託
+  commissionBoost: 'boost', // 積分加碼
+  commissionBestCommentReward: 'star', // 最佳留言積分
+  commissionAutoReward: 'star', // 讚數最高留言積分
+  commissionRefund: 'undo', // 退還積分
+  commissionFee: 'circleCheck', // 積分手續費
+  pointPurchase: 'card', // 購買積分
 };
 
 function formatDateTime(iso: string): string {
