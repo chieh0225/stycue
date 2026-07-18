@@ -50,6 +50,16 @@ export default async function SharePostDetailPage({ params }: { params: Promise<
           </Link>
         }
         title="全部文章"
+        right={
+          post.canEdit ? (
+            <Link
+              href={`/posts/share/${id}/edit`}
+              className="text-label-md font-semibold text-text-muted"
+            >
+              編輯
+            </Link>
+          ) : undefined
+        }
         className="py-4"
       />
 
