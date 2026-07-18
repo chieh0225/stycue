@@ -4,27 +4,13 @@ import { ChevronLeft, CircleCheck, CreditCard } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { TopBar } from '@/components/ui/top-bar';
-import { getPointWallet } from '@/lib/points-api';
-
-type Plan = {
-  id: string;
-  price: number;
-  base: number;
-  bonus: number;
-  total: number;
-  badge?: '熱門' | '最划算';
-};
-
-const plansData: Plan[] = [
-  { id: 'p49', price: 49, base: 100, bonus: 0, total: 100 },
-  { id: 'p99', price: 99, base: 200, bonus: 50, total: 250 },
-  { id: 'p199', price: 199, base: 400, bonus: 100, total: 500, badge: '熱門' },
-  { id: 'p299', price: 299, base: 600, bonus: 150, total: 750, badge: '最划算' },
-];
+import { getPointProducts, getPointWallet } from '@/lib/points-api';
+import type { PointProductResponse } from '@/types/points';
 
 export default function BuyPointsPage() {
   const router = useRouter();
-  const [selectedId, setSelectedId] = useState('p199');
+  const [products, setProducts] = useState<PointProductResponse[]>([]);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [currentPoints, setCurrentPoints] = useState<number | null>(null);
 
   useEffect(() => {
@@ -41,7 +27,22 @@ export default function BuyPointsPage() {
     };
   }, []);
 
-  const selectedPlan = plansData.find((plan) => plan.id === selectedId) ?? plansData[0];
+  useEffect(() => {
+    let active = true;
+    getPointProducts()
+      .then((res) => {
+        if (active && res.success && res.data) {
+          setProducts(res.data);
+          setSelectedId((current) => current ?? res.data![0]?.id ?? null);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const selectedPlan = products.find((product) => product.id === selectedId) ?? products[0];
   const confirmPurchase = () => {};
 
   return (
@@ -88,13 +89,13 @@ export default function BuyPointsPage() {
         <div className="mb-6">
           <h2 className="mb-3 text-body-lg font-bold text-foreground">選擇儲值方案</h2>
           <div className="flex flex-col gap-2.5">
-            {plansData.map((plan) => {
-              const selected = plan.id === selectedId;
+            {products.map((product) => {
+              const selected = product.id === selectedId;
               return (
                 <button
-                  key={plan.id}
+                  key={product.id}
                   type="button"
-                  onClick={() => setSelectedId(plan.id)}
+                  onClick={() => setSelectedId(product.id)}
                   className={`flex items-center gap-3 rounded-panel border-2 bg-white p-4 text-left ${
                     selected ? 'border-foreground' : 'border-border-subtle'
                   }`}
@@ -110,28 +111,17 @@ export default function BuyPointsPage() {
                   <span className="flex flex-1 flex-col gap-0.5">
                     <span className="flex items-center gap-1.5">
                       <span className="text-body-lg font-bold text-foreground">
-                        {plan.total} 積分
+                        {product.points} 積分
                       </span>
-                      {plan.badge ? (
-                        <span
-                          className={`rounded-[6px] px-2 py-0.5 text-label-md font-bold ${
-                            plan.badge === '最划算'
-                              ? 'bg-tag-green-bg text-tag-green'
-                              : 'bg-[#fbe9b8] text-gold-dark'
-                          }`}
-                        >
-                          {plan.badge}
-                        </span>
-                      ) : null}
                     </span>
                     <span className="text-label-md text-text-tertiary">
-                      {plan.bonus > 0
-                        ? `${plan.base} 積分 + 贈送 ${plan.bonus} 積分`
-                        : `${plan.base} 積分`}
+                      {product.bonusPoints > 0
+                        ? `${product.basePoints} 積分 + 贈送 ${product.bonusPoints} 積分`
+                        : `${product.basePoints} 積分`}
                     </span>
                   </span>
                   <span className="text-body-lg font-extrabold text-foreground">
-                    NT${plan.price}
+                    NT${product.priceTwd}
                   </span>
                 </button>
               );
@@ -163,11 +153,12 @@ export default function BuyPointsPage() {
         <button
           type="button"
           onClick={confirmPurchase}
-          className="flex w-full items-center justify-center rounded-card bg-foreground py-4"
+          disabled={!selectedPlan}
+          className="flex w-full items-center justify-center rounded-card bg-foreground py-4 disabled:opacity-50"
           style={{ boxShadow: '0 4px 12px rgba(64,58,50,0.22)' }}
         >
           <span className="text-label-md font-bold text-background">
-            確認並前往付款・NT${selectedPlan.price}
+            確認並前往付款{selectedPlan ? `・NT$${selectedPlan.priceTwd}` : ''}
           </span>
         </button>
       </div>

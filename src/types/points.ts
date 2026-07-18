@@ -5,6 +5,15 @@ export type PointWalletResponse = {
   updatedAt: string;
 };
 
+export type PointProductResponse = {
+  id: number;
+  name: string;
+  priceTwd: number;
+  basePoints: number;
+  bonusPoints: number;
+  points: number;
+};
+
 export type DailyPointClaimResponse = {
   isClaimed: boolean;
   claimDate: string;
