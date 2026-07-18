@@ -10,16 +10,12 @@ import { Separator } from '@/components/ui/separator';
 import { TopBar } from '@/components/ui/top-bar';
 import { getPostServer } from '@/lib/post-server';
 import CommentLauncher from './comment-launcher';
+import DeletePostButton from './delete-post-button';
 import HideScrollbar from './hide-scrollbar';
 import ImageGallery from './image-gallery';
 import PostInteractions from './post-interactions';
 
 const POST_TYPE_LABEL = { share: '分享', question: '提問' } as const;
-
-// PostDetailResponse (confirmed against the backend's OpenAPI schema) has no
-// outfit-info/items/color-ratio fields — the backend doesn't store this data
-// at all yet, so these always render as "-" rather than being left out.
-const OUTFIT_INFO_LABELS = ['穿搭風格', '穿搭場合', '穿搭日期', '穿搭地點'];
 
 function formatDate(iso: string): string {
   const date = new Date(iso);
@@ -36,6 +32,12 @@ export default async function SharePostDetailPage({ params }: { params: Promise<
   const itemBrands = [
     ...new Set(post.images.map((image) => image.brand).filter(Boolean)),
   ] as string[];
+  const outfitInfo = [
+    { label: '穿搭風格', value: post.outfitStyle },
+    { label: '穿搭場合', value: post.outfitOccasion },
+    { label: '穿搭日期', value: post.outfitDate ? formatDate(post.outfitDate) : null },
+    { label: '穿搭地點', value: post.outfitLocation },
+  ];
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col bg-surface-base">
@@ -49,6 +51,21 @@ export default async function SharePostDetailPage({ params }: { params: Promise<
           </Link>
         }
         title="全部文章"
+        right={
+          post.canEdit || post.canDelete ? (
+            <div className="flex items-center gap-3.5">
+              {post.canEdit ? (
+                <Link
+                  href={`/posts/share/${id}/edit`}
+                  className="text-label-md font-semibold text-text-muted"
+                >
+                  編輯
+                </Link>
+              ) : null}
+              {post.canDelete ? <DeletePostButton postId={id} /> : null}
+            </div>
+          ) : undefined
+        }
         className="py-4"
       />
 
@@ -105,14 +122,14 @@ export default async function SharePostDetailPage({ params }: { params: Promise<
           </>
         ) : null}
 
-        {/* 穿搭資訊 — backend has no data for this yet, always shows "-" */}
+        {/* 穿搭資訊 */}
         <h2 className="mb-3 text-body-lg font-bold text-text-primary">穿搭資訊</h2>
         <Card variant="info" className="mb-6 p-4">
           <dl className="grid grid-cols-2 gap-x-3 gap-y-4">
-            {OUTFIT_INFO_LABELS.map((label) => (
-              <div key={label} className="flex flex-col gap-1">
-                <dt className="text-label-md text-text-tertiary">{label}</dt>
-                <dd className="text-body-md font-bold text-text-primary">-</dd>
+            {outfitInfo.map((info) => (
+              <div key={info.label} className="flex flex-col gap-1">
+                <dt className="text-label-md text-text-tertiary">{info.label}</dt>
+                <dd className="text-body-md font-bold text-text-primary">{info.value ?? '-'}</dd>
               </div>
             ))}
           </dl>
@@ -132,9 +149,7 @@ export default async function SharePostDetailPage({ params }: { params: Promise<
           <p className="mb-6 text-body-md text-text-tertiary">-</p>
         )}
 
-        {/* 搭配比例 — backend has no data for this yet */}
-        <h2 className="mb-3 text-body-lg font-bold text-text-primary">搭配比例</h2>
-        <p className="mb-6 text-body-md text-text-tertiary">-</p>
+        {/* 搭配比例 — no data model or input UI yet, see color-ratio-section.tsx */}
 
         <Separator className="mb-4" />
 
@@ -143,6 +158,8 @@ export default async function SharePostDetailPage({ params }: { params: Promise<
           postId={id}
           initialLikes={post.likeCount}
           initialLiked={post.isLiked ?? false}
+          initialFavorites={post.favoriteCount}
+          initialFavorited={post.isFavorited ?? false}
           comments={post.commentCount}
           isLoggedIn={isLoggedIn}
         />

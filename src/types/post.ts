@@ -17,6 +17,10 @@ export type CreatePostRequest = {
   title: string;
   content: string;
   postType: PostType;
+  outfitStyle?: string;
+  outfitOccasion?: string;
+  outfitDate?: string; // "YYYY-MM-DD"
+  outfitLocation?: string;
   imageIds?: number[];
   tagIds?: number[];
 };
@@ -27,6 +31,10 @@ export type PostDetailResponse = {
   title: string;
   content: string;
   postType: PostType;
+  outfitStyle: string | null;
+  outfitOccasion: string | null;
+  outfitDate: string | null;
+  outfitLocation: string | null;
   createdAt: string;
   updatedAt: string | null;
   isOwner: boolean;
@@ -39,6 +47,11 @@ export type PostDetailResponse = {
   isFavorited: boolean | null;
   images: ImageResponse[];
   tags: TagResponse[];
+};
+
+export type PostDeleteResponse = {
+  postId: number;
+  deletedAt: string;
 };
 
 const POST_TYPE_VALUES: PostType[] = ['share', 'question'];

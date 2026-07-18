@@ -140,13 +140,14 @@ export default function NewSharePostPreviewPage() {
     setSubmitError(null);
     setSubmitting(true);
     try {
-      // outfitStyle/outfitOccasion/outfitDate/outfitLocation stay local-only
-      // for now — the real API has no matching fields yet. Revisit once the
-      // backend adds them instead of guessing at a shape.
       const result = await createPost({
         title,
         content: description,
         postType: backendPostType,
+        outfitStyle: outfitStyle.trim() || undefined,
+        outfitOccasion: outfitOccasion.trim() || undefined,
+        outfitDate: outfitDate || undefined,
+        outfitLocation: outfitLocation.trim() || undefined,
         imageIds: photos.map((photo) => photo.imageId),
         tagIds: draftTags.map((tag) => tag.tagId),
       });
