@@ -50,13 +50,15 @@ const ITEM_TYPE_LABEL: Record<HomepageItemResponse['itemType'], string> = {
   postAsk: '提問',
 };
 
-// itemType → the only detail route that currently exists for it. postAsk has
-// no dedicated detail page yet (see homepage-api-todo), so it falls back to
-// the commission route like the rest of the app does today.
+// itemType → detail route. postShare and postAsk are both backed by the same
+// /api/posts/{id} resource (postType just distinguishes them, see
+// src/types/post.ts) and posts/share/[id]/page.tsx already renders either
+// type correctly via POST_TYPE_LABEL, so both route there — postId and
+// commissionId are different id spaces and must never be mixed.
 function detailHref(item: HomepageItemResponse): string {
-  return item.itemType === 'postShare'
-    ? `/posts/share/${item.itemId}`
-    : `/posts/commissions/${item.itemId}`;
+  return item.itemType === 'commission'
+    ? `/posts/commissions/${item.itemId}`
+    : `/posts/share/${item.itemId}`;
 }
 
 function formatRelativeTime(createdAt: string): string {
