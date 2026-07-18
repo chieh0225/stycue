@@ -21,6 +21,12 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetClose, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { TopBar } from '@/components/ui/top-bar';
+import {
+  favoriteCommission,
+  favoritePost,
+  unfavoriteCommission,
+  unfavoritePost,
+} from '@/lib/favorite-api';
 import { getHomepageFeed } from '@/lib/homepage-api';
 import { likeCommission, likePost, unlikeCommission, unlikePost } from '@/lib/like-api';
 import { claimDailyPoints, getPointTransactions } from '@/lib/points-api';
@@ -188,7 +194,11 @@ export default function Home() {
         for (const item of feed) {
           const key = itemKey(item);
           if (!next[key])
-            next[key] = { liked: item.isLiked, likes: item.likeCount, bookmarked: false };
+            next[key] = {
+              liked: item.isLiked,
+              likes: item.likeCount,
+              bookmarked: item.isFavorited,
+            };
         }
         return next;
       });
@@ -196,6 +206,21 @@ export default function Home() {
   }, [feed]);
 
   const [trendingBookmarks, setTrendingBookmarks] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    // Same deferred-merge pattern as postInteractions above — trending is a
+    // separate list/state so an item appearing in both keeps independent
+    // local state, seeded from its own isFavorited on first load.
+    queueMicrotask(() => {
+      setTrendingBookmarks((prev) => {
+        const next = { ...prev };
+        for (const item of trending) {
+          const key = itemKey(item);
+          if (!(key in next)) next[key] = item.isFavorited;
+        }
+        return next;
+      });
+    });
+  }, [trending]);
 
   async function toggleLike(item: HomepageItemResponse) {
     const key = itemKey(item);
@@ -226,27 +251,51 @@ export default function Home() {
     }));
   }
 
-  function toggleBookmark(postId: string) {
-    const bookmarked = !postInteractions[postId].bookmarked;
+  async function toggleBookmark(item: HomepageItemResponse) {
+    const key = itemKey(item);
+    const wasBookmarked = postInteractions[key].bookmarked;
+    const next = !wasBookmarked;
     setPostInteractions((prev) => ({
       ...prev,
-      [postId]: { ...prev[postId], bookmarked },
+      [key]: { ...prev[key], bookmarked: next },
     }));
-    void fetch(`/api/posts/${postId}/bookmark`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bookmarked }),
-    }).catch(() => {});
+
+    const id = String(item.itemId);
+    const result =
+      item.itemType === 'commission'
+        ? await (wasBookmarked ? unfavoriteCommission(id) : favoriteCommission(id))
+        : await (wasBookmarked ? unfavoritePost(id) : favoritePost(id));
+    if (!result.success || !result.data) {
+      // Roll back the optimistic update on failure.
+      setPostInteractions((prev) => ({
+        ...prev,
+        [key]: { ...prev[key], bookmarked: wasBookmarked },
+      }));
+      return;
+    }
+    // Reconcile with the backend's authoritative state.
+    setPostInteractions((prev) => ({
+      ...prev,
+      [key]: { ...prev[key], bookmarked: result.data!.isFavorited },
+    }));
   }
 
-  function toggleTrendingBookmark(itemId: string) {
-    const bookmarked = !trendingBookmarks[itemId];
-    setTrendingBookmarks((prev) => ({ ...prev, [itemId]: bookmarked }));
-    void fetch(`/api/posts/${itemId}/bookmark`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bookmarked }),
-    }).catch(() => {});
+  async function toggleTrendingBookmark(item: HomepageItemResponse) {
+    const key = itemKey(item);
+    const wasBookmarked = trendingBookmarks[key] ?? item.isFavorited;
+    const next = !wasBookmarked;
+    setTrendingBookmarks((prev) => ({ ...prev, [key]: next }));
+
+    const id = String(item.itemId);
+    const result =
+      item.itemType === 'commission'
+        ? await (wasBookmarked ? unfavoriteCommission(id) : favoriteCommission(id))
+        : await (wasBookmarked ? unfavoritePost(id) : favoritePost(id));
+    if (!result.success || !result.data) {
+      setTrendingBookmarks((prev) => ({ ...prev, [key]: wasBookmarked }));
+      return;
+    }
+    setTrendingBookmarks((prev) => ({ ...prev, [key]: result.data!.isFavorited }));
   }
 
   return (
@@ -317,7 +366,7 @@ export default function Home() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => toggleTrendingBookmark(key)}
+                      onClick={() => toggleTrendingBookmark(item)}
                       aria-label="收藏"
                       aria-pressed={trendingBookmarks[key]}
                       className={trendingBookmarks[key] ? 'text-accent-amber' : 'text-text-muted'}
@@ -485,7 +534,7 @@ export default function Home() {
                   </Link>
                   <button
                     type="button"
-                    onClick={() => toggleBookmark(key)}
+                    onClick={() => toggleBookmark(post)}
                     aria-label="收藏"
                     aria-pressed={interaction.bookmarked}
                     className={`ml-auto ${interaction.bookmarked ? 'text-accent-amber' : ''}`}
