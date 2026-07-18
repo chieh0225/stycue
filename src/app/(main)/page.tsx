@@ -37,7 +37,7 @@ import type { HomepageFilter, HomepageItemResponse } from '@/types/homepage';
 // isClaimed is true in both cases, so message is the only reliable signal.
 const DAILY_CLAIM_SUCCESS_MESSAGE = '每日積分領取成功';
 // 註冊贈送 (registration bonus) — see PointTransactionType in src/types/points.ts
-const SIGNUP_BONUS_TRANSACTION_TYPE = 1;
+const SIGNUP_BONUS_TRANSACTION_TYPE = 'registrationReward';
 
 // The registration-bonus transaction's createdAt is UTC; claimDate from the
 // daily claim response is a Taiwan-timezone date ("日期基準使用台灣時區" per
