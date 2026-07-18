@@ -90,7 +90,7 @@ const menuLinkGroups = [
   ],
   [
     { label: '管理委託', icon: ClipboardList, href: '/profile/commissions/sent' },
-    { label: '積分商城', icon: Coins, href: '/profile/points' },
+    { label: '積分商城', icon: Coins, href: '/profile/points/mall' },
     { label: '免責聲明', icon: FileText, href: '/disclaimer' },
   ],
 ] as const;
@@ -587,7 +587,7 @@ export default function Home() {
           </div>
           {signupBonusPoints !== null && (
             <div className="text-caption mb-6 text-text-muted">
-              是初次註冊給予 {signupBonusPoints} 點積分
+              初次註冊給予 {signupBonusPoints} 點積分
             </div>
           )}
           <Button
