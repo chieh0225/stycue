@@ -4,6 +4,7 @@ import type {
   DailyPointClaimResponse,
   PagedResponse,
   PointProductResponse,
+  PointPurchaseResponse,
   PointTransactionQuery,
   PointTransactionResponse,
   PointWalletResponse,
@@ -28,6 +29,13 @@ export async function createPointPurchase(
     body: JSON.stringify({ pointProductId }),
   });
   return (await res.json()) as ApiEnvelope<CreatePointPurchaseResponse>;
+}
+
+export async function getPointPurchase(
+  orderId: number,
+): Promise<ApiEnvelope<PointPurchaseResponse>> {
+  const res = await fetch(`/api/points/purchases/${orderId}`);
+  return (await res.json()) as ApiEnvelope<PointPurchaseResponse>;
 }
 
 export async function claimDailyPoints(): Promise<ApiEnvelope<DailyPointClaimResponse>> {

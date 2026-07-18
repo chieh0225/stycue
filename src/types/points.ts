@@ -14,8 +14,9 @@ export type PointProductResponse = {
   points: number;
 };
 
-// enum 值待跟後端確認（openapi/v1.json 只標記為 integer，沒有列出對照表）
-export type PointPurchaseStatus = number;
+// 實測回傳字串（並非 openapi/v1.json 標記的 integer），已確認 "pending"／"paid"；
+// 其餘失敗/取消態的字串值待跟後端確認
+export type PointPurchaseStatus = string;
 
 export type CreatePointPurchaseRequest = {
   pointProductId: number;
@@ -31,6 +32,18 @@ export type CreatePointPurchaseResponse = {
   merchantTradeNo: string;
   status: PointPurchaseStatus;
   checkout: EcpayCheckoutFormResponse;
+};
+
+export type PointPurchaseResponse = {
+  orderId: number;
+  merchantTradeNo: string;
+  productName: string;
+  amountTwd: number;
+  points: number;
+  status: PointPurchaseStatus;
+  providerTradeNo: string | null;
+  paidAt: string | null;
+  createdAt: string;
 };
 
 export type DailyPointClaimResponse = {
