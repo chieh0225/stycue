@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { TopBar } from '@/components/ui/top-bar';
 import { getPostServer } from '@/lib/post-server';
 import CommentLauncher from './comment-launcher';
+import DeletePostButton from './delete-post-button';
 import HideScrollbar from './hide-scrollbar';
 import ImageGallery from './image-gallery';
 import PostInteractions from './post-interactions';
@@ -51,13 +52,18 @@ export default async function SharePostDetailPage({ params }: { params: Promise<
         }
         title="全部文章"
         right={
-          post.canEdit ? (
-            <Link
-              href={`/posts/share/${id}/edit`}
-              className="text-label-md font-semibold text-text-muted"
-            >
-              編輯
-            </Link>
+          post.canEdit || post.canDelete ? (
+            <div className="flex items-center gap-3.5">
+              {post.canEdit ? (
+                <Link
+                  href={`/posts/share/${id}/edit`}
+                  className="text-label-md font-semibold text-text-muted"
+                >
+                  編輯
+                </Link>
+              ) : null}
+              {post.canDelete ? <DeletePostButton postId={id} /> : null}
+            </div>
           ) : undefined
         }
         className="py-4"
