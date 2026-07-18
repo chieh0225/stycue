@@ -109,21 +109,21 @@ function PaymentResultContent() {
         {isSuccess ? (
           <Link
             href={primaryHref}
-            className="flex items-center justify-center rounded-card bg-foreground py-3.75"
+            className="flex items-center justify-center rounded-card bg-foreground py-4"
           >
             <span className="text-label-md font-bold text-background">{primaryLabel}</span>
           </Link>
         ) : (
           <Link
             href="/profile/points/buy"
-            className="flex items-center justify-center rounded-card bg-foreground py-3.75"
+            className="flex items-center justify-center rounded-card bg-foreground py-4"
           >
             <span className="text-label-md font-bold text-background">重新選擇方案</span>
           </Link>
         )}
         <Link
           href="/"
-          className="flex items-center justify-center rounded-card border-[1.5px] border-foreground py-3.75"
+          className="flex items-center justify-center rounded-card border-[1.5px] border-border py-4"
         >
           <span className="text-label-md font-bold text-foreground">回首頁</span>
         </Link>

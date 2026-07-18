@@ -163,7 +163,7 @@ export default function BuyPointsPage() {
         <button
           type="button"
           onClick={confirmPurchase}
-          className="flex w-full items-center justify-center rounded-card bg-foreground py-3.75"
+          className="flex w-full items-center justify-center rounded-card bg-foreground py-4"
           style={{ boxShadow: '0 4px 12px rgba(64,58,50,0.22)' }}
         >
           <span className="text-label-md font-bold text-background">
