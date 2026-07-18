@@ -33,11 +33,20 @@ const SEARCH_DEBOUNCE_MS = 300;
 export default function TagPickerContent({
   onClose,
   initialData,
+  initialSelected,
+  onConfirmSelected,
 }: {
   onClose: () => void;
   initialData: TagPickerInitialData;
+  // When provided (the edit-post flow, which has no draft-tags cookie to
+  // read/write), these replace the default draft-tags fetch/POST used by the
+  // new-post composer — see the effect and confirmAndClose below.
+  initialSelected?: TagResponse[];
+  onConfirmSelected?: (tags: TagResponse[]) => void;
 }) {
-  const [selected, setSelected] = useState<string[]>([]);
+  const [selected, setSelected] = useState<string[]>(
+    () => initialSelected?.map((tag) => tag.name) ?? [],
+  );
   // Every tag object we've seen (popular/search/frequent/created), keyed by
   // name, so we can look up a selected tag's category without refetching it.
   const [tagMeta, setTagMeta] = useState<Record<string, TagResponse>>(() => {
@@ -47,6 +56,7 @@ export default function TagPickerContent({
     }
     for (const tag of initialData.flatPopular) meta[tag.name] = tag;
     for (const tag of initialData.myFrequent ?? []) meta[tag.name] = tag;
+    for (const tag of initialSelected ?? []) meta[tag.name] = tag;
     return meta;
   });
   const [groupTags, setGroupTags] = useState<Record<number, TagResponse[]>>(initialData.groupTags);
@@ -78,12 +88,16 @@ export default function TagPickerContent({
   }
 
   useEffect(() => {
+    if (initialSelected) return;
     fetch('/api/posts/draft-tags')
       .then((res) => res.json())
       .then((data: { tags: { tagId: number; name: string }[] }) =>
         setSelected(data.tags.map((tag) => tag.name)),
       )
       .catch(() => {});
+    // Only ever needed on first mount, and initialSelected is fixed for the
+    // lifetime of this component when the edit flow provides it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -112,6 +126,11 @@ export default function TagPickerContent({
   }, [searchQuery, searchActive]);
 
   async function confirmAndClose() {
+    if (onConfirmSelected) {
+      onConfirmSelected(selected.map((name) => tagMeta[name]));
+      onClose();
+      return;
+    }
     await fetch('/api/posts/draft-tags', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
