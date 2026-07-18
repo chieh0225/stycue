@@ -1,6 +1,5 @@
 'use client';
 
-import { Image } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import type { ImageResponse } from '@/types/image';
 
@@ -31,30 +30,23 @@ function useWheelToHorizontalScroll() {
 export default function ImageGallery({ photos }: { photos: ImageResponse[] }) {
   const ref = useWheelToHorizontalScroll();
 
+  // Unlike commission posts (which always require body-shape photos, so
+  // placeholder slots make sense), share posts can be published with zero
+  // images — render nothing rather than 3 empty placeholder blocks.
+  if (photos.length === 0) return null;
+
   return (
     <div ref={ref} className="mb-4.5 no-scrollbar flex gap-2.5 overflow-x-auto">
-      {photos.length > 0
-        ? photos.map((photo, i) => (
-            // eslint-disable-next-line @next/next/no-img-element -- uploaded photo URL from real backend
-            <img
-              key={photo.imageId}
-              src={photo.url}
-              alt={`圖片 ${i + 1}`}
-              className="w-63.5 shrink-0 overflow-hidden rounded-panel object-cover"
-              style={{ aspectRatio: '1 / 1.05' }}
-            />
-          ))
-        : [0, 1, 2].map((i) => (
-            <div
-              key={i}
-              role="img"
-              aria-label={`圖片 ${i + 1}`}
-              className="flex w-63.5 shrink-0 items-center justify-center rounded-panel bg-[#d9d2c0] text-text-primary"
-              style={{ aspectRatio: '1 / 1.05' }}
-            >
-              <Image className="h-10 w-10" />
-            </div>
-          ))}
+      {photos.map((photo, i) => (
+        // eslint-disable-next-line @next/next/no-img-element -- uploaded photo URL from real backend
+        <img
+          key={photo.imageId}
+          src={photo.url}
+          alt={`圖片 ${i + 1}`}
+          className="w-63.5 shrink-0 overflow-hidden rounded-panel object-cover"
+          style={{ aspectRatio: '1 / 1.05' }}
+        />
+      ))}
     </div>
   );
 }
