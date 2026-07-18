@@ -46,12 +46,19 @@ function isActive(pathname: string, href: string) {
 // (/posts/commissions/{id}/comments), the new-comment screen
 // (/posts/commissions/{id}/comments/new), and the new-post preview page each
 // have their own fixed bottom bar, so the global nav is hidden there to avoid
-// stacking two bars.
+// stacking two bars. Share posts (/posts/share/...) follow the same shape.
 function hidesBottomNav(pathname: string) {
   if (pathname === '/posts/commissions/new/preview') return true;
-  return (
+  if (pathname === '/posts/share/new/preview') return true;
+  if (
     /^\/posts\/commissions\/[^/]+(?:\/comments(?:\/new)?)?$/.test(pathname) &&
     pathname !== '/posts/commissions/new'
+  ) {
+    return true;
+  }
+  return (
+    /^\/posts\/share\/[^/]+(?:\/comments(?:\/new)?)?$/.test(pathname) &&
+    pathname !== '/posts/share/new'
   );
 }
 
