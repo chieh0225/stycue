@@ -49,6 +49,11 @@ export type PostDetailResponse = {
   tags: TagResponse[];
 };
 
+export type PostDeleteResponse = {
+  postId: number;
+  deletedAt: string;
+};
+
 const POST_TYPE_VALUES: PostType[] = ['share', 'question'];
 
 // Mirrors normalizeTagCategory in @/types/tag — the backend has been
