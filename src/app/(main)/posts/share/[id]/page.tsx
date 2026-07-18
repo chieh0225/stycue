@@ -93,9 +93,11 @@ export default async function SharePostDetailPage({ params }: { params: Promise<
               {formatDate(post.createdAt)}
             </time>
           </div>
-          <Button type="button" size="sm">
-            追蹤
-          </Button>
+          {!post.isOwner ? (
+            <Button type="button" size="sm">
+              追蹤
+            </Button>
+          ) : null}
         </div>
 
         {/* Image gallery */}
