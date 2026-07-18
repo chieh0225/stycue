@@ -1,4 +1,4 @@
-export type ImagePurpose = 'commissions' | 'comments';
+export type ImagePurpose = 'commissions' | 'comments' | 'posts';
 
 export type ImageResponse = {
   imageId: number; // wire value is a plain JSON number, despite the OpenAPI schema allowing string|integer
