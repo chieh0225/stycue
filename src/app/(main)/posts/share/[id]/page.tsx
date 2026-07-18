@@ -142,6 +142,8 @@ export default async function SharePostDetailPage({ params }: { params: Promise<
           postId={id}
           initialLikes={post.likeCount}
           initialLiked={post.isLiked ?? false}
+          initialFavorites={post.favoriteCount}
+          initialFavorited={post.isFavorited ?? false}
           comments={post.commentCount}
           isLoggedIn={isLoggedIn}
         />
