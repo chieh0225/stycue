@@ -187,23 +187,33 @@ export default function NewPostPage() {
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setTypeMenuOpen(false)} />
                 <div className="absolute top-full left-0 z-40 mt-2 w-max min-w-full overflow-hidden rounded-xl border border-border-default bg-white shadow-card">
-                  {postTypes.map((type) => (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => {
-                        setForm((prev) => ({ ...prev, postType: type }));
-                        setTypeMenuOpen(false);
-                      }}
-                      className={`block w-full px-4 py-2.5 text-left text-label-md font-medium ${
-                        type === postType
-                          ? 'bg-surface-soft text-accent-amber'
-                          : 'text-text-primary hover:bg-surface-soft'
-                      }`}
-                    >
-                      {type}
-                    </button>
-                  ))}
+                  {postTypes.map((type) =>
+                    type === '委託' ? (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => {
+                          setForm((prev) => ({ ...prev, postType: type }));
+                          setTypeMenuOpen(false);
+                        }}
+                        className="block w-full bg-surface-soft px-4 py-2.5 text-left text-label-md font-medium text-accent-amber"
+                      >
+                        {type}
+                      </button>
+                    ) : (
+                      // 提問/分享 are a different resource (posts, not
+                      // commissions) — same convention as
+                      // posts/share/new/page.tsx's 委託 option, which links
+                      // back here instead of just switching local state.
+                      <Link
+                        key={type}
+                        href="/posts/share/new"
+                        className="block w-full px-4 py-2.5 text-left text-label-md font-medium text-text-primary hover:bg-surface-soft"
+                      >
+                        {type}
+                      </Link>
+                    ),
+                  )}
                 </div>
               </>
             ) : null}
