@@ -23,6 +23,8 @@ export type HomepageItemResponse = {
   updatedAt: string | null;
   likeCount: number;
   isLiked: boolean;
+  favoriteCount: number;
+  isFavorited: boolean;
   commentCount: number;
   images: ImageResponse[];
   tags: TagResponse[];
