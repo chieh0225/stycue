@@ -3,6 +3,7 @@
 import { ChevronLeft, CircleCheck, CreditCard } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { TopBar } from '@/components/ui/top-bar';
 import { getPointWallet } from '@/lib/points-api';
 
 type Plan = {
@@ -44,60 +45,48 @@ export default function BuyPointsPage() {
   const confirmPurchase = () => {};
 
   return (
-    <div className="flex flex-1 flex-col bg-[#fdf7e9]">
+    <div className="flex flex-1 flex-col bg-muted">
       {/* Header */}
-      <div
-        className="relative flex-shrink-0 py-3.5 pr-4.5 pl-4.5"
-        style={{
-          background: '#fff9e8',
-          borderBottom: '1px solid #f0e4c0',
-          boxShadow: '0 4px 12px rgba(217,154,61,0.08)',
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => router.back()}
-          aria-label="返回"
-          className="absolute top-1/2 left-4.5 -translate-y-1/2"
-        >
-          <ChevronLeft className="h-5 w-5 text-[#403a32]" />
-        </button>
-        <h1
-          className="text-center text-[19px] font-bold text-[#403a32]"
-          style={{ letterSpacing: '0.5px' }}
-        >
-          儲值積分
-        </h1>
-      </div>
+      <TopBar
+        left={
+          <button
+            type="button"
+            onClick={() => router.back()}
+            aria-label="返回"
+            className="flex h-8 w-8 items-center justify-center"
+          >
+            <ChevronLeft className="h-5 w-5 text-foreground" />
+          </button>
+        }
+        title="儲值積分"
+        className="px-4.5 py-4"
+      />
 
       {/* Scroll body */}
       <div className="no-scrollbar flex-1 overflow-y-auto px-4.5 pt-5 pb-32">
         {/* Balance card */}
         <div
-          className="relative mb-6 overflow-hidden rounded-[18px] px-5 py-5.5"
-          style={{
-            background: 'linear-gradient(135deg,#f6d978 0%,#f0c458 100%)',
-            boxShadow: '0 8px 20px rgba(217,154,61,0.24)',
-          }}
+          className="relative mb-6 overflow-hidden rounded-[18px] bg-[linear-gradient(135deg,var(--primary)_0%,#f0c458_100%)] px-5 py-5.5"
+          style={{ boxShadow: '0 8px 20px rgba(217,154,61,0.24)' }}
         >
           <svg
             width="20"
             height="20"
             viewBox="0 0 24 24"
-            fill="#835500"
-            className="absolute top-4 right-4.5 opacity-50"
+            fill="currentColor"
+            className="absolute top-4 right-4.5 text-gold-dark opacity-50"
           >
             <path d="M12 2l2.2 7.2L22 12l-7.8 2.8L12 22l-2.2-7.2L2 12l7.8-2.8z" />
           </svg>
-          <div className="mb-1.5 text-[13px] font-semibold text-[#6b4a18]">目前可用積分</div>
-          <div className="text-[34px] leading-[1.1] font-extrabold text-[#403a32]">
+          <div className="mb-1.5 text-label-md font-semibold text-gold-deep">目前可用積分</div>
+          <div className="text-[34px] leading-[1.1] font-extrabold text-foreground">
             {currentPoints === null ? '-' : currentPoints}
           </div>
         </div>
 
         {/* Plan list */}
         <div className="mb-6">
-          <h2 className="mb-3 text-[15px] font-bold text-[#403a32]">選擇儲值方案</h2>
+          <h2 className="mb-3 text-body-lg font-bold text-foreground">選擇儲值方案</h2>
           <div className="flex flex-col gap-2.5">
             {plansData.map((plan) => {
               const selected = plan.id === selectedId;
@@ -106,45 +95,44 @@ export default function BuyPointsPage() {
                   key={plan.id}
                   type="button"
                   onClick={() => setSelectedId(plan.id)}
-                  className="flex items-center gap-3 rounded-[14px] bg-white p-4 text-left"
-                  style={{
-                    borderWidth: '2px',
-                    borderStyle: 'solid',
-                    borderColor: selected ? '#403a32' : '#f0e4c0',
-                    boxShadow: selected ? '0 4px 12px rgba(64,58,50,0.1)' : 'none',
-                  }}
+                  className={`flex items-center gap-3 rounded-panel border-2 bg-white p-4 text-left ${
+                    selected ? 'border-foreground' : 'border-border-subtle'
+                  }`}
+                  style={{ boxShadow: selected ? '0 4px 12px rgba(64,58,50,0.1)' : 'none' }}
                 >
                   <span
-                    className="relative flex h-5 w-5 shrink-0 items-center justify-center rounded-full"
-                    style={{ border: `2px solid ${selected ? '#403a32' : '#d8cfa8'}` }}
+                    className={`relative flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
+                      selected ? 'border-foreground' : 'border-border-dashed'
+                    }`}
                   >
-                    {selected ? <span className="h-2.5 w-2.5 rounded-full bg-[#403a32]" /> : null}
+                    {selected ? <span className="h-2.5 w-2.5 rounded-full bg-foreground" /> : null}
                   </span>
                   <span className="flex flex-1 flex-col gap-0.5">
                     <span className="flex items-center gap-1.5">
-                      <span className="text-[16px] font-bold text-[#403a32]">
+                      <span className="text-body-lg font-bold text-foreground">
                         {plan.total} 積分
                       </span>
                       {plan.badge ? (
                         <span
-                          className="rounded-[6px] px-2 py-0.5 text-[11px] font-bold"
-                          style={
+                          className={`rounded-[6px] px-2 py-0.5 text-label-md font-bold ${
                             plan.badge === '最划算'
-                              ? { color: '#4e5c3a', background: '#e3e9d3' }
-                              : { color: '#835500', background: '#fbe9b8' }
-                          }
+                              ? 'bg-tag-green-bg text-tag-green'
+                              : 'bg-[#fbe9b8] text-gold-dark'
+                          }`}
                         >
                           {plan.badge}
                         </span>
                       ) : null}
                     </span>
-                    <span className="text-[12px] text-[#9a9080]">
+                    <span className="text-label-md text-text-tertiary">
                       {plan.bonus > 0
                         ? `${plan.base} 積分 + 贈送 ${plan.bonus} 積分`
                         : `${plan.base} 積分`}
                     </span>
                   </span>
-                  <span className="text-[17px] font-extrabold text-[#403a32]">NT${plan.price}</span>
+                  <span className="text-body-lg font-extrabold text-foreground">
+                    NT${plan.price}
+                  </span>
                 </button>
               );
             })}
@@ -153,39 +141,32 @@ export default function BuyPointsPage() {
 
         {/* Payment method */}
         <div>
-          <h2 className="mb-3 text-[15px] font-bold text-[#403a32]">支付方式</h2>
-          <div
-            className="flex items-center gap-3 rounded-[14px] bg-white p-3.5 pr-4 pl-4"
-            style={{ border: '1.5px solid #403a32' }}
-          >
-            <span className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-[8px] bg-[#fdf7e9]">
-              <CreditCard className="h-4.5 w-4.5 text-[#d99a3d]" />
+          <h2 className="mb-3 text-body-lg font-bold text-foreground">支付方式</h2>
+          <div className="flex items-center gap-3 rounded-panel border-[1.5px] border-foreground bg-white p-3.5 pr-4 pl-4">
+            <span className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-lg bg-muted">
+              <CreditCard className="h-4.5 w-4.5 text-gold" />
             </span>
             <span className="flex flex-1 flex-col gap-0.5">
-              <span className="text-[14.5px] font-bold text-[#403a32]">綠界金流</span>
-              <span className="text-[11.5px] text-[#9a9080]">目前僅支援信用卡付款</span>
+              <span className="text-body-md font-bold text-foreground">綠界金流</span>
+              <span className="text-label-md text-text-tertiary">目前僅支援信用卡付款</span>
             </span>
-            <CircleCheck className="h-5 w-5 text-[#d99a3d]" />
+            <CircleCheck className="h-5 w-5 text-gold" />
           </div>
-          <p className="mt-2.5 text-[11.5px] text-[#b8af9e]">結帳將導向綠界金流頁面完成付款</p>
+          <p className="mt-2.5 text-label-md text-text-placeholder">
+            結帳將導向綠界金流頁面完成付款
+          </p>
         </div>
       </div>
 
       {/* Sticky footer CTA */}
-      <div
-        className="flex-shrink-0 px-4.5 pt-3.5 pb-6"
-        style={{ background: '#fffdf7', borderTop: '1px solid #f0e4c0' }}
-      >
+      <div className="flex-shrink-0 border-t border-border-subtle bg-popover px-4.5 pt-3.5 pb-6">
         <button
           type="button"
           onClick={confirmPurchase}
-          className="flex w-full items-center justify-center rounded-xl py-3.75"
-          style={{
-            background: '#403a32',
-            boxShadow: '0 4px 12px rgba(64,58,50,0.22)',
-          }}
+          className="flex w-full items-center justify-center rounded-card bg-foreground py-3.75"
+          style={{ boxShadow: '0 4px 12px rgba(64,58,50,0.22)' }}
         >
-          <span className="text-[15.5px] font-bold text-[#fffdf7]">
+          <span className="text-label-md font-bold text-background">
             確認並前往付款・NT${selectedPlan.price}
           </span>
         </button>

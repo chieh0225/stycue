@@ -4,6 +4,7 @@ import { Check, X } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
+import { TopBar } from '@/components/ui/top-bar';
 import { getPointWallet } from '@/lib/points-api';
 
 // GET /api/points/purchases/{orderId} doesn't exist on the backend yet (see
@@ -45,29 +46,15 @@ function PaymentResultContent() {
   const primaryHref = source === 'comment' && returnTo ? returnTo : '/profile/points/mall';
 
   return (
-    <div className="flex flex-1 flex-col bg-[#fdf7e9]">
+    <div className="flex flex-1 flex-col bg-muted">
       {/* Header */}
-      <div
-        className="relative flex-shrink-0 py-3.5 pr-4.5 pl-4.5"
-        style={{
-          background: '#fff9e8',
-          borderBottom: '1px solid #f0e4c0',
-          boxShadow: '0 4px 12px rgba(217,154,61,0.08)',
-        }}
-      >
-        <h1
-          className="text-center text-[19px] font-bold text-[#403a32]"
-          style={{ letterSpacing: '0.5px' }}
-        >
-          儲值結果
-        </h1>
-      </div>
+      <TopBar title="儲值結果" className="px-4.5 py-4" />
 
       {/* Result icon block */}
       <div className="flex flex-col items-center px-6 pt-14 pb-8 text-center">
         {isSuccess ? (
-          <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-[#e3e9d3]">
-            <Check className="h-8.5 w-8.5 text-[#4e5c3a]" strokeWidth={2.4} />
+          <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-tag-green-bg">
+            <Check className="h-8.5 w-8.5 text-tag-green" strokeWidth={2.4} />
           </div>
         ) : (
           <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-[#f7dcdc]">
@@ -75,10 +62,10 @@ function PaymentResultContent() {
           </div>
         )}
 
-        <h2 className="mb-2 text-[21px] font-extrabold text-[#403a32]">
+        <h2 className="mb-2 text-headline-sm font-extrabold text-foreground">
           {isSuccess ? '儲值成功' : '付款失敗'}
         </h2>
-        <p className="text-[14px] leading-[1.6] whitespace-pre-line text-[#9a9080]">
+        <p className="text-body-md leading-[1.6] whitespace-pre-line text-text-tertiary">
           {isSuccess
             ? '已完成付款，積分將立即存入您的帳戶'
             : '交易未完成，您的積分尚未儲值\n請確認付款資訊後再試一次'}
@@ -86,31 +73,31 @@ function PaymentResultContent() {
       </div>
 
       {/* Order detail card */}
-      <div className="mx-4.5 mb-8 flex flex-col rounded-[14px] border border-[#e5ddbf] bg-[#fffdf7] px-4.5 py-4">
-        <div className="flex items-center justify-between border-b border-[#f0e4c0] py-2.5">
-          <span className="text-[13px] text-[#9a9080]">訂單編號</span>
-          <span className="text-[13px] font-bold text-[#403a32]">{orderNo}</span>
+      <div className="mx-4.5 mb-8 flex flex-col rounded-panel border border-border bg-popover px-4.5 py-4">
+        <div className="flex items-center justify-between border-b border-border-subtle py-2.5">
+          <span className="text-label-md text-text-tertiary">訂單編號</span>
+          <span className="text-label-md font-bold text-foreground">{orderNo}</span>
         </div>
-        <div className="flex items-center justify-between border-b border-[#f0e4c0] py-2.5">
-          <span className="text-[13px] text-[#9a9080]">儲值方案</span>
-          <span className="text-[13px] font-bold text-[#403a32]">{planLabel}</span>
-        </div>
-        <div
-          className={`flex items-center justify-between py-2.5 ${isSuccess ? 'border-b border-[#f0e4c0]' : ''}`}
-        >
-          <span className="text-[13px] text-[#9a9080]">付款金額</span>
-          <span className="text-[13px] font-bold text-[#403a32]">{amountLabel}</span>
+        <div className="flex items-center justify-between border-b border-border-subtle py-2.5">
+          <span className="text-label-md text-text-tertiary">儲值方案</span>
+          <span className="text-label-md font-bold text-foreground">{planLabel}</span>
         </div>
         <div
-          className={`flex items-center justify-between py-2.5 ${isSuccess ? 'border-b border-[#f0e4c0]' : ''}`}
+          className={`flex items-center justify-between py-2.5 ${isSuccess ? 'border-b border-border-subtle' : ''}`}
         >
-          <span className="text-[13px] text-[#9a9080]">付款方式</span>
-          <span className="text-[13px] font-bold text-[#403a32]">信用卡・綠界金流</span>
+          <span className="text-label-md text-text-tertiary">付款金額</span>
+          <span className="text-label-md font-bold text-foreground">{amountLabel}</span>
+        </div>
+        <div
+          className={`flex items-center justify-between py-2.5 ${isSuccess ? 'border-b border-border-subtle' : ''}`}
+        >
+          <span className="text-label-md text-text-tertiary">付款方式</span>
+          <span className="text-label-md font-bold text-foreground">信用卡・綠界金流</span>
         </div>
         {isSuccess ? (
           <div className="flex items-center justify-between py-2.5">
-            <span className="text-[13px] text-[#9a9080]">目前可用積分</span>
-            <span className="text-[15px] font-extrabold text-[#835500]">
+            <span className="text-label-md text-text-tertiary">目前可用積分</span>
+            <span className="text-body-lg font-extrabold text-gold-dark">
               {currentPoints === null ? '-' : currentPoints}
             </span>
           </div>
@@ -122,26 +109,23 @@ function PaymentResultContent() {
         {isSuccess ? (
           <Link
             href={primaryHref}
-            className="flex items-center justify-center rounded-xl py-3.75"
-            style={{ background: '#403a32' }}
+            className="flex items-center justify-center rounded-card bg-foreground py-3.75"
           >
-            <span className="text-[15.5px] font-bold text-[#fffdf7]">{primaryLabel}</span>
+            <span className="text-label-md font-bold text-background">{primaryLabel}</span>
           </Link>
         ) : (
           <Link
             href="/profile/points/buy"
-            className="flex items-center justify-center rounded-xl py-3.75"
-            style={{ background: '#403a32' }}
+            className="flex items-center justify-center rounded-card bg-foreground py-3.75"
           >
-            <span className="text-[15.5px] font-bold text-[#fffdf7]">重新選擇方案</span>
+            <span className="text-label-md font-bold text-background">重新選擇方案</span>
           </Link>
         )}
         <Link
           href="/"
-          className="flex items-center justify-center rounded-xl py-3.75"
-          style={{ border: '1.5px solid #403a32' }}
+          className="flex items-center justify-center rounded-card border-[1.5px] border-foreground py-3.75"
         >
-          <span className="text-[15.5px] font-bold text-[#403a32]">回首頁</span>
+          <span className="text-label-md font-bold text-foreground">回首頁</span>
         </Link>
       </div>
     </div>
