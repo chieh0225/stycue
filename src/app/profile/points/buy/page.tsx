@@ -155,7 +155,7 @@ export default function BuyPointsPage() {
         <div>
           <h2 className="mb-3 text-[15px] font-bold text-[#403a32]">支付方式</h2>
           <div
-            className="flex items-center gap-3 rounded-[14px] p-3.5 pr-4 pl-4"
+            className="flex items-center gap-3 rounded-[14px] bg-white p-3.5 pr-4 pl-4"
             style={{ border: '1.5px solid #403a32' }}
           >
             <span className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-[8px] bg-[#fdf7e9]">
