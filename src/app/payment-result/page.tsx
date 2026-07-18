@@ -1,5 +1,6 @@
 'use client';
 
+import { Check, X } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
@@ -66,33 +67,11 @@ function PaymentResultContent() {
       <div className="flex flex-col items-center px-6 pt-14 pb-8 text-center">
         {isSuccess ? (
           <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-[#e3e9d3]">
-            <svg
-              width="34"
-              height="34"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#4e5c3a"
-              strokeWidth={2.4}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M20 6 9 17l-5-5" />
-            </svg>
+            <Check className="h-8.5 w-8.5 text-[#4e5c3a]" strokeWidth={2.4} />
           </div>
         ) : (
           <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-[#f7dcdc]">
-            <svg
-              width="34"
-              height="34"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#b3453e"
-              strokeWidth={2.4}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M18 6 6 18M6 6l12 12" />
-            </svg>
+            <X className="h-8.5 w-8.5 text-[#b3453e]" strokeWidth={2.4} />
           </div>
         )}
 

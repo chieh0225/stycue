@@ -1,5 +1,6 @@
 'use client';
 
+import { ChevronLeft, CircleCheck, CreditCard } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getPointWallet } from '@/lib/points-api';
@@ -59,18 +60,7 @@ export default function BuyPointsPage() {
           aria-label="返回"
           className="absolute top-1/2 left-4.5 -translate-y-1/2"
         >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#403a32"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="m15 18-6-6 6-6" />
-          </svg>
+          <ChevronLeft className="h-5 w-5 text-[#403a32]" />
         </button>
         <h1
           className="text-center text-[19px] font-bold text-[#403a32]"
@@ -169,37 +159,13 @@ export default function BuyPointsPage() {
             style={{ border: '1.5px solid #403a32' }}
           >
             <span className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-[8px] bg-[#fdf7e9]">
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#d99a3d"
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect width="20" height="14" x="2" y="5" rx="2" />
-                <path d="M2 10h20" />
-              </svg>
+              <CreditCard className="h-4.5 w-4.5 text-[#d99a3d]" />
             </span>
             <span className="flex flex-1 flex-col gap-0.5">
               <span className="text-[14.5px] font-bold text-[#403a32]">綠界金流</span>
               <span className="text-[11.5px] text-[#9a9080]">目前僅支援信用卡付款</span>
             </span>
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#d99a3d"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <path d="m9 12 2 2 4-4" />
-            </svg>
+            <CircleCheck className="h-5 w-5 text-[#d99a3d]" />
           </div>
           <p className="mt-2.5 text-[11.5px] text-[#b8af9e]">結帳將導向綠界金流頁面完成付款</p>
         </div>
