@@ -1,6 +1,16 @@
+import type { ImageCategoryId } from '@/lib/image-categories';
+
 export const DRAFT_STORAGE_KEY = 'stycue:share-post-draft';
 export const TITLE_MAX_LENGTH = 40;
 export const postTypes = ['分享', '委託', '提問'] as const;
+
+// Already-uploaded image (real backend imageId/url), not a local file preview.
+export type DraftPhoto = {
+  imageId: number;
+  url: string;
+  category: ImageCategoryId;
+  brand: string;
+};
 
 export type Draft = {
   title: string;
@@ -10,6 +20,7 @@ export type Draft = {
   outfitOccasion: string;
   outfitDate: string;
   outfitLocation: string;
+  photos: DraftPhoto[];
 };
 
 export const emptyDraft: Draft = {
@@ -20,6 +31,7 @@ export const emptyDraft: Draft = {
   outfitOccasion: '',
   outfitDate: '',
   outfitLocation: '',
+  photos: [],
 };
 
 // Both the localStorage draft and the server-side draft-tags store are

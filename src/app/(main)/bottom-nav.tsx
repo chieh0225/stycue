@@ -46,13 +46,21 @@ function isActive(pathname: string, href: string) {
 // (/posts/commissions/{id}/comments), the new-comment screen
 // (/posts/commissions/{id}/comments/new), the new-post preview page, and the
 // points recharge page each have their own fixed bottom bar, so the global
-// nav is hidden there to avoid stacking two bars.
+// nav is hidden there to avoid stacking two bars. Share posts
+// (/posts/share/...) follow the same shape.
 function hidesBottomNav(pathname: string) {
   if (pathname === '/posts/commissions/new/preview') return true;
+  if (pathname === '/posts/share/new/preview') return true;
   if (pathname === '/profile/points/buy') return true;
-  return (
+  if (
     /^\/posts\/commissions\/[^/]+(?:\/comments(?:\/new)?)?$/.test(pathname) &&
     pathname !== '/posts/commissions/new'
+  ) {
+    return true;
+  }
+  return (
+    /^\/posts\/share\/[^/]+(?:\/comments(?:\/new)?)?$/.test(pathname) &&
+    pathname !== '/posts/share/new'
   );
 }
 
