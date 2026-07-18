@@ -16,11 +16,6 @@ import PostInteractions from './post-interactions';
 
 const POST_TYPE_LABEL = { share: '分享', question: '提問' } as const;
 
-// PostDetailResponse (confirmed against the backend's OpenAPI schema) has no
-// outfit-info/items/color-ratio fields — the backend doesn't store this data
-// at all yet, so these always render as "-" rather than being left out.
-const OUTFIT_INFO_LABELS = ['穿搭風格', '穿搭場合', '穿搭日期', '穿搭地點'];
-
 function formatDate(iso: string): string {
   const date = new Date(iso);
   return `${date.getUTCFullYear()} 年 ${date.getUTCMonth() + 1} 月 ${date.getUTCDate()} 日`;
@@ -36,6 +31,12 @@ export default async function SharePostDetailPage({ params }: { params: Promise<
   const itemBrands = [
     ...new Set(post.images.map((image) => image.brand).filter(Boolean)),
   ] as string[];
+  const outfitInfo = [
+    { label: '穿搭風格', value: post.outfitStyle },
+    { label: '穿搭場合', value: post.outfitOccasion },
+    { label: '穿搭日期', value: post.outfitDate ? formatDate(post.outfitDate) : null },
+    { label: '穿搭地點', value: post.outfitLocation },
+  ];
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col bg-surface-base">
@@ -105,14 +106,14 @@ export default async function SharePostDetailPage({ params }: { params: Promise<
           </>
         ) : null}
 
-        {/* 穿搭資訊 — backend has no data for this yet, always shows "-" */}
+        {/* 穿搭資訊 */}
         <h2 className="mb-3 text-body-lg font-bold text-text-primary">穿搭資訊</h2>
         <Card variant="info" className="mb-6 p-4">
           <dl className="grid grid-cols-2 gap-x-3 gap-y-4">
-            {OUTFIT_INFO_LABELS.map((label) => (
-              <div key={label} className="flex flex-col gap-1">
-                <dt className="text-label-md text-text-tertiary">{label}</dt>
-                <dd className="text-body-md font-bold text-text-primary">-</dd>
+            {outfitInfo.map((info) => (
+              <div key={info.label} className="flex flex-col gap-1">
+                <dt className="text-label-md text-text-tertiary">{info.label}</dt>
+                <dd className="text-body-md font-bold text-text-primary">{info.value ?? '-'}</dd>
               </div>
             ))}
           </dl>
@@ -132,9 +133,7 @@ export default async function SharePostDetailPage({ params }: { params: Promise<
           <p className="mb-6 text-body-md text-text-tertiary">-</p>
         )}
 
-        {/* 搭配比例 — backend has no data for this yet */}
-        <h2 className="mb-3 text-body-lg font-bold text-text-primary">搭配比例</h2>
-        <p className="mb-6 text-body-md text-text-tertiary">-</p>
+        {/* 搭配比例 — no data model or input UI yet, see color-ratio-section.tsx */}
 
         <Separator className="mb-4" />
 
