@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronDown, Info, X } from 'lucide-react';
+import { ChevronDown, ImagePlus, Info, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -69,6 +69,7 @@ export default function NewPostPreviewPage() {
   const { title, description, height, weight, age, selectedBudget, postType, points, photos } =
     form;
   const insufficientPoints = Number(points) > userPoints;
+  const canSubmit = photos.length > 0 && !insufficientPoints && !submitting;
 
   // Auto-grow to fit the full text when expanded so it never needs its own
   // scrollbar; collapsed mode keeps the fixed 3-row clamp instead.
@@ -137,6 +138,10 @@ export default function NewPostPreviewPage() {
   }
 
   async function confirmSubmit() {
+    if (photos.length === 0) {
+      setSubmitError('請至少上傳一張身形照片');
+      return;
+    }
     setSubmitError(null);
     setSubmitting(true);
     try {
@@ -152,7 +157,15 @@ export default function NewPostPreviewPage() {
         tagIds: draftTags.map((tag) => tag.tagId),
       });
       if (!result.success || !result.data) {
-        setSubmitError(result.message || '委託文發表失敗，請稍後再試');
+        // errorCode for the "no image" case hasn't been confirmed against a
+        // real backend response yet — this branch is a fallback for races
+        // (e.g. two tabs editing the same draft) since the button above
+        // already blocks submission with zero photos.
+        if (result.errorCode === 'IMAGE_REQUIRED') {
+          setSubmitError('請至少上傳一張身形照片');
+        } else {
+          setSubmitError(result.message || '委託文發表失敗，請稍後再試');
+        }
         return;
       }
 
@@ -270,6 +283,9 @@ export default function NewPostPreviewPage() {
         </div>
 
         {/* 身形照片 */}
+        <h2 className="mb-3 text-body-lg font-bold text-text-primary">
+          身形照片 <span className="text-destructive">*</span>
+        </h2>
         {photos.length > 0 ? (
           <div className="mb-5.5 flex flex-wrap gap-2">
             {photos.map((photo) => (
@@ -281,8 +297,22 @@ export default function NewPostPreviewPage() {
                 className="h-24 w-24 flex-shrink-0 rounded-xl object-cover"
               />
             ))}
+            <Link
+              href="/posts/commissions/new/photo"
+              className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl border border-dashed border-border-default text-text-muted"
+              aria-label="新增圖片"
+            >
+              <ImagePlus className="h-5 w-5" />
+            </Link>
           </div>
-        ) : null}
+        ) : (
+          <Link
+            href="/posts/commissions/new/photo"
+            className="mb-5.5 flex w-fit items-center gap-1 rounded-full border border-dashed border-border-default px-3.5 py-1.75 text-label-md text-text-muted"
+          >
+            <ImagePlus className="h-3.5 w-3.5" aria-hidden /> + 新增圖片
+          </Link>
+        )}
 
         {/* 標籤 */}
         <h2 className="mb-3 text-body-lg font-bold text-text-primary">標籤</h2>
@@ -481,7 +511,7 @@ export default function NewPostPreviewPage() {
           variant="primary"
           size="md"
           onClick={confirmSubmit}
-          disabled={insufficientPoints || submitting}
+          disabled={!canSubmit}
           className="flex-1"
         >
           確認送出
