@@ -4,12 +4,12 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { TopBar } from '@/components/ui/top-bar';
 import { getCommissionServer } from '@/lib/commission-server';
 import CommentLauncher from './comment-launcher';
+import FollowButton from './follow-button';
 import HideScrollbar from './hide-scrollbar';
 import PhotoGallery from './photo-gallery';
 import PostInteractions from './post-interactions';
@@ -38,7 +38,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
     points,
     createdAt,
     expiredAt: deadline,
-    author: { displayName: authorName },
+    author: { userId: authorId, displayName: authorName, isFollowing },
     images: photos,
     likeCount,
     isLiked,
@@ -90,9 +90,11 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
             </time>
           </div>
           {!isOwner ? (
-            <Button type="button" size="sm">
-              追蹤
-            </Button>
+            <FollowButton
+              targetUserId={String(authorId)}
+              initialFollowing={isFollowing ?? false}
+              isLoggedIn={isLoggedIn}
+            />
           ) : null}
         </div>
 

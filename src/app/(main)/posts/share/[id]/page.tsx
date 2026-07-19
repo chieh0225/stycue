@@ -4,13 +4,13 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { TopBar } from '@/components/ui/top-bar';
 import { getPostServer } from '@/lib/post-server';
 import CommentLauncher from './comment-launcher';
 import DeletePostButton from './delete-post-button';
+import FollowButton from './follow-button';
 import HideScrollbar from './hide-scrollbar';
 import ImageGallery from './image-gallery';
 import PostInteractions from './post-interactions';
@@ -94,9 +94,11 @@ export default async function SharePostDetailPage({ params }: { params: Promise<
             </time>
           </div>
           {!post.isOwner ? (
-            <Button type="button" size="sm">
-              追蹤
-            </Button>
+            <FollowButton
+              targetUserId={String(post.author.userId)}
+              initialFollowing={post.author.isFollowing ?? false}
+              isLoggedIn={isLoggedIn}
+            />
           ) : null}
         </div>
 
