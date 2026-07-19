@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronDown, ImagePlus, Info, X } from 'lucide-react';
+import { ChevronDown, ImagePlus, Info, Tag, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -283,10 +283,14 @@ export default function NewPostPreviewPage() {
         </div>
 
         {/* 身形照片 */}
-        <h2 className="mb-3 text-body-lg font-bold text-text-primary">
-          身形照片 <span className="text-destructive">*</span>
-        </h2>
-        {photos.length > 0 ? (
+        <Link
+          href="/posts/commissions/new/photo"
+          className="mb-3 flex w-fit items-center gap-1 rounded-full border border-border-default px-3 py-1.5 text-label-md text-text-muted"
+        >
+          <ImagePlus className="h-3.5 w-3.5" aria-hidden /> 上傳圖片
+          {photos.length > 0 ? ` (${photos.length}/9)` : ''}
+        </Link>
+        {photos.length > 0 && (
           <div className="mb-5.5 flex flex-wrap gap-2">
             {photos.map((photo) => (
               // eslint-disable-next-line @next/next/no-img-element -- uploaded photo URL from real backend
@@ -297,33 +301,18 @@ export default function NewPostPreviewPage() {
                 className="h-24 w-24 flex-shrink-0 rounded-xl object-cover"
               />
             ))}
-            <Link
-              href="/posts/commissions/new/photo"
-              className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl border border-dashed border-border-default text-text-muted"
-              aria-label="新增圖片"
-            >
-              <ImagePlus className="h-5 w-5" />
-            </Link>
           </div>
-        ) : (
-          <Link
-            href="/posts/commissions/new/photo"
-            className="mb-5.5 flex w-fit items-center gap-1 rounded-full border border-dashed border-border-default px-3.5 py-1.75 text-label-md text-text-muted"
-          >
-            <ImagePlus className="h-3.5 w-3.5" aria-hidden /> + 新增圖片
-          </Link>
         )}
 
         {/* 標籤 */}
-        <h2 className="mb-3 text-body-lg font-bold text-text-primary">標籤</h2>
         <div className="mb-6 flex flex-wrap gap-2">
           {draftTags.length === 0 ? (
             <Link
               href="/posts/commissions/new/tags"
               prefetch={false}
-              className="rounded-full border border-dashed border-border-default px-3.5 py-1.75 text-label-md text-text-muted"
+              className="flex items-center gap-1 rounded-full border border-border-default px-3 py-1.5 text-label-md text-text-muted"
             >
-              + 選擇標籤
+              <Tag className="h-3.5 w-3.5" aria-hidden /> 選擇標籤
             </Link>
           ) : (
             <>
