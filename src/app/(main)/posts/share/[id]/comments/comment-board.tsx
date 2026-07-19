@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -253,7 +254,15 @@ function CommentActions({
   );
 }
 
-function ReplyComposer({ onSubmit }: { onSubmit: (text: string) => void }) {
+function ReplyComposer({
+  postId,
+  commentId,
+  onSubmit,
+}: {
+  postId: string;
+  commentId: string;
+  onSubmit: (text: string) => void;
+}) {
   const [text, setText] = useState('');
   const trimmed = text.trim();
   const canSend = trimmed.length > 0;
@@ -266,6 +275,9 @@ function ReplyComposer({ onSubmit }: { onSubmit: (text: string) => void }) {
 
   return (
     <div className="flex items-center gap-2">
+      {/* Input pill — mirrors the main composer: quick text inline, plus an
+          image button that opens the full template, reply-aware via
+          ?replyTo so it posts a reply rather than a new top-level comment. */}
       <div className="flex h-9 min-w-0 flex-1 items-center gap-2 overflow-hidden rounded-full border border-border bg-muted pr-2 pl-3.5">
         <input
           type="text"
@@ -277,10 +289,17 @@ function ReplyComposer({ onSubmit }: { onSubmit: (text: string) => void }) {
               submit();
             }
           }}
-          placeholder="加入討論"
+          placeholder="加入討論，或附上圖片"
           aria-label="回覆留言"
           className="h-full min-w-0 flex-1 bg-transparent text-body-md text-text-primary placeholder:text-text-placeholder focus:outline-none"
         />
+        <Link
+          href={`/posts/share/${postId}/comments/new?replyTo=${commentId}`}
+          aria-label="用整頁模板附上圖片回覆"
+          className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-text-muted"
+        >
+          <ImagePlaceholderIcon className="h-3.75 w-3.75" />
+        </Link>
       </div>
       <button
         type="button"
@@ -296,6 +315,7 @@ function ReplyComposer({ onSubmit }: { onSubmit: (text: string) => void }) {
 }
 
 function ReplyList({
+  postId,
   commentId,
   replies,
   isReplyOpen,
@@ -304,6 +324,7 @@ function ReplyList({
   onDeleteReply,
   defaultExpanded,
 }: {
+  postId: string;
   commentId: string;
   replies: Reply[];
   isReplyOpen: boolean;
@@ -348,6 +369,14 @@ function ReplyList({
                   <time className="ml-auto text-label-md text-text-placeholder">
                     {reply.timeLabel}
                   </time>
+                  {reply.canEdit ? (
+                    <Link
+                      href={`/posts/share/${postId}/comments/new?replyTo=${commentId}&editReplyId=${reply.replyId}`}
+                      className="text-label-md font-semibold text-text-muted"
+                    >
+                      編輯
+                    </Link>
+                  ) : null}
                   {reply.canDelete ? (
                     <button
                       type="button"
@@ -384,6 +413,8 @@ function ReplyList({
 
       {expanded || isReplyOpen ? (
         <ReplyComposer
+          postId={postId}
+          commentId={commentId}
           onSubmit={(text) => {
             setExpanded(true);
             onReply(commentId, text);
@@ -395,6 +426,7 @@ function ReplyList({
 }
 
 function CommentItem({
+  postId,
   comment,
   isLiked,
   onLike,
@@ -405,6 +437,7 @@ function CommentItem({
   onDeleteReply,
   defaultExpanded,
 }: {
+  postId: string;
   comment: Comment;
   isLiked: boolean;
   onLike: (commentId: string) => void;
@@ -430,6 +463,14 @@ function CommentItem({
             <Badge variant="green" className="rounded-lg">
               {comment.floor}
             </Badge>
+            {comment.canEdit ? (
+              <Link
+                href={`/posts/share/${postId}/comments/new?editCommentId=${comment.commentId}`}
+                className="text-label-md font-semibold text-text-muted"
+              >
+                編輯
+              </Link>
+            ) : null}
             {comment.canDelete ? (
               <button
                 type="button"
@@ -455,6 +496,7 @@ function CommentItem({
 
       {(comment.replies && comment.replies.length > 0) || isReplyOpen ? (
         <ReplyList
+          postId={postId}
           commentId={comment.commentId}
           replies={comment.replies ?? []}
           isReplyOpen={isReplyOpen}
@@ -617,6 +659,7 @@ export default function CommentBoard({
             className="flex flex-col gap-5"
           >
             <CommentItem
+              postId={postId}
               comment={comment}
               isLiked={comment.isLiked}
               onLike={toggleLike}
@@ -634,7 +677,7 @@ export default function CommentBoard({
         ))}
       </ul>
 
-      <CommentComposer onSubmit={addComment} />
+      <CommentComposer onSubmit={addComment} templateHref={`/posts/share/${postId}/comments/new`} />
 
       {deleteTarget ? (
         <DeleteConfirmModal
