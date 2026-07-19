@@ -353,7 +353,11 @@ export default function AddCommentForm({
         )}
 
         {images.map((image) => (
-          <Card key={image.id} variant="outline" className="mb-3.5 flex gap-3 p-3.5">
+          <Card
+            key={image.id}
+            variant="outline"
+            className="mb-3.5 flex gap-3 overflow-visible p-3.5"
+          >
             {image.kind === 'new' ? (
               // eslint-disable-next-line @next/next/no-img-element -- local object URL preview
               <img
