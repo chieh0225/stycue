@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import FeedSkeleton from '@/components/skeletons/FeedSkeleton';
+import TrendingSkeleton from '@/components/skeletons/TrendingSkeleton';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -317,7 +319,7 @@ export default function Home() {
       <section className="px-4 pt-5 pb-7">
         <div className="mb-3 text-headline-sm font-bold text-text-primary">人氣穿搭</div>
         {trendingLoading ? (
-          <div className="py-6 text-center text-body-md text-text-muted">載入中…</div>
+          <TrendingSkeleton />
         ) : trending.length === 0 ? (
           <div className="py-6 text-center text-body-md text-text-muted">目前還沒有貼文</div>
         ) : (
@@ -453,7 +455,7 @@ export default function Home() {
         </div>
 
         {feedLoading ? (
-          <div className="py-10 text-center text-body-md text-text-muted">載入中…</div>
+          <FeedSkeleton />
         ) : feed.length === 0 ? (
           <div className="py-10 text-center text-body-md text-text-muted">
             目前沒有這個分類的文章
