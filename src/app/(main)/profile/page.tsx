@@ -15,6 +15,7 @@ import { useEffect, useState } from 'react';
 import { buttonVariants } from '@/components/ui/button';
 import { TopBar } from '@/components/ui/top-bar';
 import { getPointWallet } from '@/lib/points-api';
+import { getMyProfile, getPublicProfile } from '@/lib/user-api';
 import { cn } from '@/lib/utils';
 import { clearAuthed, getAuthedUser } from '../../auth';
 import { clearDraftState } from '../posts/commissions/new/draft';
@@ -28,20 +29,34 @@ export default function ProfilePage() {
     router.push('/login');
   }
 
-  const [nickname] = useState(() => {
-    try {
-      return localStorage.getItem('stycue-profile-nickname') || getAuthedUser()?.nickName || '';
-    } catch {
-      return getAuthedUser()?.nickName || '';
-    }
-  });
-  const [avatarUrl] = useState<string | null>(() => {
-    try {
-      return localStorage.getItem('stycue-profile-avatar');
-    } catch {
-      return null;
-    }
-  });
+  const [nickname, setNickname] = useState(() => getAuthedUser()?.nickName || '');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [followingCount, setFollowingCount] = useState<number | null>(null);
+  const [followerCount, setFollowerCount] = useState<number | null>(null);
+  useEffect(() => {
+    let active = true;
+    getMyProfile()
+      .then((res) => {
+        if (!active) return;
+        if (res.success && res.data) {
+          setNickname(res.data.user.displayName);
+          setAvatarUrl(res.data.user.avatarUrl);
+          return getPublicProfile(res.data.user.userId);
+        }
+        return null;
+      })
+      .then((res) => {
+        if (!active || !res) return;
+        if (res.success && res.data) {
+          setFollowingCount(res.data.followingCount);
+          setFollowerCount(res.data.followerCount);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
   const avatarInitial = nickname.charAt(0).toUpperCase();
 
   const [points, setPoints] = useState<number | null>(null);
@@ -98,12 +113,16 @@ export default function ProfilePage() {
           </div>
           <div className="h-8 w-px bg-border" />
           <div className="flex flex-1 flex-col items-center gap-1">
-            <span className="text-headline-sm font-bold text-text-primary">42</span>
+            <span className="text-headline-sm font-bold text-text-primary">
+              {followingCount ?? '—'}
+            </span>
             <span className="text-label-md text-text-muted">追蹤中</span>
           </div>
           <div className="h-8 w-px bg-border" />
           <div className="flex flex-1 flex-col items-center gap-1">
-            <span className="text-headline-sm font-bold text-text-primary">67</span>
+            <span className="text-headline-sm font-bold text-text-primary">
+              {followerCount ?? '—'}
+            </span>
             <span className="text-label-md text-text-muted">粉絲</span>
           </div>
         </div>
