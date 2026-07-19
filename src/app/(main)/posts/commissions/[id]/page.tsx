@@ -45,6 +45,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
     commentCount,
     favoriteCount,
     isFavorited,
+    isOwner,
   } = created;
   const tags = created.tags.map((tag) => tag.name);
   const budgetLabel = budget ? `NT$ ${budget}` : null;
@@ -88,9 +89,11 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
               {formatDate(createdAt)}
             </time>
           </div>
-          <Button type="button" size="sm">
-            追蹤
-          </Button>
+          {!isOwner ? (
+            <Button type="button" size="sm">
+              追蹤
+            </Button>
+          ) : null}
         </div>
 
         <Separator className="mb-4.5" />
