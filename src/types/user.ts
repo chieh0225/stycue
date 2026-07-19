@@ -10,3 +10,11 @@ export type MyUserProfileResponse = {
   weight: number | null;
   birthDate: string | null;
 };
+
+export type PublicUserProfileResponse = {
+  user: UserSummaryResponse;
+  bio: string | null;
+  followingCount: number;
+  followerCount: number;
+  isFollowing: boolean | null;
+};
