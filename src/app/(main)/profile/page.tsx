@@ -15,6 +15,7 @@ import { useEffect, useState } from 'react';
 import { buttonVariants } from '@/components/ui/button';
 import { TopBar } from '@/components/ui/top-bar';
 import { getPointWallet } from '@/lib/points-api';
+import { getMyProfile } from '@/lib/user-api';
 import { cn } from '@/lib/utils';
 import { clearAuthed, getAuthedUser } from '../../auth';
 import { clearDraftState } from '../posts/commissions/new/draft';
@@ -28,20 +29,23 @@ export default function ProfilePage() {
     router.push('/login');
   }
 
-  const [nickname] = useState(() => {
-    try {
-      return localStorage.getItem('stycue-profile-nickname') || getAuthedUser()?.nickName || '';
-    } catch {
-      return getAuthedUser()?.nickName || '';
-    }
-  });
-  const [avatarUrl] = useState<string | null>(() => {
-    try {
-      return localStorage.getItem('stycue-profile-avatar');
-    } catch {
-      return null;
-    }
-  });
+  const [nickname, setNickname] = useState(() => getAuthedUser()?.nickName || '');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    getMyProfile()
+      .then((res) => {
+        if (!active) return;
+        if (res.success && res.data) {
+          setNickname(res.data.user.displayName);
+          setAvatarUrl(res.data.user.avatarUrl);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
   const avatarInitial = nickname.charAt(0).toUpperCase();
 
   const [points, setPoints] = useState<number | null>(null);
