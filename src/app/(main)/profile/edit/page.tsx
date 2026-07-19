@@ -103,7 +103,7 @@ export default function ProfileEditPage() {
             type="button"
             onClick={() => router.back()}
             aria-label="返回"
-            className="flex h-8 w-8 items-center justify-center"
+            className="flex h-8 w-8 cursor-pointer items-center justify-center"
           >
             <ChevronLeft className="h-5 w-5 text-text-primary" strokeWidth={2} />
           </button>
@@ -113,7 +113,7 @@ export default function ProfileEditPage() {
           <button
             type="button"
             onClick={handleSave}
-            className="text-label-md font-bold text-gold-dark"
+            className="cursor-pointer text-label-md font-bold text-gold-dark"
           >
             儲存
           </button>
@@ -129,7 +129,7 @@ export default function ProfileEditPage() {
             <button
               type="button"
               onClick={() => setAvatarSheetOpen(true)}
-              className="relative h-22 w-22 overflow-hidden rounded-full border-[3px] border-background bg-primary shadow-[0_4px_12px_rgba(217,154,61,0.16)]"
+              className="relative h-22 w-22 cursor-pointer overflow-hidden rounded-full border-[3px] border-background bg-primary shadow-[0_4px_12px_rgba(217,154,61,0.16)]"
             >
               {avatarPreviewUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -143,7 +143,7 @@ export default function ProfileEditPage() {
             <button
               type="button"
               onClick={() => setAvatarSheetOpen(true)}
-              className="absolute -right-0.5 -bottom-0.5 flex h-7.5 w-7.5 items-center justify-center rounded-full border-[3px] border-muted bg-foreground"
+              className="absolute -right-0.5 -bottom-0.5 flex h-7.5 w-7.5 cursor-pointer items-center justify-center rounded-full border-[3px] border-muted bg-foreground"
             >
               <Camera className="h-3.5 w-3.5 text-background" strokeWidth={2} />
             </button>
@@ -192,7 +192,7 @@ export default function ProfileEditPage() {
                       key={opt.key}
                       type="button"
                       onClick={() => setGender(opt.key)}
-                      className={`flex items-center justify-center rounded-lg border px-4 py-1.75 ${
+                      className={`flex cursor-pointer items-center justify-center rounded-lg border px-4 py-1.75 ${
                         selected
                           ? 'border-foreground bg-foreground font-semibold text-background'
                           : 'border-border bg-muted font-medium text-text-muted'
@@ -286,7 +286,7 @@ export default function ProfileEditPage() {
           <button
             type="button"
             onClick={handlePickFromLibrary}
-            className="flex w-full items-center gap-3 px-1.5 py-3.5"
+            className="flex w-full cursor-pointer items-center gap-3 px-1.5 py-3.5"
           >
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold/12">
               <ImageIcon width="18" height="18" className="text-gold-dark" strokeWidth={1.8} />
@@ -303,7 +303,7 @@ export default function ProfileEditPage() {
                   setAvatarSheetOpen(false);
                   setDeleteConfirmOpen(true);
                 }}
-                className="flex w-full items-center gap-3 px-1.5 py-3.5"
+                className="flex w-full cursor-pointer items-center gap-3 px-1.5 py-3.5"
               >
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-destructive/10">
                   <Trash2 width="18" height="18" className="text-destructive" strokeWidth={1.8} />
@@ -317,7 +317,7 @@ export default function ProfileEditPage() {
           <button
             type="button"
             onClick={() => setAvatarSheetOpen(false)}
-            className="flex w-full items-center justify-center px-1.5 py-3.5"
+            className="flex w-full cursor-pointer items-center justify-center px-1.5 py-3.5"
           >
             <span className="text-body-md font-semibold text-text-muted">取消</span>
           </button>

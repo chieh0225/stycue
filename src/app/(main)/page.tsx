@@ -309,7 +309,7 @@ export default function Home() {
             type="button"
             onClick={() => setMenuOpen(true)}
             aria-label="開啟選單"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-foreground"
+            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-foreground"
           >
             <Menu className="h-5 w-5" />
           </button>
@@ -367,7 +367,7 @@ export default function Home() {
                       onClick={() => toggleTrendingBookmark(item)}
                       aria-label="收藏"
                       aria-pressed={trendingBookmarks[key]}
-                      className={trendingBookmarks[key] ? 'text-accent-amber' : 'text-text-muted'}
+                      className={`cursor-pointer ${trendingBookmarks[key] ? 'text-accent-amber' : 'text-text-muted'}`}
                     >
                       <Bookmark
                         fill={trendingBookmarks[key] ? 'currentColor' : 'none'}
@@ -390,7 +390,7 @@ export default function Home() {
               type="button"
               onClick={() => setFilterOpen((open) => !open)}
               aria-expanded={filterOpen}
-              className="flex items-center gap-1 rounded-full border border-border-default bg-white px-3 py-2 text-label-md font-medium text-text-primary shadow-card"
+              className="flex cursor-pointer items-center gap-1 rounded-full border border-border-default bg-white px-3 py-2 text-label-md font-medium text-text-primary shadow-card"
             >
               {selectedFilter}
               <ChevronDown
@@ -410,7 +410,7 @@ export default function Home() {
                         setSelectedFilter(filter);
                         setFilterOpen(false);
                       }}
-                      className={`block w-full px-4 py-2.5 text-left text-label-md font-medium ${
+                      className={`block w-full cursor-pointer px-4 py-2.5 text-left text-label-md font-medium ${
                         filter === selectedFilter
                           ? 'bg-surface-soft text-accent-amber'
                           : 'text-text-primary hover:bg-surface-soft'
@@ -431,8 +431,8 @@ export default function Home() {
             onClick={() => setSortMode('hot')}
             className={
               sortMode === 'hot'
-                ? 'flex-1 border-b-2 border-accent-amber pb-2 text-center font-bold text-text-primary'
-                : 'flex-1 pb-2 text-center text-text-muted'
+                ? 'flex-1 cursor-pointer border-b-2 border-accent-amber pb-2 text-center font-bold text-text-primary'
+                : 'flex-1 cursor-pointer pb-2 text-center text-text-muted'
             }
           >
             熱門
@@ -442,8 +442,8 @@ export default function Home() {
             onClick={() => setSortMode('latest')}
             className={
               sortMode === 'latest'
-                ? 'flex-1 border-b-2 border-accent-amber pb-2 text-center font-bold text-text-primary'
-                : 'flex-1 pb-2 text-center text-text-muted'
+                ? 'flex-1 cursor-pointer border-b-2 border-accent-amber pb-2 text-center font-bold text-text-primary'
+                : 'flex-1 cursor-pointer pb-2 text-center text-text-muted'
             }
           >
             最新
@@ -517,7 +517,7 @@ export default function Home() {
                     type="button"
                     onClick={() => toggleLike(post)}
                     aria-pressed={interaction.liked}
-                    className={`flex items-center gap-1 text-label-md ${interaction.liked ? 'text-accent-amber' : ''}`}
+                    className={`flex cursor-pointer items-center gap-1 text-label-md ${interaction.liked ? 'text-accent-amber' : ''}`}
                   >
                     <Heart fill={interaction.liked ? 'currentColor' : 'none'} className="h-4 w-4" />
                     {interaction.likes}
@@ -534,7 +534,7 @@ export default function Home() {
                     onClick={() => toggleBookmark(post)}
                     aria-label="收藏"
                     aria-pressed={interaction.bookmarked}
-                    className={`ml-auto ${interaction.bookmarked ? 'text-accent-amber' : ''}`}
+                    className={`ml-auto cursor-pointer ${interaction.bookmarked ? 'text-accent-amber' : ''}`}
                   >
                     <Bookmark
                       fill={interaction.bookmarked ? 'currentColor' : 'none'}
@@ -560,7 +560,7 @@ export default function Home() {
                 <button
                   type="button"
                   aria-label="關閉選單"
-                  className="flex h-8 w-8 items-center justify-center rounded-full"
+                  className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full"
                 />
               }
             >

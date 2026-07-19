@@ -112,7 +112,7 @@ export default function PointsMallPage() {
             type="button"
             onClick={() => router.back()}
             aria-label="返回"
-            className="flex h-8 w-8 items-center justify-center"
+            className="flex h-8 w-8 cursor-pointer items-center justify-center"
           >
             <ChevronLeft className="h-5 w-5 text-foreground" />
           </button>
@@ -122,7 +122,7 @@ export default function PointsMallPage() {
           <button
             type="button"
             onClick={() => router.back()}
-            className="text-label-md font-semibold text-gold-deep"
+            className="cursor-pointer text-label-md font-semibold text-gold-deep"
           >
             關閉
           </button>
@@ -135,7 +135,7 @@ export default function PointsMallPage() {
         <button
           type="button"
           onClick={() => setTab('redeem')}
-          className={`flex-1 py-3.5 pb-3 text-center text-label-md ${
+          className={`flex-1 cursor-pointer py-3.5 pb-3 text-center text-label-md ${
             tab === 'redeem'
               ? 'border-b-2 border-gold font-bold text-foreground'
               : 'border-b-2 border-transparent font-medium text-text-tertiary'
@@ -146,7 +146,7 @@ export default function PointsMallPage() {
         <button
           type="button"
           onClick={() => setTab('owned')}
-          className={`flex-1 py-3.5 pb-3 text-center text-label-md ${
+          className={`flex-1 cursor-pointer py-3.5 pb-3 text-center text-label-md ${
             tab === 'owned'
               ? 'border-b-2 border-gold font-bold text-foreground'
               : 'border-b-2 border-transparent font-medium text-text-tertiary'
@@ -163,7 +163,7 @@ export default function PointsMallPage() {
           <button
             type="button"
             onClick={() => setCategory('all')}
-            className={`flex-1 rounded-lg py-2 text-center text-label-md ${
+            className={`flex-1 cursor-pointer rounded-lg py-2 text-center text-label-md ${
               category === 'all'
                 ? 'bg-gold font-bold text-background'
                 : 'font-medium text-text-muted'
@@ -174,7 +174,7 @@ export default function PointsMallPage() {
           <button
             type="button"
             onClick={() => setCategory('coupon')}
-            className={`flex-1 rounded-lg py-2 text-center text-label-md ${
+            className={`flex-1 cursor-pointer rounded-lg py-2 text-center text-label-md ${
               category === 'coupon'
                 ? 'bg-gold font-bold text-background'
                 : 'font-medium text-text-muted'
@@ -185,7 +185,7 @@ export default function PointsMallPage() {
           <button
             type="button"
             onClick={() => setCategory('theme')}
-            className={`flex-1 rounded-lg py-2 text-center text-label-md ${
+            className={`flex-1 cursor-pointer rounded-lg py-2 text-center text-label-md ${
               category === 'theme'
                 ? 'bg-gold font-bold text-background'
                 : 'font-medium text-text-muted'

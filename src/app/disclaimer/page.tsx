@@ -16,7 +16,7 @@ export default function DisclaimerPage() {
             type="button"
             onClick={() => router.back()}
             aria-label="返回"
-            className="flex h-8 w-8 items-center justify-center"
+            className="flex h-8 w-8 cursor-pointer items-center justify-center"
           >
             <ChevronLeft className="h-5 w-5 text-foreground" strokeWidth={2} />
           </button>

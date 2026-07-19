@@ -322,7 +322,7 @@ export default function AddCommentForm({
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={images.length >= MAX_IMAGES}
-          className="mb-4.5 flex h-13 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border-dashed bg-muted disabled:opacity-50"
+          className="mb-4.5 flex h-13 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-border-dashed bg-muted disabled:cursor-not-allowed disabled:opacity-50"
         >
           <ImagePlus className="h-4.5 w-4.5 text-text-muted" />
           <span className="text-label-md font-semibold text-foreground">
@@ -373,7 +373,7 @@ export default function AddCommentForm({
                   type="button"
                   onClick={() => setDeleteTarget(image)}
                   aria-label={`移除 ${attachmentLabel(image)}`}
-                  className="ml-2 flex-shrink-0 rounded-md p-1 text-text-placeholder hover:bg-accent"
+                  className="ml-2 flex-shrink-0 cursor-pointer rounded-md p-1 text-text-placeholder hover:bg-accent"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -388,7 +388,7 @@ export default function AddCommentForm({
                   }
                   aria-haspopup="listbox"
                   aria-expanded={openTagId === image.id}
-                  className="flex h-9.5 w-full items-center justify-between px-2.5"
+                  className="flex h-9.5 w-full cursor-pointer items-center justify-between px-2.5"
                 >
                   <span className="text-label-md font-semibold text-text-primary">
                     {categoryLabel(image.category)}
@@ -414,7 +414,7 @@ export default function AddCommentForm({
                               updateImage(image.id, { category: option.id });
                               setOpenTagId(null);
                             }}
-                            className={`flex h-9 w-full items-center px-3 text-label-md text-text-primary ${
+                            className={`flex h-9 w-full cursor-pointer items-center px-3 text-label-md text-text-primary ${
                               selected ? 'bg-gold-soft font-bold' : 'font-normal'
                             }`}
                           >

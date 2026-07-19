@@ -36,7 +36,7 @@ export default function DeletePostButton({ postId }: { postId: string }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="text-label-md font-semibold text-text-muted"
+        className="cursor-pointer text-label-md font-semibold text-text-muted"
       >
         刪除
       </button>
