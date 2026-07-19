@@ -387,7 +387,11 @@ export default function AddCommentForm({
 
         {/* Rendered cards — one per attached image */}
         {images.map((image) => (
-          <Card key={image.id} variant="outline" className="mb-3.5 flex gap-3 p-3.5">
+          <Card
+            key={image.id}
+            variant="outline"
+            className="mb-3.5 flex gap-3 overflow-visible p-3.5"
+          >
             {image.kind === 'new' ? (
               // eslint-disable-next-line @next/next/no-img-element -- local object URL preview
               <img
@@ -437,8 +441,9 @@ export default function AddCommentForm({
                 </button>
                 {openTagId === image.id && (
                   <ul
+                    ref={(el) => el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })}
                     role="listbox"
-                    className="absolute inset-x-0 top-[calc(100%+4px)] z-20 overflow-hidden rounded-lg border border-border-default bg-surface-base shadow-dropdown"
+                    className="absolute inset-x-0 top-[calc(100%+4px)] z-20 scroll-mb-4 overflow-hidden rounded-lg border border-border-default bg-surface-base shadow-dropdown"
                   >
                     {IMAGE_CATEGORIES.map((option) => {
                       const selected = option.id === image.category;
@@ -476,6 +481,11 @@ export default function AddCommentForm({
             </div>
           </Card>
         ))}
+
+        {/* Reserves room below the last card so an open category dropdown
+            (up to 8 options) has space to scroll fully into view instead of
+            sitting under the sticky bottom bar. */}
+        {openTagId && <div aria-hidden className="h-56" />}
 
         <input
           ref={fileInputRef}
