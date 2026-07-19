@@ -8,6 +8,13 @@ export type UserSummaryResponse = {
   avatarUrl: string | null;
 };
 
+// The commission detail author also carries isFollowing (omitted when the
+// viewer is anonymous), unlike the plain UserSummaryResponse used elsewhere
+// (e.g. create-commission's response, comment authors).
+export type CommissionAuthorResponse = UserSummaryResponse & {
+  isFollowing: boolean | null;
+};
+
 export type CreateCommissionRequest = {
   title: string;
   content: string;
@@ -39,7 +46,7 @@ export type CommissionRewardResponse = {
 
 export type CommissionDetailResponse = {
   commissionId: number;
-  author: UserSummaryResponse;
+  author: CommissionAuthorResponse;
   title: string;
   content: string;
   status: CommissionStatus;
