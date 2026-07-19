@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import FeedSkeleton from '@/components/skeletons/FeedSkeleton';
+import TrendingSkeleton from '@/components/skeletons/TrendingSkeleton';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -31,6 +33,7 @@ import { getHomepageFeed } from '@/lib/homepage-api';
 import { likeCommission, likePost, unlikeCommission, unlikePost } from '@/lib/like-api';
 import { claimDailyPoints, getPointTransactions } from '@/lib/points-api';
 import type { HomepageFilter, HomepageItemResponse } from '@/types/homepage';
+import { HomepageImage } from './homepage-image';
 
 // POST /api/points/daily returns this exact message only when the call just
 // created today's claim; a same-day repeat returns "今日已領取積分" instead.
@@ -317,7 +320,7 @@ export default function Home() {
       <section className="px-4 pt-5 pb-7">
         <div className="mb-3 text-headline-sm font-bold text-text-primary">人氣穿搭</div>
         {trendingLoading ? (
-          <div className="py-6 text-center text-body-md text-text-muted">載入中…</div>
+          <TrendingSkeleton />
         ) : trending.length === 0 ? (
           <div className="py-6 text-center text-body-md text-text-muted">目前還沒有貼文</div>
         ) : (
@@ -333,12 +336,7 @@ export default function Home() {
                         {index + 1}
                       </div>
                       {cover ? (
-                        // eslint-disable-next-line @next/next/no-img-element -- uploaded photo URL from real backend
-                        <img
-                          src={cover.url}
-                          alt={item.title}
-                          className="h-54 w-full object-cover"
-                        />
+                        <HomepageImage src={cover.url} alt={item.title} className="h-54 w-full" />
                       ) : (
                         <div className="flex h-54 items-center justify-center bg-surface-soft">
                           <span className="rounded-md bg-white/70 px-2 py-1 text-label-md font-medium text-text-primary">
@@ -453,7 +451,7 @@ export default function Home() {
         </div>
 
         {feedLoading ? (
-          <div className="py-10 text-center text-body-md text-text-muted">載入中…</div>
+          <FeedSkeleton />
         ) : feed.length === 0 ? (
           <div className="py-10 text-center text-body-md text-text-muted">
             目前沒有這個分類的文章
@@ -495,12 +493,11 @@ export default function Home() {
                   {post.images.length > 0 ? (
                     <div className="mb-3 flex gap-2">
                       {post.images.map((image) => (
-                        // eslint-disable-next-line @next/next/no-img-element -- uploaded photo URL from real backend
-                        <img
+                        <HomepageImage
                           key={image.imageId}
                           src={image.url}
                           alt={post.title}
-                          className={`rounded-card object-cover ${post.images.length === 1 ? 'h-41 flex-1' : 'h-24 flex-1'}`}
+                          className={`rounded-card ${post.images.length === 1 ? 'h-41 flex-1' : 'h-24 flex-1'}`}
                         />
                       ))}
                     </div>
