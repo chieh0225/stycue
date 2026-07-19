@@ -18,7 +18,7 @@ export default function TagPickerModalClient({
         type="button"
         aria-label="關閉"
         onClick={close}
-        className="absolute inset-0 bg-black/25"
+        className="absolute inset-0 cursor-pointer bg-black/25"
       />
       <div className="relative z-10 h-[88%] w-full max-w-md overflow-hidden rounded-t-2xl shadow-2xl">
         <TagPickerContent onClose={close} initialData={initialData} />

@@ -170,7 +170,7 @@ export default function PointsHistoryPage() {
             type="button"
             onClick={() => router.back()}
             aria-label="返回"
-            className="flex h-8 w-8 items-center justify-center"
+            className="flex h-8 w-8 cursor-pointer items-center justify-center"
           >
             <ChevronLeft className="h-5 w-5 text-text-primary" strokeWidth={2} />
           </button>
@@ -213,7 +213,7 @@ export default function PointsHistoryPage() {
                 key={tab.key}
                 type="button"
                 onClick={() => setFilter(tab.key)}
-                className={`flex-1 rounded-lg py-2 text-center ${active ? 'bg-gold' : ''}`}
+                className={`flex-1 cursor-pointer rounded-lg py-2 text-center ${active ? 'bg-gold' : ''}`}
               >
                 <span
                   className={
@@ -299,7 +299,7 @@ export default function PointsHistoryPage() {
               type="button"
               onClick={handleLoadMore}
               disabled={loadingMore}
-              className="mt-4 rounded-[10px] border border-border py-3 text-center text-label-md font-semibold text-text-muted disabled:opacity-50"
+              className="mt-4 cursor-pointer rounded-[10px] border border-border py-3 text-center text-label-md font-semibold text-text-muted disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loadingMore ? '載入中…' : '載入更多'}
             </button>

@@ -63,7 +63,7 @@ export default function CommentComposer({
         onClick={submit}
         disabled={!trimmed}
         aria-label="送出留言"
-        className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-brand-primary text-text-primary shadow-cta disabled:opacity-40"
+        className="flex h-9 w-9 flex-shrink-0 cursor-pointer items-center justify-center rounded-full bg-brand-primary text-text-primary shadow-cta disabled:cursor-not-allowed disabled:opacity-40"
       >
         <Send className="h-4 w-4" />
       </button>

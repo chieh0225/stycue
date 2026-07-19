@@ -157,7 +157,7 @@ export default function LoginPage() {
       {/* Google */}
       <button
         type="button"
-        className="mb-7 flex h-12.5 w-full items-center justify-center gap-2.5 rounded-lg border border-border-default bg-white text-label-md font-semibold text-text-primary shadow-card"
+        className="mb-7 flex h-12.5 w-full cursor-pointer items-center justify-center gap-2.5 rounded-lg border border-border-default bg-white text-label-md font-semibold text-text-primary shadow-card"
       >
         <GoogleIcon />
         使用 Google 繼續

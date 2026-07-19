@@ -235,7 +235,7 @@ function CommentActions({
         disabled={isOwner}
         aria-pressed={isLiked}
         aria-label={isOwner ? '不能對自己的留言按讚' : undefined}
-        className={`flex items-center gap-1.5 disabled:opacity-50 ${isLiked ? 'text-accent-amber' : 'text-text-primary'}`}
+        className={`flex cursor-pointer items-center gap-1.5 disabled:cursor-not-allowed disabled:opacity-50 ${isLiked ? 'text-accent-amber' : 'text-text-primary'}`}
       >
         <HeartIcon className={isLiked ? 'h-4 w-4 fill-current' : 'h-4 w-4'} />
         <span className="sr-only">讚</span>
@@ -245,7 +245,7 @@ function CommentActions({
         type="button"
         onClick={onReplyClick}
         aria-expanded={isReplyOpen}
-        className="flex items-center gap-1.5 text-text-muted"
+        className="flex cursor-pointer items-center gap-1.5 text-text-muted"
       >
         <ReplyIcon />
         <span className="text-label-md font-semibold">回覆</span>
@@ -306,7 +306,7 @@ function ReplyComposer({
         onClick={submit}
         disabled={!canSend}
         aria-label="送出回覆"
-        className="flex h-7.5 w-7.5 flex-shrink-0 items-center justify-center rounded-full bg-brand-primary text-text-primary shadow-cta disabled:opacity-40"
+        className="flex h-7.5 w-7.5 flex-shrink-0 cursor-pointer items-center justify-center rounded-full bg-brand-primary text-text-primary shadow-cta disabled:cursor-not-allowed disabled:opacity-40"
       >
         <SendIcon />
       </button>
@@ -343,7 +343,7 @@ function ReplyList({
           type="button"
           onClick={() => setExpanded((prev) => !prev)}
           aria-expanded={expanded}
-          className="flex items-center gap-1 self-start text-label-md font-semibold text-text-muted"
+          className="flex cursor-pointer items-center gap-1 self-start text-label-md font-semibold text-text-muted"
         >
           <span>{expanded ? '隱藏回覆' : `顯示回覆（${replies.length}）`}</span>
           <ChevronDownIcon
@@ -381,7 +381,7 @@ function ReplyList({
                     <button
                       type="button"
                       onClick={() => onDeleteReply(reply.replyId)}
-                      className="text-label-md font-semibold text-text-muted"
+                      className="cursor-pointer text-label-md font-semibold text-text-muted"
                     >
                       刪除
                     </button>
@@ -397,7 +397,7 @@ function ReplyList({
                   disabled={reply.isOwner}
                   aria-pressed={reply.isLiked}
                   aria-label={reply.isOwner ? '不能對自己的留言按讚' : undefined}
-                  className={`mt-2 flex items-center gap-1.5 disabled:opacity-50 ${reply.isLiked ? 'text-accent-amber' : 'text-text-primary'}`}
+                  className={`mt-2 flex cursor-pointer items-center gap-1.5 disabled:cursor-not-allowed disabled:opacity-50 ${reply.isLiked ? 'text-accent-amber' : 'text-text-primary'}`}
                 >
                   <HeartIcon
                     className={reply.isLiked ? 'h-3.5 w-3.5 fill-current' : 'h-3.5 w-3.5'}
@@ -475,7 +475,7 @@ function CommentItem({
               <button
                 type="button"
                 onClick={() => onDeleteComment(comment.commentId)}
-                className="text-label-md font-semibold text-text-muted"
+                className="cursor-pointer text-label-md font-semibold text-text-muted"
               >
                 刪除
               </button>
