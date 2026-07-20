@@ -69,7 +69,7 @@ export default function NewPostPreviewPage() {
   const { title, description, height, weight, age, selectedBudget, postType, points, photos } =
     form;
   const insufficientPoints = Number(points) > userPoints;
-  const canSubmit = photos.length > 0 && !insufficientPoints && !submitting;
+  const canSubmit = !insufficientPoints && !submitting;
 
   // Auto-grow to fit the full text when expanded so it never needs its own
   // scrollbar; collapsed mode keeps the fixed 3-row clamp instead.
@@ -138,10 +138,6 @@ export default function NewPostPreviewPage() {
   }
 
   async function confirmSubmit() {
-    if (photos.length === 0) {
-      setSubmitError('請至少上傳一張身形照片');
-      return;
-    }
     setSubmitError(null);
     setSubmitting(true);
     try {
@@ -157,15 +153,7 @@ export default function NewPostPreviewPage() {
         tagIds: draftTags.map((tag) => tag.tagId),
       });
       if (!result.success || !result.data) {
-        // errorCode for the "no image" case hasn't been confirmed against a
-        // real backend response yet — this branch is a fallback for races
-        // (e.g. two tabs editing the same draft) since the button above
-        // already blocks submission with zero photos.
-        if (result.errorCode === 'IMAGE_REQUIRED') {
-          setSubmitError('請至少上傳一張身形照片');
-        } else {
-          setSubmitError(result.message || '委託文發表失敗，請稍後再試');
-        }
+        setSubmitError(result.message || '委託文發表失敗，請稍後再試');
         return;
       }
 
