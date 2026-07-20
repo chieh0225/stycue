@@ -268,7 +268,7 @@ function CommentActions({
         disabled={isOwner}
         aria-pressed={isLiked}
         aria-label={isOwner ? '不能對自己的留言按讚' : undefined}
-        className={`flex items-center gap-1.5 disabled:opacity-50 ${isLiked ? 'text-accent-amber' : 'text-text-primary'}`}
+        className={`flex cursor-pointer items-center gap-1.5 disabled:cursor-not-allowed disabled:opacity-50 ${isLiked ? 'text-accent-amber' : 'text-text-primary'}`}
       >
         <HeartIcon className={isLiked ? 'h-4 w-4 fill-current' : 'h-4 w-4'} />
         <span className="sr-only">讚</span>
@@ -278,7 +278,7 @@ function CommentActions({
         type="button"
         onClick={onReplyClick}
         aria-expanded={isReplyOpen}
-        className="flex items-center gap-1.5 text-text-muted"
+        className="flex cursor-pointer items-center gap-1.5 text-text-muted"
       >
         <ReplyIcon />
         <span className="text-label-md font-semibold">回覆</span>

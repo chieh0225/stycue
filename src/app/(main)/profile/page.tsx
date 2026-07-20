@@ -200,7 +200,7 @@ export default function ProfilePage() {
           <button
             type="button"
             onClick={handleLogout}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/20 bg-popover px-4 py-3.75"
+            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-destructive/20 bg-popover px-4 py-3.75"
           >
             <LogOut width="18" height="18" className="text-destructive" strokeWidth={1.8} />
             <span className="text-body-md font-semibold text-destructive">登出</span>

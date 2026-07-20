@@ -236,14 +236,14 @@ export default function TagPickerContent({
         onClick={() => toggleTag(tag)}
         className={
           active
-            ? 'flex items-baseline gap-1.5 rounded-full border border-brand-primary bg-brand-primary px-3.5 py-2'
+            ? 'flex cursor-pointer items-baseline gap-1.5 rounded-full border border-brand-primary bg-brand-primary px-3.5 py-2 disabled:cursor-not-allowed'
             : disabled
               ? isPopular
-                ? 'flex items-baseline gap-1.5 rounded-full border border-transparent bg-accent-amber/15 px-3.5 py-2 opacity-50'
-                : 'flex items-baseline gap-1.5 rounded-full border border-border-default bg-white px-3.5 py-2 opacity-50'
+                ? 'flex cursor-pointer items-baseline gap-1.5 rounded-full border border-transparent bg-accent-amber/15 px-3.5 py-2 opacity-50 disabled:cursor-not-allowed'
+                : 'flex cursor-pointer items-baseline gap-1.5 rounded-full border border-border-default bg-white px-3.5 py-2 opacity-50 disabled:cursor-not-allowed'
               : isPopular
-                ? 'flex items-baseline gap-1.5 rounded-full border border-transparent bg-accent-amber/15 px-3.5 py-2'
-                : 'flex items-baseline gap-1.5 rounded-full border border-border-default bg-white px-3.5 py-2'
+                ? 'flex cursor-pointer items-baseline gap-1.5 rounded-full border border-transparent bg-accent-amber/15 px-3.5 py-2 disabled:cursor-not-allowed'
+                : 'flex cursor-pointer items-baseline gap-1.5 rounded-full border border-border-default bg-white px-3.5 py-2 disabled:cursor-not-allowed'
         }
       >
         <span
@@ -273,14 +273,19 @@ export default function TagPickerContent({
               type="button"
               onClick={exitSearch}
               aria-label="返回"
-              className="text-text-primary"
+              className="cursor-pointer text-text-primary"
             >
               <ArrowLeft className="h-4.5 w-4.5" />
             </button>
           ) : (
             <h2 className="text-headline-sm font-bold text-text-primary">選擇標籤</h2>
           )}
-          <button type="button" onClick={onClose} aria-label="關閉" className="text-text-primary">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="關閉"
+            className="cursor-pointer text-text-primary"
+          >
             <X className="h-4.5 w-4.5" />
           </button>
         </div>
@@ -364,7 +369,7 @@ export default function TagPickerContent({
                     key={tag}
                     type="button"
                     onClick={() => setSelected((prev) => prev.filter((t) => t !== tag))}
-                    className="flex items-center gap-1 rounded-full border border-brand-primary bg-brand-primary px-5 py-2.5 text-label-md font-medium text-text-primary"
+                    className="flex cursor-pointer items-center gap-1 rounded-full border border-brand-primary bg-brand-primary px-5 py-2.5 text-label-md font-medium text-text-primary"
                   >
                     {tag} <X className="h-3 w-3" />
                   </button>
@@ -402,10 +407,10 @@ export default function TagPickerContent({
                         onClick={() => toggleTag(tag)}
                         className={
                           active
-                            ? 'rounded-full border border-brand-primary bg-brand-primary px-5 py-2.5 text-label-md font-medium text-text-primary'
+                            ? 'cursor-pointer rounded-full border border-brand-primary bg-brand-primary px-5 py-2.5 text-label-md font-medium text-text-primary disabled:cursor-not-allowed'
                             : disabled
-                              ? 'rounded-full border border-border-default bg-surface-soft px-5 py-2.5 text-label-md font-medium text-text-muted opacity-50'
-                              : 'rounded-full border border-border-default bg-surface-soft px-5 py-2.5 text-label-md font-medium text-text-primary'
+                              ? 'cursor-pointer rounded-full border border-border-default bg-surface-soft px-5 py-2.5 text-label-md font-medium text-text-muted opacity-50 disabled:cursor-not-allowed'
+                              : 'cursor-pointer rounded-full border border-border-default bg-surface-soft px-5 py-2.5 text-label-md font-medium text-text-primary disabled:cursor-not-allowed'
                         }
                       >
                         {tag.name}
@@ -423,10 +428,10 @@ export default function TagPickerContent({
                         onClick={() => toggleFallbackTag(group, name)}
                         className={
                           active
-                            ? 'rounded-full border border-brand-primary bg-brand-primary px-5 py-2.5 text-label-md font-medium text-text-primary'
+                            ? 'cursor-pointer rounded-full border border-brand-primary bg-brand-primary px-5 py-2.5 text-label-md font-medium text-text-primary disabled:cursor-not-allowed'
                             : disabled
-                              ? 'rounded-full border border-border-default bg-surface-soft px-5 py-2.5 text-label-md font-medium text-text-muted opacity-50'
-                              : 'rounded-full border border-border-default bg-surface-soft px-5 py-2.5 text-label-md font-medium text-text-primary'
+                              ? 'cursor-pointer rounded-full border border-border-default bg-surface-soft px-5 py-2.5 text-label-md font-medium text-text-muted opacity-50 disabled:cursor-not-allowed'
+                              : 'cursor-pointer rounded-full border border-border-default bg-surface-soft px-5 py-2.5 text-label-md font-medium text-text-primary disabled:cursor-not-allowed'
                         }
                       >
                         {name}
@@ -467,7 +472,7 @@ export default function TagPickerContent({
                           setTagError(null);
                           setFallbackErrorGroup(null);
                         }}
-                        className="flex h-10.25 w-11 items-center justify-center rounded-full border border-dashed border-border-default bg-white text-text-muted"
+                        className="flex h-10.25 w-11 cursor-pointer items-center justify-center rounded-full border border-dashed border-border-default bg-white text-text-muted"
                       >
                         <Plus className="h-4 w-4" />
                       </button>

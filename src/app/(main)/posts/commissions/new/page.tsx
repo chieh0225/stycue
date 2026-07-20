@@ -175,7 +175,7 @@ export default function NewPostPage() {
               type="button"
               onClick={() => setTypeMenuOpen((open) => !open)}
               aria-expanded={typeMenuOpen}
-              className="flex items-center gap-1 rounded-full bg-surface-soft px-3 py-1 text-label-md font-semibold text-accent-amber"
+              className="flex cursor-pointer items-center gap-1 rounded-full bg-surface-soft px-3 py-1 text-label-md font-semibold text-accent-amber"
             >
               {postType}
               <ChevronDown
@@ -261,7 +261,7 @@ export default function NewPostPage() {
             <button
               type="button"
               onClick={() => setDescriptionExpanded((expanded) => !expanded)}
-              className="mt-1 flex items-center gap-1 text-label-md font-semibold text-accent-amber"
+              className="mt-1 flex cursor-pointer items-center gap-1 text-label-md font-semibold text-accent-amber"
             >
               {descriptionExpanded ? '收合內文' : '展開全文'}
               <ChevronDown
@@ -296,7 +296,7 @@ export default function NewPostPage() {
                     type="button"
                     onClick={() => removePhoto(photo.imageId)}
                     aria-label="移除圖片"
-                    className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[rgba(64,58,50,0.55)] text-surface-base"
+                    className="absolute top-1 right-1 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-[rgba(64,58,50,0.55)] text-surface-base"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -325,7 +325,7 @@ export default function NewPostPage() {
                       type="button"
                       onClick={() => removeDraftTag(tag.tagId)}
                       aria-label={`移除標籤 ${tag.name}`}
-                      className="text-text-muted"
+                      className="cursor-pointer text-text-muted"
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -400,8 +400,8 @@ export default function NewPostPage() {
                   onClick={() => setForm((prev) => ({ ...prev, selectedBudget: option }))}
                   className={
                     selected
-                      ? 'rounded-lg border-2 border-brand-primary bg-surface-soft px-3 py-2 text-label-md font-medium text-text-primary'
-                      : 'rounded-lg border-2 border-border-default px-3 py-2 text-label-md text-text-muted transition-colors hover:border-brand-primary hover:bg-surface-soft hover:text-text-primary'
+                      ? 'cursor-pointer rounded-lg border-2 border-brand-primary bg-surface-soft px-3 py-2 text-label-md font-medium text-text-primary'
+                      : 'cursor-pointer rounded-lg border-2 border-border-default px-3 py-2 text-label-md text-text-muted transition-colors hover:border-brand-primary hover:bg-surface-soft hover:text-text-primary'
                   }
                 >
                   {option}
@@ -423,7 +423,7 @@ export default function NewPostPage() {
                 type="button"
                 onClick={() => setPointsMenuOpen((open) => !open)}
                 aria-expanded={pointsMenuOpen}
-                className="flex w-full items-center justify-between rounded-lg bg-surface-soft px-3.5 py-2 text-label-md font-semibold text-accent-amber"
+                className="flex w-full cursor-pointer items-center justify-between rounded-lg bg-surface-soft px-3.5 py-2 text-label-md font-semibold text-accent-amber"
               >
                 {points}
                 <ChevronDown
@@ -499,7 +499,10 @@ export default function NewPostPage() {
           <button
             type="button"
             disabled
-            className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'w-full')}
+            className={cn(
+              buttonVariants({ variant: 'primary', size: 'lg' }),
+              'w-full cursor-not-allowed',
+            )}
           >
             送出
           </button>

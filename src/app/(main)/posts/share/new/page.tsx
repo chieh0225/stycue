@@ -141,7 +141,7 @@ export default function NewSharePostPage() {
               type="button"
               onClick={() => setTypeMenuOpen((open) => !open)}
               aria-expanded={typeMenuOpen}
-              className="flex items-center gap-1 rounded-lg border border-border-default bg-surface-soft px-2.5 py-1.25 text-label-md text-text-primary"
+              className="flex cursor-pointer items-center gap-1 rounded-lg border border-border-default bg-surface-soft px-2.5 py-1.25 text-label-md text-text-primary"
             >
               {postType}
               <ChevronDown
@@ -170,7 +170,7 @@ export default function NewSharePostPage() {
                           setForm((prev) => ({ ...prev, postType: type }));
                           setTypeMenuOpen(false);
                         }}
-                        className={`block w-full px-4 py-2.5 text-left text-label-md font-medium ${
+                        className={`block w-full cursor-pointer px-4 py-2.5 text-left text-label-md font-medium ${
                           type === postType
                             ? 'bg-surface-soft text-accent-amber'
                             : 'text-text-primary hover:bg-surface-soft'
@@ -227,7 +227,7 @@ export default function NewSharePostPage() {
             <button
               type="button"
               onClick={() => setDescriptionExpanded((expanded) => !expanded)}
-              className="mt-1 flex items-center gap-1 text-label-md font-semibold text-accent-amber"
+              className="mt-1 flex cursor-pointer items-center gap-1 text-label-md font-semibold text-accent-amber"
             >
               {descriptionExpanded ? '收合內文' : '展開全文'}
               <ChevronDown
@@ -262,7 +262,7 @@ export default function NewSharePostPage() {
                     type="button"
                     onClick={() => removePhoto(photo.imageId)}
                     aria-label="移除圖片"
-                    className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[rgba(64,58,50,0.55)] text-surface-base"
+                    className="absolute top-1 right-1 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-[rgba(64,58,50,0.55)] text-surface-base"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -290,7 +290,7 @@ export default function NewSharePostPage() {
                     type="button"
                     onClick={() => removeDraftTag(tag.tagId)}
                     aria-label={`移除標籤 ${tag.name}`}
-                    className="text-text-muted"
+                    className="cursor-pointer text-text-muted"
                   >
                     <X className="h-3 w-3" />
                   </button>

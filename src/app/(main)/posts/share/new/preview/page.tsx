@@ -188,7 +188,7 @@ export default function NewSharePostPreviewPage() {
               type="button"
               onClick={() => setTypeMenuOpen((open) => !open)}
               aria-expanded={typeMenuOpen}
-              className="flex items-center gap-1 rounded-md bg-gold-soft px-2.25 py-0.75 text-label-md font-bold text-accent-amber"
+              className="flex cursor-pointer items-center gap-1 rounded-md bg-gold-soft px-2.25 py-0.75 text-label-md font-bold text-accent-amber"
             >
               {postType}
               <ChevronDown
@@ -210,7 +210,7 @@ export default function NewSharePostPreviewPage() {
                           setForm((prev) => ({ ...prev, postType: type }));
                           setTypeMenuOpen(false);
                         }}
-                        className={`block w-full px-4 py-2.5 text-left text-label-md font-medium ${
+                        className={`block w-full cursor-pointer px-4 py-2.5 text-left text-label-md font-medium ${
                           type === postType
                             ? 'bg-surface-soft text-accent-amber'
                             : 'text-text-primary hover:bg-surface-soft'
@@ -262,7 +262,7 @@ export default function NewSharePostPreviewPage() {
           <button
             type="button"
             onClick={() => setDescriptionExpanded((expanded) => !expanded)}
-            className="mt-1 flex items-center gap-1 text-label-md font-semibold text-accent-amber"
+            className="mt-1 flex cursor-pointer items-center gap-1 text-label-md font-semibold text-accent-amber"
           >
             {descriptionExpanded ? '收合內文' : '展開全文'}
             <ChevronDown
@@ -309,7 +309,7 @@ export default function NewSharePostPreviewPage() {
                     type="button"
                     onClick={() => removeDraftTag(tag.tagId)}
                     aria-label={`移除標籤 ${tag.name}`}
-                    className="text-text-muted"
+                    className="cursor-pointer text-text-muted"
                   >
                     ×
                   </button>

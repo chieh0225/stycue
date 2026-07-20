@@ -201,7 +201,7 @@ export default function EditPostForm({
                       type="button"
                       onClick={() => removeImage(image.imageId)}
                       aria-label="移除圖片"
-                      className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[rgba(64,58,50,0.55)] text-surface-base"
+                      className="absolute top-1 right-1 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-[rgba(64,58,50,0.55)] text-surface-base"
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
@@ -214,7 +214,7 @@ export default function EditPostForm({
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={images.length >= MAX_IMAGES}
-            className="flex w-fit items-center gap-1.5 rounded-lg border border-border-default bg-surface-soft px-3 py-2 text-label-md text-text-primary disabled:opacity-50"
+            className="flex w-fit cursor-pointer items-center gap-1.5 rounded-lg border border-border-default bg-surface-soft px-3 py-2 text-label-md text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
           >
             <ImagePlus className="h-4 w-4" aria-hidden /> 新增圖片（{images.length}/{MAX_IMAGES}）
           </button>
@@ -241,7 +241,7 @@ export default function EditPostForm({
                   type="button"
                   onClick={() => setTags((prev) => prev.filter((t) => t.tagId !== tag.tagId))}
                   aria-label={`移除標籤 ${tag.name}`}
-                  className="text-text-muted"
+                  className="cursor-pointer text-text-muted"
                 >
                   ×
                 </button>
@@ -251,7 +251,7 @@ export default function EditPostForm({
               type="button"
               onClick={() => setTagPickerOpen(true)}
               aria-label="編輯標籤"
-              className="flex items-center justify-center rounded-full border border-dashed border-border-default px-3 py-1.75 text-text-muted"
+              className="flex cursor-pointer items-center justify-center rounded-full border border-dashed border-border-default px-3 py-1.75 text-text-muted"
             >
               <Plus className="h-3.5 w-3.5" />
             </button>
@@ -326,7 +326,7 @@ export default function EditPostForm({
             type="button"
             aria-label="關閉"
             onClick={() => setTagPickerOpen(false)}
-            className="absolute inset-0 bg-black/25"
+            className="absolute inset-0 cursor-pointer bg-black/25"
           />
           <div className="relative z-10 h-[88%] w-full max-w-md overflow-hidden rounded-t-2xl shadow-2xl">
             <TagPickerContent
