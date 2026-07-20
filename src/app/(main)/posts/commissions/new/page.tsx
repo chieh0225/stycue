@@ -2,8 +2,9 @@
 
 import { Calendar, ChevronDown, ImagePlus, Info, Plus, Tag, X } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { buttonVariants } from '@/components/ui/button';
 import { TopBar } from '@/components/ui/top-bar';
@@ -81,6 +82,7 @@ export default function NewPostPage() {
   }, []);
   const insufficientPoints = Number(points) > userPoints;
   const pathname = usePathname();
+  const router = useRouter();
 
   // The title wraps across multiple lines instead of overflowing past the
   // screen edge, so it needs the same auto-grow treatment as the description.
@@ -138,6 +140,22 @@ export default function NewPostPage() {
 
   function saveDraft() {
     localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(form));
+  }
+
+  // The guard step between compose and preview: runs on click rather than
+  // just deriving a disabled boolean, so an invalid attempt gets an active
+  // toast instead of a silently-unclickable button.
+  function handleSubmit() {
+    if (photos.length === 0) {
+      toast('請至少上傳一張身形照片');
+      return;
+    }
+    if (insufficientPoints) {
+      toast(`積分不足：發佈需要 ${points} 點，請選擇較低的積分或前往儲值`);
+      return;
+    }
+    saveDraft();
+    router.push('/posts/commissions/new/preview');
   }
 
   async function removePhoto(imageId: number) {
@@ -480,6 +498,9 @@ export default function NewPostPage() {
         <div className="flex flex-col gap-2 rounded-lg bg-surface-soft p-4 text-label-md text-text-muted">
           <h3 className="text-body-md font-semibold text-text-primary">委託該怎麼寫呢？</h3>
           <p>
+            <Info className="inline h-3 w-3" aria-hidden /> 發佈委託時請至少附上一張身形照片。
+          </p>
+          <p>
             <Info className="inline h-3 w-3" aria-hidden />{' '}
             委託送出後就不能變更了，請仔細確認內容是否有遺漏，將會根據每次提供的積分扣除 5
             點作為平台手續費。
@@ -495,26 +516,13 @@ export default function NewPostPage() {
         </div>
 
         {/* Submit */}
-        {insufficientPoints ? (
-          <button
-            type="button"
-            disabled
-            className={cn(
-              buttonVariants({ variant: 'primary', size: 'lg' }),
-              'w-full cursor-not-allowed',
-            )}
-          >
-            送出
-          </button>
-        ) : (
-          <Link
-            href="/posts/commissions/new/preview"
-            onClick={saveDraft}
-            className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'w-full')}
-          >
-            送出
-          </Link>
-        )}
+        <button
+          type="button"
+          onClick={handleSubmit}
+          className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'w-full')}
+        >
+          送出
+        </button>
       </div>
     </div>
   );
