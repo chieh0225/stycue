@@ -593,6 +593,8 @@ export default function CommentBoard({
   initialComments,
   publishPoints,
   canSelectBestComment,
+  initialAwardedCommentId,
+  initialRewardPoints,
   focusId,
   expandReplyId,
   isLoggedIn,
@@ -604,6 +606,11 @@ export default function CommentBoard({
   // awarded/closed/expired yet — gates the give-points button. The backend
   // already computes this rather than reimplementing the rules on the client.
   canSelectBestComment: boolean;
+  // From the commission detail API — lets the board render the "already
+  // awarded" state on first load/refresh rather than only after the current
+  // session awards it itself.
+  initialAwardedCommentId: number | null;
+  initialRewardPoints: number | null;
   // Set (from ?focus=) when the user just posted via the full-page template: the
   // DOM id (`comment-{id}` / `reply-{id}`) to scroll into view once the pending
   // merge brings it in. Undefined on a plain navigation in.
@@ -622,7 +629,11 @@ export default function CommentBoard({
   // A commission's reward is awarded at most once. Once set, the winning
   // comment shows the best-comment style and every comment's give-points button
   // is hidden — mirroring the best-comment API, which 409s on a second award.
-  const [awarded, setAwarded] = useState<{ commentId: string; amount: number } | null>(null);
+  const [awarded, setAwarded] = useState<{ commentId: string; amount: number } | null>(
+    initialAwardedCommentId !== null && initialRewardPoints !== null
+      ? { commentId: String(initialAwardedCommentId), amount: initialRewardPoints }
+      : null,
+  );
   // Only one comment's reply box is open at a time — cleaner on the mobile
   // width and keeps the composer focus unambiguous.
   const [activeReplyId, setActiveReplyId] = useState<string | null>(null);

@@ -57,6 +57,11 @@ export type CommissionDetailResponse = {
   points: number;
   awardedCommentId: number | null;
   awardedAt: string | null;
+  // Actual points the awarded comment's author received (commission handling
+  // fee already deducted, so it can differ from `points`). The backend omits
+  // this field entirely until the reward has actually been given — treat a
+  // missing/undefined value the same as null.
+  rewardPoints?: number | null;
   rewardSettledAt: string | null;
   repostCount: number;
   createdAt: string;
