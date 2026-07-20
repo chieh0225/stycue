@@ -189,7 +189,7 @@ export default function NewPostPreviewPage() {
               type="button"
               onClick={() => setTypeMenuOpen((open) => !open)}
               aria-expanded={typeMenuOpen}
-              className="flex items-center gap-1 rounded-md bg-gold-soft px-2.25 py-0.75 text-label-md font-bold text-accent-amber"
+              className="flex cursor-pointer items-center gap-1 rounded-md bg-gold-soft px-2.25 py-0.75 text-label-md font-bold text-accent-amber"
             >
               {postType}
               <ChevronDown
@@ -209,7 +209,7 @@ export default function NewPostPreviewPage() {
                         setForm((prev) => ({ ...prev, postType: type }));
                         setTypeMenuOpen(false);
                       }}
-                      className={`block w-full px-4 py-2.5 text-left text-label-md font-medium ${
+                      className={`block w-full cursor-pointer px-4 py-2.5 text-left text-label-md font-medium ${
                         type === postType
                           ? 'bg-surface-soft text-accent-amber'
                           : 'text-text-primary hover:bg-surface-soft'
@@ -261,7 +261,7 @@ export default function NewPostPreviewPage() {
           <button
             type="button"
             onClick={() => setDescriptionExpanded((expanded) => !expanded)}
-            className="mt-1 flex items-center gap-1 text-label-md font-semibold text-accent-amber"
+            className="mt-1 flex cursor-pointer items-center gap-1 text-label-md font-semibold text-accent-amber"
           >
             {descriptionExpanded ? '收合內文' : '展開全文'}
             <ChevronDown
@@ -314,7 +314,7 @@ export default function NewPostPreviewPage() {
                     type="button"
                     onClick={() => removeDraftTag(tag.tagId)}
                     aria-label={`移除標籤 ${tag.name}`}
-                    className="text-text-muted"
+                    className="cursor-pointer text-text-muted"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -389,8 +389,8 @@ export default function NewPostPreviewPage() {
                     onClick={() => setForm((prev) => ({ ...prev, selectedBudget: option }))}
                     className={
                       isSelected
-                        ? 'rounded-lg border-2 border-brand-primary bg-white px-3 py-1.5 text-label-md font-medium text-text-primary'
-                        : 'rounded-lg border-2 border-border-default bg-white px-3 py-1.5 text-label-md text-text-muted transition-colors hover:border-brand-primary hover:bg-surface-soft hover:text-text-primary'
+                        ? 'cursor-pointer rounded-lg border-2 border-brand-primary bg-white px-3 py-1.5 text-label-md font-medium text-text-primary'
+                        : 'cursor-pointer rounded-lg border-2 border-border-default bg-white px-3 py-1.5 text-label-md text-text-muted transition-colors hover:border-brand-primary hover:bg-surface-soft hover:text-text-primary'
                     }
                   >
                     {option}
@@ -413,7 +413,7 @@ export default function NewPostPreviewPage() {
                 type="button"
                 onClick={() => setPointsMenuOpen((open) => !open)}
                 aria-expanded={pointsMenuOpen}
-                className="flex w-full items-center justify-between rounded-lg bg-surface-soft px-3.5 py-2 text-label-md font-semibold text-accent-amber"
+                className="flex w-full cursor-pointer items-center justify-between rounded-lg bg-surface-soft px-3.5 py-2 text-label-md font-semibold text-accent-amber"
               >
                 {points} 點
                 <ChevronDown
@@ -433,7 +433,7 @@ export default function NewPostPreviewPage() {
                           setForm((prev) => ({ ...prev, points: option }));
                           setPointsMenuOpen(false);
                         }}
-                        className={`block w-full px-4 py-2.5 text-left text-label-md font-medium ${
+                        className={`block w-full cursor-pointer px-4 py-2.5 text-left text-label-md font-medium ${
                           option === points
                             ? 'bg-surface-soft text-accent-amber'
                             : 'text-text-primary hover:bg-surface-soft'

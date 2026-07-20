@@ -73,7 +73,7 @@ export function GivePointsModal({
                 type="button"
                 onClick={() => onSelectAmount(amount)}
                 aria-pressed={isSelected}
-                className={`flex h-10 w-18 items-center justify-center rounded-full border text-body-lg text-text-primary ${
+                className={`flex h-10 w-18 cursor-pointer items-center justify-center rounded-full border text-body-lg text-text-primary ${
                   isSelected
                     ? 'border-brand-primary bg-brand-primary font-bold'
                     : 'border-border bg-muted font-medium'

@@ -66,7 +66,7 @@ export default function PostInteractions({
         type="button"
         onClick={toggleLike}
         aria-pressed={liked}
-        className={`flex items-center gap-1.5 ${liked ? 'text-accent-amber' : ''}`}
+        className={`flex cursor-pointer items-center gap-1.5 ${liked ? 'text-accent-amber' : ''}`}
       >
         <Heart fill={liked ? 'currentColor' : 'none'} className="h-5 w-5" />
         <span className="sr-only">讚</span>
@@ -82,7 +82,7 @@ export default function PostInteractions({
         onClick={toggleFavorite}
         aria-label="收藏"
         aria-pressed={isFavorited}
-        className={`ml-auto ${isFavorited ? 'text-accent-amber' : ''}`}
+        className={`ml-auto cursor-pointer ${isFavorited ? 'text-accent-amber' : ''}`}
       >
         <Bookmark fill={isFavorited ? 'currentColor' : 'none'} className="h-5 w-5" />
       </button>

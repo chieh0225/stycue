@@ -96,7 +96,7 @@ export default function BuyPointsPage() {
             type="button"
             onClick={() => router.back()}
             aria-label="返回"
-            className="flex h-8 w-8 items-center justify-center"
+            className="flex h-8 w-8 cursor-pointer items-center justify-center"
           >
             <ChevronLeft className="h-5 w-5 text-foreground" />
           </button>
@@ -138,7 +138,7 @@ export default function BuyPointsPage() {
                   key={product.id}
                   type="button"
                   onClick={() => setSelectedId(product.id)}
-                  className={`flex items-center gap-3 rounded-panel border-2 bg-white p-4 text-left ${
+                  className={`flex cursor-pointer items-center gap-3 rounded-panel border-2 bg-white p-4 text-left ${
                     selected ? 'border-foreground' : 'border-border-subtle'
                   }`}
                   style={{ boxShadow: selected ? '0 4px 12px rgba(64,58,50,0.1)' : 'none' }}
@@ -202,7 +202,7 @@ export default function BuyPointsPage() {
           type="button"
           onClick={confirmPurchase}
           disabled={!selectedPlan || submitting}
-          className="flex w-full items-center justify-center rounded-card bg-foreground py-4 disabled:opacity-50"
+          className="flex w-full cursor-pointer items-center justify-center rounded-card bg-foreground py-4 disabled:cursor-not-allowed disabled:opacity-50"
           style={{ boxShadow: '0 4px 12px rgba(64,58,50,0.22)' }}
         >
           <span className="text-label-md font-bold text-background">
