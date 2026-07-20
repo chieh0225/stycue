@@ -2,7 +2,7 @@
 
 import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { BottomBar } from '@/components/ui/bottom-bar';
@@ -31,6 +31,7 @@ const POST_TYPE_TO_BACKEND: Record<string, PostType> = {
 };
 
 export default function NewSharePostPreviewPage() {
+  const pathname = usePathname();
   const router = useRouter();
   const [form, setForm] = useState<Draft>(emptyDraft);
   const [loaded, setLoaded] = useState(false);
@@ -101,6 +102,25 @@ export default function NewSharePostPreviewPage() {
       setLoaded(true);
     });
   }, []);
+
+  // The tag picker is an intercepted-route modal over this same page: it
+  // writes the selection straight to localStorage and never remounts this
+  // component, so `form.tags` only picks it up once the URL returns here.
+  useEffect(() => {
+    if (pathname !== '/posts/share/new/preview') return;
+    // Deferred to a microtask so this doesn't setState synchronously within
+    // the effect body (react-hooks/set-state-in-effect).
+    queueMicrotask(() => {
+      const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (!saved) return;
+      try {
+        const draft = JSON.parse(saved) as Partial<Draft>;
+        if (draft.tags) setForm((prev) => ({ ...prev, tags: draft.tags! }));
+      } catch {
+        // Ignore a corrupted draft rather than blocking the page.
+      }
+    });
+  }, [pathname]);
 
   // Edits made on this page flow straight back into the shared draft, so
   // "返回編輯" reopens the form with whatever was last changed here.
