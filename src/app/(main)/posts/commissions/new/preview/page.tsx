@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronDown, Info, X } from 'lucide-react';
+import { ChevronDown, ImagePlus, Info, Tag, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -69,6 +69,7 @@ export default function NewPostPreviewPage() {
   const { title, description, height, weight, age, selectedBudget, postType, points, photos } =
     form;
   const insufficientPoints = Number(points) > userPoints;
+  const canSubmit = !insufficientPoints && !submitting;
 
   // Auto-grow to fit the full text when expanded so it never needs its own
   // scrollbar; collapsed mode keeps the fixed 3-row clamp instead.
@@ -270,7 +271,14 @@ export default function NewPostPreviewPage() {
         </div>
 
         {/* 身形照片 */}
-        {photos.length > 0 ? (
+        <Link
+          href="/posts/commissions/new/photo"
+          className="mb-3 flex w-fit items-center gap-1 rounded-full border border-border-default px-3 py-1.5 text-label-md text-text-muted"
+        >
+          <ImagePlus className="h-3.5 w-3.5" aria-hidden /> 上傳圖片
+          {photos.length > 0 ? ` (${photos.length}/9)` : ''}
+        </Link>
+        {photos.length > 0 && (
           <div className="mb-5.5 flex flex-wrap gap-2">
             {photos.map((photo) => (
               // eslint-disable-next-line @next/next/no-img-element -- uploaded photo URL from real backend
@@ -282,18 +290,17 @@ export default function NewPostPreviewPage() {
               />
             ))}
           </div>
-        ) : null}
+        )}
 
         {/* 標籤 */}
-        <h2 className="mb-3 text-body-lg font-bold text-text-primary">標籤</h2>
         <div className="mb-6 flex flex-wrap gap-2">
           {draftTags.length === 0 ? (
             <Link
               href="/posts/commissions/new/tags"
               prefetch={false}
-              className="rounded-full border border-dashed border-border-default px-3.5 py-1.75 text-label-md text-text-muted"
+              className="flex items-center gap-1 rounded-full border border-border-default px-3 py-1.5 text-label-md text-text-muted"
             >
-              + 選擇標籤
+              <Tag className="h-3.5 w-3.5" aria-hidden /> 選擇標籤
             </Link>
           ) : (
             <>
@@ -481,7 +488,7 @@ export default function NewPostPreviewPage() {
           variant="primary"
           size="md"
           onClick={confirmSubmit}
-          disabled={insufficientPoints || submitting}
+          disabled={!canSubmit}
           className="flex-1"
         >
           確認送出
