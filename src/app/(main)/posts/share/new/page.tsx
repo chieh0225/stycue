@@ -2,6 +2,7 @@
 
 import { ChevronDown, ImagePlus, Tag, X } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { buttonVariants } from '@/components/ui/button';
@@ -31,6 +32,7 @@ export default function NewSharePostPage() {
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
   const titleRef = useRef<HTMLTextAreaElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const pathname = usePathname();
 
   // The title wraps across multiple lines instead of overflowing past the
   // screen edge, so it needs auto-grow (same treatment as
@@ -89,6 +91,25 @@ export default function NewSharePostPage() {
       }
     });
   }, []);
+
+  // The tag picker is an intercepted-route modal over this same page: it
+  // writes the selection straight to localStorage and never remounts this
+  // component, so `form.tags` only picks it up once the URL returns here.
+  useEffect(() => {
+    if (pathname !== '/posts/share/new') return;
+    // Deferred to a microtask so this doesn't setState synchronously within
+    // the effect body (react-hooks/set-state-in-effect).
+    queueMicrotask(() => {
+      const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (!saved) return;
+      try {
+        const draft = JSON.parse(saved) as Partial<Draft>;
+        if (draft.tags) setForm((prev) => ({ ...prev, tags: draft.tags! }));
+      } catch {
+        // Ignore a corrupted draft rather than blocking the page.
+      }
+    });
+  }, [pathname]);
 
   function saveDraft() {
     localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(form));

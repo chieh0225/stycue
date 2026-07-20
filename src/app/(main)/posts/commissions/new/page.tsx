@@ -2,7 +2,7 @@
 
 import { Calendar, ChevronDown, ImagePlus, Info, Plus, Tag, X } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -90,6 +90,7 @@ export default function NewPostPage() {
     });
   }, []);
   const insufficientPoints = Number(points) > userPoints;
+  const pathname = usePathname();
   const router = useRouter();
 
   // The title wraps across multiple lines instead of overflowing past the
@@ -135,6 +136,25 @@ export default function NewPostPage() {
       }
     });
   }, []);
+
+  // The tag picker is an intercepted-route modal over this same page: it
+  // writes the selection straight to localStorage and never remounts this
+  // component, so `form.tags` only picks it up once the URL returns here.
+  useEffect(() => {
+    if (pathname !== '/posts/commissions/new') return;
+    // Deferred to a microtask so this doesn't setState synchronously within
+    // the effect body (react-hooks/set-state-in-effect).
+    queueMicrotask(() => {
+      const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (!saved) return;
+      try {
+        const draft = JSON.parse(saved) as Partial<Draft>;
+        if (draft.tags) setForm((prev) => ({ ...prev, tags: draft.tags! }));
+      } catch {
+        // Ignore a corrupted draft rather than blocking the page.
+      }
+    });
+  }, [pathname]);
 
   function saveDraft() {
     localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(form));
