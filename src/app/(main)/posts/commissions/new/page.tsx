@@ -2,7 +2,7 @@
 
 import { Calendar, ChevronDown, ImagePlus, Info, Plus, Tag, X } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -30,11 +30,20 @@ export default function NewPostPage() {
   const [ageFocused, setAgeFocused] = useState(false);
 
   const [form, setForm] = useState<Draft>(emptyDraft);
-  const { title, description, height, weight, age, selectedBudget, postType, points, photos } =
-    form;
+  const {
+    title,
+    description,
+    height,
+    weight,
+    age,
+    selectedBudget,
+    postType,
+    points,
+    photos,
+    tags,
+  } = form;
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
   const [pointsMenuOpen, setPointsMenuOpen] = useState(false);
-  const [draftTags, setDraftTags] = useState<{ tagId: number; name: string }[]>([]);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const titleRef = useRef<HTMLTextAreaElement>(null);
@@ -81,7 +90,6 @@ export default function NewPostPage() {
     });
   }, []);
   const insufficientPoints = Number(points) > userPoints;
-  const pathname = usePathname();
   const router = useRouter();
 
   // The title wraps across multiple lines instead of overflowing past the
@@ -106,22 +114,12 @@ export default function NewPostPage() {
     }
   }, [descriptionExpanded, description]);
 
-  useEffect(() => {
-    if (pathname !== '/posts/commissions/new') return;
-    fetch('/api/posts/draft-tags')
-      .then((res) => res.json())
-      .then((data: { tags: { tagId: number; name: string }[] }) => setDraftTags(data.tags))
-      .catch(() => {});
-  }, [pathname]);
-
   function removeDraftTag(tagId: number) {
-    const next = draftTags.filter((t) => t.tagId !== tagId);
-    setDraftTags(next);
-    fetch('/api/posts/draft-tags', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tags: next }),
-    }).catch(() => {});
+    setForm((prev) => {
+      const next = { ...prev, tags: prev.tags.filter((t) => t.tagId !== tagId) };
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
   }
 
   useEffect(() => {
@@ -323,7 +321,7 @@ export default function NewPostPage() {
             </div>
           )}
           <div className="flex flex-wrap items-center gap-2">
-            {draftTags.length === 0 ? (
+            {tags.length === 0 ? (
               <Link
                 href="/posts/commissions/new/tags"
                 prefetch={false}
@@ -333,7 +331,7 @@ export default function NewPostPage() {
               </Link>
             ) : (
               <>
-                {draftTags.map((tag) => (
+                {tags.map((tag) => (
                   <span
                     key={tag.tagId}
                     className="flex items-center gap-1 rounded-full border border-border-default bg-surface-soft px-3 py-1.5 text-label-md text-text-primary"

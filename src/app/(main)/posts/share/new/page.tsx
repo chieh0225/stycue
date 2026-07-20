@@ -2,7 +2,6 @@
 
 import { ChevronDown, ImagePlus, Tag, X } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { buttonVariants } from '@/components/ui/button';
@@ -27,12 +26,11 @@ export default function NewSharePostPage() {
     outfitDate,
     outfitLocation,
     photos,
+    tags,
   } = form;
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
-  const [draftTags, setDraftTags] = useState<{ tagId: number; name: string }[]>([]);
   const titleRef = useRef<HTMLTextAreaElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
-  const pathname = usePathname();
 
   // The title wraps across multiple lines instead of overflowing past the
   // screen edge, so it needs auto-grow (same treatment as
@@ -70,22 +68,12 @@ export default function NewSharePostPage() {
     });
   }, []);
 
-  useEffect(() => {
-    if (pathname !== '/posts/share/new') return;
-    fetch('/api/posts/draft-tags')
-      .then((res) => res.json())
-      .then((data: { tags: { tagId: number; name: string }[] }) => setDraftTags(data.tags))
-      .catch(() => {});
-  }, [pathname]);
-
   function removeDraftTag(tagId: number) {
-    const next = draftTags.filter((t) => t.tagId !== tagId);
-    setDraftTags(next);
-    fetch('/api/posts/draft-tags', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tags: next }),
-    }).catch(() => {});
+    setForm((prev) => {
+      const next = { ...prev, tags: prev.tags.filter((t) => t.tagId !== tagId) };
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
   }
 
   useEffect(() => {
@@ -271,7 +259,7 @@ export default function NewSharePostPage() {
             </div>
           )}
           <div className="flex flex-wrap items-center gap-2">
-            {draftTags.length === 0 ? (
+            {tags.length === 0 ? (
               <Link
                 href="/posts/share/new/tags"
                 prefetch={false}
@@ -280,7 +268,7 @@ export default function NewSharePostPage() {
                 <Tag className="h-4 w-4" aria-hidden /> 選擇標籤
               </Link>
             ) : (
-              draftTags.map((tag) => (
+              tags.map((tag) => (
                 <span
                   key={tag.tagId}
                   className="flex items-center gap-1 rounded-full border border-border-default bg-surface-soft px-3 py-1.5 text-label-md text-text-primary"
