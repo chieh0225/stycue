@@ -116,6 +116,14 @@ export default async function PostCommentsPage({
   const canSelectBestComment = commissionResult.success
     ? (commissionResult.data?.canSelectBestComment ?? false)
     : false;
+  // Lets the board show the "already awarded" state on first render/refresh
+  // instead of only after the current session awards it itself.
+  const awardedCommentId = commissionResult.success
+    ? (commissionResult.data?.awardedCommentId ?? null)
+    : null;
+  const rewardPoints = commissionResult.success
+    ? (commissionResult.data?.rewardPoints ?? null)
+    : null;
   const comments =
     commentsResult.success && commentsResult.data
       ? commentsResult.data.map((comment, index) => toComment(comment, index, commissionAuthorId))
@@ -140,6 +148,8 @@ export default async function PostCommentsPage({
         initialComments={comments}
         publishPoints={publishPoints}
         canSelectBestComment={canSelectBestComment}
+        initialAwardedCommentId={awardedCommentId}
+        initialRewardPoints={rewardPoints}
         focusId={focusId}
         expandReplyId={expandReplyId}
         isLoggedIn={isLoggedIn}
