@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { MaybeLink } from '@/components/ui/maybe-link';
 import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetClose, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { TopBar } from '@/components/ui/top-bar';
@@ -572,14 +573,14 @@ export default function Home() {
               <div key={groupIndex}>
                 {groupIndex > 0 ? <Separator className="my-3" /> : null}
                 {group.map((item) => (
-                  <Link
+                  <MaybeLink
                     key={item.label}
                     href={item.href}
                     className="flex w-full items-center gap-4.5 rounded-[10px] px-3 py-4 text-left text-body-md font-medium text-foreground hover:bg-accent"
                   >
                     <item.icon className="h-5 w-5" />
                     {item.label}
-                  </Link>
+                  </MaybeLink>
                 ))}
               </div>
             ))}
