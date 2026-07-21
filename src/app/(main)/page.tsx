@@ -318,7 +318,7 @@ export default function Home() {
       />
 
       <section className="px-4 pt-5 pb-7">
-        <div className="mb-3 text-headline-sm font-bold text-text-primary">人氣穿搭</div>
+        <div className="mb-3 text-headline-sm font-bold text-text-primary">懸賞委託</div>
         {trendingLoading ? (
           <TrendingSkeleton />
         ) : trending.length === 0 ? (
