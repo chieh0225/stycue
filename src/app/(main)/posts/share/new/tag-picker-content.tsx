@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { createTags, searchTags } from '@/lib/tag-api';
 import type { TagPickerInitialData } from '@/lib/tag-server';
 import { TAG_CATEGORY, TAG_SOURCE, type TagCategoryValue, type TagResponse } from '@/types/tag';
+import { DRAFT_STORAGE_KEY, emptyDraft, type Draft } from './draft';
 
 const TAG_GROUPS: { title: string; category: TagCategoryValue; allowCustom: boolean }[] = [
   { title: '場合', category: TAG_CATEGORY.Occasion, allowCustom: true },
@@ -38,9 +39,9 @@ export default function TagPickerContent({
 }: {
   onClose: () => void;
   initialData: TagPickerInitialData;
-  // When provided (the edit-post flow, which has no draft-tags cookie to
-  // read/write), these replace the default draft-tags fetch/POST used by the
-  // new-post composer — see the effect and confirmAndClose below.
+  // When provided (the edit-post flow, which has no localStorage draft to
+  // read/write), these replace the default draft localStorage read/write used
+  // by the new-post composer — see the effect and confirmAndClose below.
   initialSelected?: TagResponse[];
   onConfirmSelected?: (tags: TagResponse[]) => void;
 }) {
@@ -89,12 +90,19 @@ export default function TagPickerContent({
 
   useEffect(() => {
     if (initialSelected) return;
-    fetch('/api/posts/draft-tags')
-      .then((res) => res.json())
-      .then((data: { tags: { tagId: number; name: string }[] }) =>
-        setSelected(data.tags.map((tag) => tag.name)),
-      )
-      .catch(() => {});
+    // Deferred to a microtask so this doesn't setState synchronously within
+    // the effect body (react-hooks/set-state-in-effect).
+    queueMicrotask(() => {
+      const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (!saved) return;
+      try {
+        const draft = { ...emptyDraft, ...(JSON.parse(saved) as Partial<Draft>) };
+        mergeTagMeta(draft.tags.map((tag) => ({ ...tag, tagCategory: null, usageCount: null })));
+        setSelected(draft.tags.map((tag) => tag.name));
+      } catch {
+        // Ignore a corrupted draft rather than blocking the picker.
+      }
+    });
     // Only ever needed on first mount, and initialSelected is fixed for the
     // lifetime of this component when the edit flow provides it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -131,13 +139,15 @@ export default function TagPickerContent({
       onClose();
       return;
     }
-    await fetch('/api/posts/draft-tags', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        tags: selected.map((name) => ({ tagId: tagMeta[name].tagId, name })),
-      }),
-    }).catch(() => {});
+    const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+    let draft: Draft;
+    try {
+      draft = saved ? { ...emptyDraft, ...(JSON.parse(saved) as Partial<Draft>) } : emptyDraft;
+    } catch {
+      draft = emptyDraft;
+    }
+    const tags = selected.map((name) => ({ tagId: tagMeta[name].tagId, name }));
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({ ...draft, tags }));
     onClose();
   }
 

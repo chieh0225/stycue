@@ -2,7 +2,7 @@
 
 import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { BottomBar } from '@/components/ui/bottom-bar';
@@ -31,9 +31,9 @@ const POST_TYPE_TO_BACKEND: Record<string, PostType> = {
 };
 
 export default function NewSharePostPreviewPage() {
+  const pathname = usePathname();
   const router = useRouter();
   const [form, setForm] = useState<Draft>(emptyDraft);
-  const [draftTags, setDraftTags] = useState<{ tagId: number; name: string }[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
@@ -62,6 +62,7 @@ export default function NewSharePostPreviewPage() {
     outfitDate,
     outfitLocation,
     photos,
+    tags,
   } = form;
 
   // Auto-grow to fit the full text when expanded so it never needs its own
@@ -100,12 +101,26 @@ export default function NewSharePostPreviewPage() {
       }
       setLoaded(true);
     });
-
-    fetch('/api/posts/draft-tags')
-      .then((res) => res.json())
-      .then((data: { tags: { tagId: number; name: string }[] }) => setDraftTags(data.tags))
-      .catch(() => {});
   }, []);
+
+  // The tag picker is an intercepted-route modal over this same page: it
+  // writes the selection straight to localStorage and never remounts this
+  // component, so `form.tags` only picks it up once the URL returns here.
+  useEffect(() => {
+    if (pathname !== '/posts/share/new/preview') return;
+    // Deferred to a microtask so this doesn't setState synchronously within
+    // the effect body (react-hooks/set-state-in-effect).
+    queueMicrotask(() => {
+      const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (!saved) return;
+      try {
+        const draft = JSON.parse(saved) as Partial<Draft>;
+        if (draft.tags) setForm((prev) => ({ ...prev, tags: draft.tags! }));
+      } catch {
+        // Ignore a corrupted draft rather than blocking the page.
+      }
+    });
+  }, [pathname]);
 
   // Edits made on this page flow straight back into the shared draft, so
   // "返回編輯" reopens the form with whatever was last changed here.
@@ -121,13 +136,7 @@ export default function NewSharePostPreviewPage() {
   }, [loaded, title, router]);
 
   function removeDraftTag(tagId: number) {
-    const next = draftTags.filter((t) => t.tagId !== tagId);
-    setDraftTags(next);
-    fetch('/api/posts/draft-tags', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tags: next }),
-    }).catch(() => {});
+    setForm((prev) => ({ ...prev, tags: prev.tags.filter((t) => t.tagId !== tagId) }));
   }
 
   async function confirmSubmit() {
@@ -149,7 +158,7 @@ export default function NewSharePostPreviewPage() {
         outfitDate: outfitDate || undefined,
         outfitLocation: outfitLocation.trim() || undefined,
         imageIds: photos.map((photo) => photo.imageId),
-        tagIds: draftTags.map((tag) => tag.tagId),
+        tagIds: tags.map((tag) => tag.tagId),
       });
       if (!result.success || !result.data) {
         setSubmitError(result.message || '發表失敗，請稍後再試');
@@ -289,7 +298,7 @@ export default function NewSharePostPreviewPage() {
         {/* 標籤 */}
         <h2 className="mb-3 text-body-lg font-bold text-text-primary">標籤</h2>
         <div className="mb-6 flex flex-wrap gap-2">
-          {draftTags.length === 0 ? (
+          {tags.length === 0 ? (
             <Link
               href="/posts/share/new/tags"
               prefetch={false}
@@ -299,7 +308,7 @@ export default function NewSharePostPreviewPage() {
             </Link>
           ) : (
             <>
-              {draftTags.map((tag) => (
+              {tags.map((tag) => (
                 <span
                   key={tag.tagId}
                   className="flex items-center gap-1 rounded-full border border-border-default bg-muted px-3.5 py-1.75 text-label-md text-text-primary"

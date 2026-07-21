@@ -30,11 +30,20 @@ export default function NewPostPage() {
   const [ageFocused, setAgeFocused] = useState(false);
 
   const [form, setForm] = useState<Draft>(emptyDraft);
-  const { title, description, height, weight, age, selectedBudget, postType, points, photos } =
-    form;
+  const {
+    title,
+    description,
+    height,
+    weight,
+    age,
+    selectedBudget,
+    postType,
+    points,
+    photos,
+    tags,
+  } = form;
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
   const [pointsMenuOpen, setPointsMenuOpen] = useState(false);
-  const [draftTags, setDraftTags] = useState<{ tagId: number; name: string }[]>([]);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const titleRef = useRef<HTMLTextAreaElement>(null);
@@ -106,22 +115,12 @@ export default function NewPostPage() {
     }
   }, [descriptionExpanded, description]);
 
-  useEffect(() => {
-    if (pathname !== '/posts/commissions/new') return;
-    fetch('/api/posts/draft-tags')
-      .then((res) => res.json())
-      .then((data: { tags: { tagId: number; name: string }[] }) => setDraftTags(data.tags))
-      .catch(() => {});
-  }, [pathname]);
-
   function removeDraftTag(tagId: number) {
-    const next = draftTags.filter((t) => t.tagId !== tagId);
-    setDraftTags(next);
-    fetch('/api/posts/draft-tags', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tags: next }),
-    }).catch(() => {});
+    setForm((prev) => {
+      const next = { ...prev, tags: prev.tags.filter((t) => t.tagId !== tagId) };
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
   }
 
   useEffect(() => {
@@ -137,6 +136,25 @@ export default function NewPostPage() {
       }
     });
   }, []);
+
+  // The tag picker is an intercepted-route modal over this same page: it
+  // writes the selection straight to localStorage and never remounts this
+  // component, so `form.tags` only picks it up once the URL returns here.
+  useEffect(() => {
+    if (pathname !== '/posts/commissions/new') return;
+    // Deferred to a microtask so this doesn't setState synchronously within
+    // the effect body (react-hooks/set-state-in-effect).
+    queueMicrotask(() => {
+      const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (!saved) return;
+      try {
+        const draft = JSON.parse(saved) as Partial<Draft>;
+        if (draft.tags) setForm((prev) => ({ ...prev, tags: draft.tags! }));
+      } catch {
+        // Ignore a corrupted draft rather than blocking the page.
+      }
+    });
+  }, [pathname]);
 
   function saveDraft() {
     localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(form));
@@ -323,7 +341,7 @@ export default function NewPostPage() {
             </div>
           )}
           <div className="flex flex-wrap items-center gap-2">
-            {draftTags.length === 0 ? (
+            {tags.length === 0 ? (
               <Link
                 href="/posts/commissions/new/tags"
                 prefetch={false}
@@ -333,7 +351,7 @@ export default function NewPostPage() {
               </Link>
             ) : (
               <>
-                {draftTags.map((tag) => (
+                {tags.map((tag) => (
                   <span
                     key={tag.tagId}
                     className="flex items-center gap-1 rounded-full border border-border-default bg-surface-soft px-3 py-1.5 text-label-md text-text-primary"
