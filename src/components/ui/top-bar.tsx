@@ -24,7 +24,7 @@ function TopBar({ left, title, right, center = true, sticky = true, className }:
     <header
       data-slot="top-bar"
       className={cn(
-        'relative z-10 flex flex-shrink-0 items-center gap-3.5 border-b border-border-subtle bg-secondary px-4 py-3 shadow-card',
+        'relative z-20 flex flex-shrink-0 items-center gap-3.5 border-b border-border-subtle bg-secondary px-4 py-3 shadow-card',
         sticky && 'sticky top-0',
         !left && !right && 'justify-center',
         className,
