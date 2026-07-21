@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { MaybeLink } from '@/components/ui/maybe-link';
 import { Separator } from '@/components/ui/separator';
 import { setAuthed } from '../../auth';
 import { AlertIcon, GoogleIcon, LockIcon, LogoIcon, MailIcon } from '../icons';
@@ -130,9 +131,12 @@ export default function LoginPage() {
         </div>
 
         <div className="mb-5 text-right">
-          <Link href="/forgot-password" className="text-label-md font-semibold text-accent-amber">
+          <MaybeLink
+            href="/forgot-password"
+            className="text-label-md font-semibold text-accent-amber"
+          >
             忘記密碼？
-          </Link>
+          </MaybeLink>
         </div>
 
         {apiError && (

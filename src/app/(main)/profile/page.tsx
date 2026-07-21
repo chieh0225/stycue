@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { buttonVariants } from '@/components/ui/button';
+import { MaybeLink } from '@/components/ui/maybe-link';
 import { TopBar } from '@/components/ui/top-bar';
 import { getPointWallet } from '@/lib/points-api';
 import { getMyProfile, getPublicProfile } from '@/lib/user-api';
@@ -131,22 +132,25 @@ export default function ProfilePage() {
         <div className="px-4.5 pb-2">
           <div className="mb-3.5 text-body-lg font-bold text-text-primary">個人功能</div>
           <div className="grid grid-cols-4 gap-2">
-            <Link href="/profile/commissions/sent" className="flex flex-col items-center gap-2">
+            <MaybeLink
+              href="/profile/commissions/sent"
+              className="flex flex-col items-center gap-2"
+            >
               <div className="flex h-12 w-12 items-center justify-center rounded-panel bg-gold/12">
                 <PencilLine width="21" height="21" className="text-gold-dark" strokeWidth={1.8} />
               </div>
               <span className="text-center text-label-md font-medium text-text-primary">
                 我的委託
               </span>
-            </Link>
-            <Link href="/profile/posts" className="flex flex-col items-center gap-2">
+            </MaybeLink>
+            <MaybeLink href="/profile/posts" className="flex flex-col items-center gap-2">
               <div className="flex h-12 w-12 items-center justify-center rounded-panel bg-gold/12">
                 <ImageIcon width="21" height="21" className="text-gold-dark" strokeWidth={1.8} />
               </div>
               <span className="text-center text-label-md font-medium text-text-primary">
                 我的分享文
               </span>
-            </Link>
+            </MaybeLink>
             <Link href="/profile/points/history" className="flex flex-col items-center gap-2">
               <div className="flex h-12 w-12 items-center justify-center rounded-panel bg-gold/12">
                 <Receipt width="21" height="21" className="text-gold-dark" strokeWidth={1.8} />
@@ -155,14 +159,14 @@ export default function ProfilePage() {
                 積分紀錄
               </span>
             </Link>
-            <Link href="/profile/favorites" className="flex flex-col items-center gap-2">
+            <MaybeLink href="/profile/favorites" className="flex flex-col items-center gap-2">
               <div className="flex h-12 w-12 items-center justify-center rounded-panel bg-gold/12">
                 <Bookmark width="21" height="21" className="text-gold-dark" strokeWidth={1.8} />
               </div>
               <span className="text-center text-label-md font-medium text-text-primary">
                 我的收藏
               </span>
-            </Link>
+            </MaybeLink>
           </div>
         </div>
 
@@ -170,13 +174,13 @@ export default function ProfilePage() {
         <div className="px-4.5 pt-6 pb-7">
           <div className="mb-1.5 text-body-lg font-bold text-text-primary">支援</div>
           <div className="overflow-hidden rounded-xl bg-popover">
-            <Link
+            <MaybeLink
               href="/profile/settings"
               className="flex items-center justify-between border-b border-border-subtle px-4 py-3.75"
             >
               <span className="text-body-md text-text-primary">設定</span>
               <ChevronRight width="16" height="16" className="text-text-muted" strokeWidth={2} />
-            </Link>
+            </MaybeLink>
             <Link
               href="/disclaimer"
               className="flex items-center justify-between border-b border-border-subtle px-4 py-3.75"
