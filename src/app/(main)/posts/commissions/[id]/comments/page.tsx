@@ -48,6 +48,7 @@ function toReply(response: CommentResponse, commissionAuthorId: number | undefin
   return {
     replyId: String(response.commentId),
     nickName: response.author.displayName,
+    avatarUrl: response.author.avatarUrl,
     timeLabel: formatRelativeTime(response.createdAt),
     content: response.content,
     isCommissioner:
@@ -70,6 +71,7 @@ function toComment(
     commentId: String(response.commentId),
     floor: `B${index + 1}`,
     nickName: response.author.displayName,
+    avatarUrl: response.author.avatarUrl,
     timeLabel: formatRelativeTime(response.createdAt),
     content: response.content,
     likeCount: response.likeCount,
