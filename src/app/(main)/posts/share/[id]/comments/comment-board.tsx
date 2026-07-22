@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -24,7 +24,6 @@ import {
   ImagePlaceholderIcon,
   ReplyIcon,
   SendIcon,
-  UserIcon,
 } from './comment-icons';
 import { DeleteConfirmModal } from './comment-modals';
 
@@ -42,6 +41,7 @@ export type CommentImage = {
 export type Reply = {
   replyId: string;
   nickName: string;
+  avatarUrl: string | null;
   timeLabel: string;
   content: string;
   images?: CommentImage[];
@@ -56,6 +56,7 @@ export type Comment = {
   commentId: string;
   floor: string;
   nickName: string;
+  avatarUrl: string | null;
   timeLabel: string;
   content: string;
   likeCount: number;
@@ -82,6 +83,7 @@ function toComment(response: CommentResponse, floor: string): Comment {
     commentId: String(response.commentId),
     floor,
     nickName: response.author.displayName,
+    avatarUrl: response.author.avatarUrl,
     timeLabel: '剛剛',
     content: response.content,
     likeCount: response.likeCount,
@@ -98,6 +100,7 @@ function toReply(response: CommentResponse): Reply {
   return {
     replyId: String(response.commentId),
     nickName: response.author.displayName,
+    avatarUrl: response.author.avatarUrl,
     timeLabel: '剛剛',
     content: response.content,
     images: toCommentImages(response.images),
@@ -357,9 +360,8 @@ function ReplyList({
           {replies.map((reply) => (
             <li key={reply.replyId} id={`reply-${reply.replyId}`} className="flex gap-2.25">
               <Avatar size="sm">
-                <AvatarFallback>
-                  <UserIcon className="h-3.5 w-3.5" />
-                </AvatarFallback>
+                <AvatarImage src={reply.avatarUrl ?? undefined} alt="" />
+                <AvatarFallback>{reply.nickName.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.75">
@@ -452,9 +454,8 @@ function CommentItem({
     <article className="flex flex-col gap-2.5">
       <div className="flex gap-2.5">
         <Avatar size="lg">
-          <AvatarFallback>
-            <UserIcon />
-          </AvatarFallback>
+          <AvatarImage src={comment.avatarUrl ?? undefined} alt="" />
+          <AvatarFallback>{comment.nickName.charAt(0).toUpperCase()}</AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">

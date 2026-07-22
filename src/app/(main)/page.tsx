@@ -15,7 +15,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import FeedSkeleton from '@/components/skeletons/FeedSkeleton';
 import TrendingSkeleton from '@/components/skeletons/TrendingSkeleton';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -350,6 +350,7 @@ export default function Home() {
                   <div className="flex items-center justify-between px-3 py-3">
                     <div className="flex items-center gap-2">
                       <Avatar size="sm">
+                        <AvatarImage src={item.author.avatarUrl ?? undefined} alt="" />
                         <AvatarFallback>
                           {item.author.displayName.charAt(0).toUpperCase()}
                         </AvatarFallback>
@@ -468,6 +469,7 @@ export default function Home() {
                   <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <Avatar size="md" className="border-2 border-border">
+                        <AvatarImage src={post.author.avatarUrl ?? undefined} alt="" />
                         <AvatarFallback>
                           {post.author.displayName.charAt(0).toUpperCase()}
                         </AvatarFallback>

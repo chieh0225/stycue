@@ -4,11 +4,12 @@ import { ChevronDown, ImagePlus, Tag, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { TopBar } from '@/components/ui/top-bar';
 import { deleteImage } from '@/lib/image-api';
+import { getMyProfile } from '@/lib/user-api';
 import { cn } from '@/lib/utils';
 import { DRAFT_STORAGE_KEY, TITLE_MAX_LENGTH, postTypes, emptyDraft, type Draft } from './draft';
 import { getAuthedUser } from '../../../../auth';
@@ -68,6 +69,16 @@ export default function NewSharePostPage() {
     queueMicrotask(() => {
       setNickName(getAuthedUser()?.nickName ?? null);
     });
+  }, []);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    getMyProfile().then((res) => {
+      if (active && res.success && res.data) setAvatarUrl(res.data.user.avatarUrl);
+    });
+    return () => {
+      active = false;
+    };
   }, []);
 
   function removeDraftTag(tagId: number) {
@@ -142,6 +153,7 @@ export default function NewSharePostPage() {
         {/* Author row */}
         <div className="flex items-center gap-2">
           <Avatar size="xl">
+            <AvatarImage src={avatarUrl ?? undefined} alt="" />
             <AvatarFallback>{(nickName ?? '').charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
           <span className="text-label-md font-bold text-text-primary">{nickName}</span>

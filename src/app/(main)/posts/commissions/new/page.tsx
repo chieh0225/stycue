@@ -5,11 +5,12 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { buttonVariants } from '@/components/ui/button';
 import { TopBar } from '@/components/ui/top-bar';
 import { deleteImage } from '@/lib/image-api';
 import { getPointWallet } from '@/lib/points-api';
+import { getMyProfile } from '@/lib/user-api';
 import { cn } from '@/lib/utils';
 import {
   DRAFT_STORAGE_KEY,
@@ -70,6 +71,16 @@ export default function NewPostPage() {
     queueMicrotask(() => {
       setNickName(getAuthedUser()?.nickName ?? null);
     });
+  }, []);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    getMyProfile().then((res) => {
+      if (active && res.success && res.data) setAvatarUrl(res.data.user.avatarUrl);
+    });
+    return () => {
+      active = false;
+    };
   }, []);
 
   // Computed client-side (rather than at render time) to avoid a hydration
@@ -203,6 +214,7 @@ export default function NewPostPage() {
         {/* User row */}
         <div className="flex items-center gap-2">
           <Avatar size="xl">
+            <AvatarImage src={avatarUrl ?? undefined} alt="" />
             <AvatarFallback>{(nickName ?? '').charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
           <span className="text-label-md font-medium text-text-primary">{nickName}</span>

@@ -6,8 +6,7 @@ import { cn } from '@/lib/utils';
 
 // Based on shadcn's official Base UI Avatar (base-vega style), edited directly
 // with StyCue's brand sizes/colors — see docs/design-component-inventory.md A8.
-// AvatarImage/AvatarBadge/AvatarGroup dropped: nothing in the app loads a real
-// photo yet, so only the fallback (icon/initials) path is used.
+// AvatarBadge/AvatarGroup dropped: nothing in the app uses those yet.
 function Avatar({
   className,
   size = 'lg',
@@ -23,6 +22,20 @@ function Avatar({
         'relative flex shrink-0 rounded-full select-none data-[size=lg]:size-9 data-[size=md]:size-8.5 data-[size=sm]:size-7.5 data-[size=xl]:size-9.5',
         className,
       )}
+      {...props}
+    />
+  );
+}
+
+// AvatarPrimitive.Root tracks image-loading status itself: this always
+// mounts, but only becomes visible once the src actually loads, and
+// AvatarFallback shows automatically the rest of the time (no src, loading,
+// or errored) — no manual conditional rendering needed at call sites.
+function AvatarImage({ className, ...props }: AvatarPrimitive.Image.Props) {
+  return (
+    <AvatarPrimitive.Image
+      data-slot="avatar-image"
+      className={cn('size-full rounded-full object-cover', className)}
       {...props}
     />
   );
@@ -55,4 +68,4 @@ function PlaceholderAvatar({ accent, bordered, className, ...props }: Placeholde
   );
 }
 
-export { Avatar, AvatarFallback, PlaceholderAvatar };
+export { Avatar, AvatarImage, AvatarFallback, PlaceholderAvatar };
