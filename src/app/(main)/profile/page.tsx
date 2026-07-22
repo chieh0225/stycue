@@ -9,6 +9,7 @@ import {
   PencilLine,
   Receipt,
 } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -85,8 +86,7 @@ export default function ProfilePage() {
         <div className="flex items-center gap-3.5 px-4.5 pt-6 pb-5">
           <div className="relative flex h-17 w-17 shrink-0 items-center justify-center overflow-hidden rounded-full border-[3px] border-background bg-primary shadow-[0_4px_12px_rgba(217,154,61,0.16)]">
             {avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+              <Image src={avatarUrl} alt="" fill sizes="68px" className="object-cover" />
             ) : (
               <span className="text-headline-md font-bold text-gold-dark">{avatarInitial}</span>
             )}

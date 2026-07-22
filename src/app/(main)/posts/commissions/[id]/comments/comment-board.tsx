@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -161,11 +162,12 @@ function ImageCell({
           )}
         </div>
       ) : null}
-      {/* eslint-disable-next-line @next/next/no-img-element -- backend SAS URL, not a next/image domain */}
-      <img
+      <Image
         src={url}
         alt={label ?? '穿搭參考圖'}
         title={status === 'error' ? '圖片載入失敗' : undefined}
+        fill
+        sizes={isGrid ? '33vw' : '114px'}
         onLoad={() => setStatus('loaded')}
         onError={() => setStatus('error')}
         className={`h-full w-full object-cover transition-opacity ${status === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
