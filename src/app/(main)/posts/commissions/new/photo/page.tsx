@@ -1,6 +1,7 @@
 'use client';
 
 import { AlertCircle, ChevronDown, ImagePlus, Trash2 } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -249,10 +250,12 @@ export default function NewPostPhotoPage() {
               key={image.id}
               className="flex gap-3 rounded-xl border-[1.5px] border-border-default p-3.5"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element -- local object URL or backend URL preview */}
-              <img
+              <Image
                 src={image.url}
                 alt={attachmentLabel(image)}
+                width={80}
+                height={80}
+                sizes="80px"
                 className="h-20 w-20 flex-shrink-0 rounded-lg object-cover"
               />
               <div className="min-w-0 flex-1">

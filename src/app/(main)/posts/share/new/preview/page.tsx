@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronDown } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -284,11 +285,13 @@ export default function NewSharePostPreviewPage() {
         {photos.length > 0 ? (
           <div className="mb-5.5 flex flex-wrap gap-2">
             {photos.map((photo) => (
-              // eslint-disable-next-line @next/next/no-img-element -- uploaded photo URL from real backend
-              <img
+              <Image
                 key={photo.imageId}
                 src={photo.url}
                 alt=""
+                width={96}
+                height={96}
+                sizes="96px"
                 className="h-24 w-24 flex-shrink-0 rounded-xl object-cover"
               />
             ))}

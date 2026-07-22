@@ -1,6 +1,7 @@
 'use client';
 
 import { Calendar, Camera, ChevronLeft, Image as ImageIcon, Trash2 } from 'lucide-react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -132,8 +133,7 @@ export default function ProfileEditPage() {
               className="relative h-22 w-22 cursor-pointer overflow-hidden rounded-full border-[3px] border-background bg-primary shadow-[0_4px_12px_rgba(217,154,61,0.16)]"
             >
               {avatarPreviewUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={avatarPreviewUrl} alt="" className="h-full w-full object-cover" />
+                <Image src={avatarPreviewUrl} alt="" fill sizes="88px" className="object-cover" />
               ) : (
                 <span className="flex h-full w-full items-center justify-center text-display-lg font-bold text-gold-dark">
                   {avatarInitial}

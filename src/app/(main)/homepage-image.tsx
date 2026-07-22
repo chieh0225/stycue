@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 
 // Same per-image loading-state pattern as comments/comment-board.tsx's
@@ -11,10 +12,12 @@ export function HomepageImage({
   src,
   alt,
   className,
+  sizes = '50vw',
 }: {
   src: string;
   alt: string;
   className?: string;
+  sizes?: string;
 }) {
   const [status, setStatus] = useState<'loading' | 'loaded' | 'error'>('loading');
 
@@ -30,10 +33,11 @@ export function HomepageImage({
       <div
         className={`absolute inset-0 transition-opacity duration-400 ease-linear ${status === 'loaded' ? 'opacity-0' : 'opacity-100'} ${status === 'error' ? 'bg-secondary' : `shimmer-base ${status === 'loading' ? 'animate-shimmer' : ''}`}`}
       />
-      {/* eslint-disable-next-line @next/next/no-img-element -- uploaded photo URL from real backend */}
-      <img
+      <Image
         src={src}
         alt={alt}
+        fill
+        sizes={sizes}
         decoding="sync"
         onLoad={(e) => {
           // The load event only means the bytes arrived — decoding the

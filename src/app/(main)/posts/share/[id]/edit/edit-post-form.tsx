@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronLeft, ImagePlus, Plus, X } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
@@ -190,8 +191,7 @@ export default function EditPostForm({
                   key={image.imageId}
                   className="relative aspect-square overflow-hidden rounded-xl"
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element -- local object URL or backend URL preview */}
-                  <img src={image.url} alt="" className="h-full w-full object-cover" />
+                  <Image src={image.url} alt="" fill sizes="33vw" className="object-cover" />
                   {image.status === 'uploading' ? (
                     <div className="absolute inset-0 flex items-center justify-center bg-[rgba(64,58,50,0.55)] text-label-md text-surface-base">
                       上傳中…

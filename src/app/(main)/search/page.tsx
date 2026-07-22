@@ -185,6 +185,7 @@ export default function SearchPage() {
                         src={item.images[0].url}
                         alt={item.title}
                         className="h-17.5 w-17.5 shrink-0 rounded-lg"
+                        sizes="70px"
                       />
                     ) : (
                       <div className="flex h-17.5 w-17.5 shrink-0 items-center justify-center rounded-lg bg-border-subtle">
