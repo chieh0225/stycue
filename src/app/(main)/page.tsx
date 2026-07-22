@@ -426,7 +426,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mb-4 flex border-b border-border-default text-label-md">
+        <div className="mb-4 flex border-b border-border-default text-body-md">
           <button
             type="button"
             onClick={() => setSortMode('hot')}

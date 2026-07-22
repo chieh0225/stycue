@@ -211,11 +211,11 @@ export default function NewPostPage() {
               type="button"
               onClick={() => setTypeMenuOpen((open) => !open)}
               aria-expanded={typeMenuOpen}
-              className="flex cursor-pointer items-center gap-1 rounded-full bg-surface-soft px-3 py-1 text-label-md font-semibold text-accent-amber"
+              className="flex cursor-pointer items-center gap-1 rounded-lg border border-border-default bg-surface-soft px-2.5 py-1.25 text-label-md text-text-primary"
             >
               {postType}
               <ChevronDown
-                className={`h-2.5 w-2.5 transition-transform ${typeMenuOpen ? 'rotate-180' : ''}`}
+                className={`h-3 w-3 transition-transform ${typeMenuOpen ? 'rotate-180' : ''}`}
               />
             </button>
 
