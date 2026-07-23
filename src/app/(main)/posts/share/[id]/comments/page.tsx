@@ -43,6 +43,7 @@ function toReply(response: CommentResponse): Reply {
   return {
     replyId: String(response.commentId),
     nickName: response.author.displayName,
+    avatarUrl: response.author.avatarUrl,
     timeLabel: formatRelativeTime(response.createdAt),
     content: response.content,
     images: toCommentImages(response.images),
@@ -59,6 +60,7 @@ function toComment(response: CommentResponse, index: number): Comment {
     commentId: String(response.commentId),
     floor: `B${index + 1}`,
     nickName: response.author.displayName,
+    avatarUrl: response.author.avatarUrl,
     timeLabel: formatRelativeTime(response.createdAt),
     content: response.content,
     likeCount: response.likeCount,

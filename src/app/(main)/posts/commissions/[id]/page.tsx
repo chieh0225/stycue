@@ -1,8 +1,8 @@
-import { ChevronLeft, User } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -38,7 +38,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
     points,
     createdAt,
     expiredAt: deadline,
-    author: { userId: authorId, displayName: authorName, isFollowing },
+    author: { userId: authorId, displayName: authorName, avatarUrl: authorAvatarUrl, isFollowing },
     images: photos,
     likeCount,
     isLiked,
@@ -79,9 +79,8 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
         {/* Author row */}
         <div className="mb-4.5 flex items-center gap-2.5">
           <Avatar size="xl">
-            <AvatarFallback>
-              <User className="h-4.5 w-4.5" />
-            </AvatarFallback>
+            <AvatarImage src={authorAvatarUrl ?? undefined} alt="" />
+            <AvatarFallback>{authorName.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
           <div className="flex flex-1 flex-col">
             <span className="text-label-md font-bold text-text-primary">{authorName}</span>

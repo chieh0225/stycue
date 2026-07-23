@@ -4,13 +4,14 @@ import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BottomBar } from '@/components/ui/bottom-bar';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { TopBar } from '@/components/ui/top-bar';
 import { createPost } from '@/lib/post-api';
+import { getMyProfile } from '@/lib/user-api';
 import { cn } from '@/lib/utils';
 import type { PostType } from '@/types/post';
 import { getAuthedUser } from '../../../../../auth';
@@ -51,6 +52,16 @@ export default function NewSharePostPreviewPage() {
     queueMicrotask(() => {
       setNickName(getAuthedUser()?.nickName ?? null);
     });
+  }, []);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    getMyProfile().then((res) => {
+      if (active && res.success && res.data) setAvatarUrl(res.data.user.avatarUrl);
+    });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const {
@@ -249,6 +260,7 @@ export default function NewSharePostPreviewPage() {
         {/* Author row (not part of the entered content — shown for context only) */}
         <div className="mb-4.5 flex items-center gap-2.5">
           <Avatar size="xl">
+            <AvatarImage src={avatarUrl ?? undefined} alt="" />
             <AvatarFallback>{(nickName ?? '').charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
           <span className="text-label-md font-bold text-text-primary">{nickName}</span>
