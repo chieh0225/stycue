@@ -120,7 +120,7 @@ stycue/
 
 #### 開發流程
 
-- **feature/\* / fix/\* / chore/\* / refactor/\*** - 由 main 開出功能分支進行開發
+- **feat/\* / fix/\* / chore/\* / refactor/\*** - 由 main 開出功能分支進行開發
 - **merge → preparing** - 開發完成後合併進 preparing，透過 Vercel Preview 驗證功能
 - **PR → main** - 驗證無誤後發 PR 合併回 main 作為正式版本
 
