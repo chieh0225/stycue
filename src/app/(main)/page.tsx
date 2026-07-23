@@ -337,7 +337,12 @@ export default function Home() {
                         {index + 1}
                       </div>
                       {cover ? (
-                        <HomepageImage src={cover.url} alt={item.title} className="h-54 w-full" />
+                        <HomepageImage
+                          src={cover.url}
+                          alt={item.title}
+                          className="h-54 w-full"
+                          sizes="172px"
+                        />
                       ) : (
                         <div className="flex h-54 items-center justify-center bg-surface-soft">
                           <span className="rounded-md bg-white/70 px-2 py-1 text-label-md font-medium text-text-primary">

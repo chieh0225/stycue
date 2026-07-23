@@ -1,6 +1,7 @@
 'use client';
 
 import { AlertCircle, ChevronDown, ImagePlus, Trash2, User } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -95,11 +96,12 @@ function ExistingAttachmentImage({ src, alt }: { src: string; alt: string }) {
           )}
         </div>
       ) : null}
-      {/* eslint-disable-next-line @next/next/no-img-element -- backend SAS URL, not a next/image domain */}
-      <img
+      <Image
         src={src}
         alt={alt}
         title={status === 'error' ? '圖片載入失敗' : undefined}
+        fill
+        sizes="80px"
         onLoad={() => setStatus('loaded')}
         onError={() => setStatus('error')}
         className={`h-full w-full object-cover transition-opacity ${status === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
@@ -359,10 +361,12 @@ export default function AddCommentForm({
             className="mb-3.5 flex gap-3 overflow-visible p-3.5"
           >
             {image.kind === 'new' ? (
-              // eslint-disable-next-line @next/next/no-img-element -- local object URL preview
-              <img
+              <Image
                 src={image.url}
                 alt={image.file.name}
+                width={80}
+                height={80}
+                sizes="80px"
                 className="h-20 w-20 flex-shrink-0 rounded-lg object-cover"
               />
             ) : (

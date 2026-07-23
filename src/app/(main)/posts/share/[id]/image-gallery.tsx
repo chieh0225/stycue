@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useRef } from 'react';
 import type { ImageResponse } from '@/types/image';
 
@@ -38,11 +39,13 @@ export default function ImageGallery({ photos }: { photos: ImageResponse[] }) {
   return (
     <div ref={ref} className="mb-4.5 no-scrollbar flex gap-2.5 overflow-x-auto">
       {photos.map((photo, i) => (
-        // eslint-disable-next-line @next/next/no-img-element -- uploaded photo URL from real backend
-        <img
+        <Image
           key={photo.imageId}
           src={photo.url}
           alt={`圖片 ${i + 1}`}
+          width={254}
+          height={267}
+          sizes="254px"
           className="w-63.5 shrink-0 overflow-hidden rounded-panel object-cover"
           style={{ aspectRatio: '1 / 1.05' }}
         />

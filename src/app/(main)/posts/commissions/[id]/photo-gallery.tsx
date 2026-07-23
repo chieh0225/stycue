@@ -1,6 +1,7 @@
 'use client';
 
 import { Image } from 'lucide-react';
+import NextImage from 'next/image';
 import { useEffect, useRef } from 'react';
 import type { ImageResponse } from '@/types/image';
 
@@ -37,11 +38,13 @@ export default function PhotoGallery({ photos }: { photos: ImageResponse[] }) {
     <div ref={ref} className="mb-5.5 no-scrollbar flex gap-2 overflow-x-auto">
       {photos.length > 0
         ? photos.map((photo, i) => (
-            // eslint-disable-next-line @next/next/no-img-element -- uploaded photo URL from real backend
-            <img
+            <NextImage
               key={photo.imageId}
               src={photo.url}
               alt={`身形照片 ${i + 1}`}
+              width={180}
+              height={216}
+              sizes="180px"
               className="w-45 shrink-0 overflow-hidden rounded-xl object-cover"
               style={{ aspectRatio: '1 / 1.2' }}
             />

@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronDown, ImagePlus, Tag, X } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -277,8 +278,7 @@ export default function NewSharePostPage() {
                   key={photo.imageId}
                   className="relative aspect-square overflow-hidden rounded-xl"
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element -- uploaded photo URL from real backend */}
-                  <img src={photo.url} alt="" className="h-full w-full object-cover" />
+                  <Image src={photo.url} alt="" fill sizes="33vw" className="object-cover" />
                   <button
                     type="button"
                     onClick={() => removePhoto(photo.imageId)}
