@@ -3,7 +3,8 @@
 import { Calendar, Camera, ChevronLeft, Image as ImageIcon, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -15,15 +16,24 @@ import {
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { TopBar } from '@/components/ui/top-bar';
-import { getAuthedUser } from '../../../auth';
+import { getMyProfile } from '@/lib/user-api';
 
-type Gender = 'male' | 'female' | 'unspecified';
+// Wire format not yet confirmed against a live response (see MyUserProfileResponse's
+// gender caveat) — validated against this key list before being trusted.
+type Gender = 'woman' | 'man' | 'nonBinary' | 'preferNotToSay';
 
 const GENDER_OPTIONS: { key: Gender; label: string }[] = [
-  { key: 'male', label: '男' },
-  { key: 'female', label: '女' },
-  { key: 'unspecified', label: '不透露' },
+  { key: 'woman', label: '女' },
+  { key: 'man', label: '男' },
+  { key: 'nonBinary', label: '非二元' },
+  { key: 'preferNotToSay', label: '不透露' },
 ];
+
+const GENDER_KEYS: readonly string[] = GENDER_OPTIONS.map((option) => option.key);
+
+function isGender(value: string | null): value is Gender {
+  return value !== null && GENDER_KEYS.includes(value);
+}
 
 function formatBirthDate(value: string): string {
   const [year, month, day] = value.split('-');
@@ -34,41 +44,51 @@ export default function ProfileEditPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [nickname, setNickname] = useState(() => {
-    try {
-      return localStorage.getItem('stycue-profile-nickname') || getAuthedUser()?.nickName || '';
-    } catch {
-      return getAuthedUser()?.nickName || '';
-    }
-  });
-  const [gender, setGender] = useState<Gender>('unspecified');
+  const [nickname, setNickname] = useState('');
+  const [bio, setBio] = useState('');
+  const [gender, setGender] = useState<Gender | null>(null);
   const [birthDate, setBirthDate] = useState('');
   const [heightCm, setHeightCm] = useState('');
   const [weightKg, setWeightKg] = useState('');
   const [avatarSheetOpen, setAvatarSheetOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(() => {
-    try {
-      return localStorage.getItem('stycue-profile-avatar');
-    } catch {
-      return null;
-    }
-  });
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const result = await getMyProfile();
+      if (cancelled) return;
+      if (result.success && result.data) {
+        const {
+          user,
+          bio: loadedBio,
+          gender: loadedGender,
+          height,
+          weight,
+          birthDate: loadedBirthDate,
+        } = result.data;
+        setNickname(user.displayName ?? '');
+        setBio(loadedBio ?? '');
+        setGender(isGender(loadedGender) ? loadedGender : null);
+        setHeightCm(height !== null ? String(height) : '');
+        setWeightKg(weight !== null ? String(weight) : '');
+        setBirthDate(loadedBirthDate ? loadedBirthDate.slice(0, 10) : '');
+        setAvatarPreviewUrl(user.avatarUrl);
+      } else {
+        toast.error(result.message || '無法載入個人資料');
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const avatarFilled = avatarPreviewUrl !== null;
   const avatarInitial = nickname.trim().charAt(0).toUpperCase() || '?';
 
   function handleSave() {
-    try {
-      localStorage.setItem('stycue-profile-nickname', nickname || '');
-      if (avatarPreviewUrl) {
-        localStorage.setItem('stycue-profile-avatar', avatarPreviewUrl);
-      } else {
-        localStorage.removeItem('stycue-profile-avatar');
-      }
-    } catch {
-      // ignore write failures (e.g. private browsing)
-    }
+    // TODO(commit 2): wire up PUT /api/users/me/profile
   }
 
   function handlePickFromLibrary() {
@@ -178,6 +198,8 @@ export default function ProfileEditPage() {
               <span className="w-19 shrink-0 pt-0.5 text-body-md text-text-muted">自我介紹</span>
               <textarea
                 rows={2}
+                value={bio}
+                onChange={(event) => setBio(event.target.value)}
                 placeholder="介紹一下你的穿搭風格吧"
                 className="flex-1 resize-none border-none bg-transparent text-right text-body-md text-text-primary outline-none placeholder:font-medium placeholder:text-text-placeholder"
               />
