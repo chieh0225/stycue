@@ -16,6 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { TopBar } from '@/components/ui/top-bar';
+import { uploadAvatar } from '@/lib/image-api';
 import { getMyProfile, updateMyProfile } from '@/lib/user-api';
 import { getAuthedUser, setAuthed } from '../../../auth';
 
@@ -55,6 +56,7 @@ export default function ProfileEditPage() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -130,22 +132,33 @@ export default function ProfileEditPage() {
     setAvatarSheetOpen(false);
   }
 
-  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          setAvatarPreviewUrl(reader.result);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
     event.target.value = '';
+    if (!file) return;
+
+    setAvatarUploading(true);
+    try {
+      const result = await uploadAvatar(file);
+      if (!result.success || !result.data) {
+        toast.error(result.message || '大頭貼上傳失敗，請稍後再試');
+        return;
+      }
+      setAvatarPreviewUrl(result.data.url);
+    } catch {
+      toast.error('無法連線到伺服器，請稍後再試');
+    } finally {
+      setAvatarUploading(false);
+    }
   }
 
-  function handleConfirmDeleteAvatar() {
+  async function handleConfirmDeleteAvatar() {
     setDeleteConfirmOpen(false);
+    const result = await updateMyProfile({ avatarImageId: null });
+    if (!result.success) {
+      toast.error(result.message || '刪除大頭貼失敗，請稍後再試');
+      return;
+    }
     setAvatarPreviewUrl(null);
   }
 
@@ -185,7 +198,8 @@ export default function ProfileEditPage() {
             <button
               type="button"
               onClick={() => setAvatarSheetOpen(true)}
-              className="relative h-22 w-22 cursor-pointer overflow-hidden rounded-full border-[3px] border-background bg-primary shadow-[0_4px_12px_rgba(217,154,61,0.16)]"
+              disabled={avatarUploading}
+              className="relative h-22 w-22 cursor-pointer overflow-hidden rounded-full border-[3px] border-background bg-primary shadow-[0_4px_12px_rgba(217,154,61,0.16)] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {avatarPreviewUrl ? (
                 <Image src={avatarPreviewUrl} alt="" fill sizes="88px" className="object-cover" />
@@ -198,13 +212,14 @@ export default function ProfileEditPage() {
             <button
               type="button"
               onClick={() => setAvatarSheetOpen(true)}
-              className="absolute -right-0.5 -bottom-0.5 flex h-7.5 w-7.5 cursor-pointer items-center justify-center rounded-full border-[3px] border-muted bg-foreground"
+              disabled={avatarUploading}
+              className="absolute -right-0.5 -bottom-0.5 flex h-7.5 w-7.5 cursor-pointer items-center justify-center rounded-full border-[3px] border-muted bg-foreground disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Camera className="h-3.5 w-3.5 text-background" strokeWidth={2} />
             </button>
           </div>
           <span className="mt-2.5 text-label-md text-text-tertiary">
-            {avatarFilled ? '點擊以更換大頭貼' : '點擊以上傳大頭貼'}
+            {avatarUploading ? '上傳中…' : avatarFilled ? '點擊以更換大頭貼' : '點擊以上傳大頭貼'}
           </span>
           <input
             ref={fileInputRef}
