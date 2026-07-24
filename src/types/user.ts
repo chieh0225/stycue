@@ -18,3 +18,16 @@ export type PublicUserProfileResponse = {
   followerCount: number;
   isFollowing: boolean | null;
 };
+
+// Wire format for `gender` not yet confirmed against a live response (see
+// MyUserProfileResponse's caveat above) — kept as a plain string rather than
+// guessing the value set.
+export type UpdateUserProfileRequest = {
+  nickName?: string | null;
+  avatarImageId?: number | null;
+  bio?: string | null;
+  gender?: string | null;
+  height?: number | null;
+  weight?: number | null;
+  birthDate?: string | null;
+};

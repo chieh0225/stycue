@@ -16,7 +16,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { TopBar } from '@/components/ui/top-bar';
-import { getMyProfile } from '@/lib/user-api';
+import { getMyProfile, updateMyProfile } from '@/lib/user-api';
+import { getAuthedUser, setAuthed } from '../../../auth';
 
 // Wire format not yet confirmed against a live response (see MyUserProfileResponse's
 // gender caveat) — validated against this key list before being trusted.
@@ -53,6 +54,7 @@ export default function ProfileEditPage() {
   const [avatarSheetOpen, setAvatarSheetOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -87,8 +89,40 @@ export default function ProfileEditPage() {
   const avatarFilled = avatarPreviewUrl !== null;
   const avatarInitial = nickname.trim().charAt(0).toUpperCase() || '?';
 
-  function handleSave() {
-    // TODO(commit 2): wire up PUT /api/users/me/profile
+  async function handleSave() {
+    const trimmedNickname = nickname.trim();
+    if (!trimmedNickname) {
+      toast.error('請輸入暱稱');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const result = await updateMyProfile({
+        nickName: trimmedNickname,
+        bio,
+        gender,
+        height: heightCm.trim() ? Number(heightCm) : null,
+        weight: weightKg.trim() ? Number(weightKg) : null,
+        birthDate: birthDate ? `${birthDate}T00:00:00.000Z` : null,
+      });
+
+      if (!result.success || !result.data) {
+        toast.error(result.message || '儲存失敗，請稍後再試');
+        return;
+      }
+
+      const currentUser = getAuthedUser();
+      if (currentUser && currentUser.nickName !== trimmedNickname) {
+        setAuthed({ ...currentUser, nickName: trimmedNickname });
+      }
+
+      toast.success('個人資料已更新');
+    } catch {
+      toast.error('無法連線到伺服器，請稍後再試');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function handlePickFromLibrary() {
@@ -134,7 +168,8 @@ export default function ProfileEditPage() {
           <button
             type="button"
             onClick={handleSave}
-            className="cursor-pointer text-label-md font-bold text-gold-dark"
+            disabled={submitting}
+            className="cursor-pointer text-label-md font-bold text-gold-dark disabled:cursor-not-allowed disabled:opacity-50"
           >
             儲存
           </button>
