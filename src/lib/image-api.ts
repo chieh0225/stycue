@@ -19,3 +19,11 @@ export async function deleteImage(imageId: number): Promise<ApiEnvelope<unknown>
   const res = await fetch(`/api/images/${imageId}`, { method: 'DELETE' });
   return (await res.json()) as ApiEnvelope<unknown>;
 }
+
+export async function uploadAvatar(file: File): Promise<ApiEnvelope<ImageResponse>> {
+  const formData = new FormData();
+  formData.append('File', file);
+
+  const res = await fetch('/api/images/avatar', { method: 'POST', body: formData });
+  return (await res.json()) as ApiEnvelope<ImageResponse>;
+}
