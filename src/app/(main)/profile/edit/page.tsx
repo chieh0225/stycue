@@ -3,7 +3,8 @@
 import { Calendar, Camera, ChevronLeft, Image as ImageIcon, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -15,15 +16,26 @@ import {
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { TopBar } from '@/components/ui/top-bar';
-import { getAuthedUser } from '../../../auth';
+import { deleteImage, uploadAvatar } from '@/lib/image-api';
+import { getMyProfile, updateMyProfile } from '@/lib/user-api';
+import { getAuthedUser, setAuthed } from '../../../auth';
 
-type Gender = 'male' | 'female' | 'unspecified';
+// Wire format not yet confirmed against a live response (see MyUserProfileResponse's
+// gender caveat) — validated against this key list before being trusted.
+type Gender = 'woman' | 'man' | 'nonBinary' | 'preferNotToSay';
 
 const GENDER_OPTIONS: { key: Gender; label: string }[] = [
-  { key: 'male', label: '男' },
-  { key: 'female', label: '女' },
-  { key: 'unspecified', label: '不透露' },
+  { key: 'woman', label: '女' },
+  { key: 'man', label: '男' },
+  { key: 'nonBinary', label: '非二元' },
+  { key: 'preferNotToSay', label: '不透露' },
 ];
+
+const GENDER_KEYS: readonly string[] = GENDER_OPTIONS.map((option) => option.key);
+
+function isGender(value: string | null): value is Gender {
+  return value !== null && GENDER_KEYS.includes(value);
+}
 
 function formatBirthDate(value: string): string {
   const [year, month, day] = value.split('-');
@@ -34,40 +46,87 @@ export default function ProfileEditPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [nickname, setNickname] = useState(() => {
-    try {
-      return localStorage.getItem('stycue-profile-nickname') || getAuthedUser()?.nickName || '';
-    } catch {
-      return getAuthedUser()?.nickName || '';
-    }
-  });
-  const [gender, setGender] = useState<Gender>('unspecified');
+  const [nickname, setNickname] = useState('');
+  const [bio, setBio] = useState('');
+  const [gender, setGender] = useState<Gender | null>(null);
   const [birthDate, setBirthDate] = useState('');
   const [heightCm, setHeightCm] = useState('');
   const [weightKg, setWeightKg] = useState('');
   const [avatarSheetOpen, setAvatarSheetOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(() => {
-    try {
-      return localStorage.getItem('stycue-profile-avatar');
-    } catch {
-      return null;
-    }
-  });
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
+  const [avatarImageId, setAvatarImageId] = useState<number | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const result = await getMyProfile();
+      if (cancelled) return;
+      if (result.success && result.data) {
+        const {
+          user,
+          avatarImageId: loadedAvatarImageId,
+          bio: loadedBio,
+          gender: loadedGender,
+          height,
+          weight,
+          birthDate: loadedBirthDate,
+        } = result.data;
+        setNickname(user.displayName ?? '');
+        setBio(loadedBio ?? '');
+        setGender(isGender(loadedGender) ? loadedGender : null);
+        setHeightCm(height !== null ? String(height) : '');
+        setWeightKg(weight !== null ? String(weight) : '');
+        setBirthDate(loadedBirthDate ? loadedBirthDate.slice(0, 10) : '');
+        setAvatarPreviewUrl(user.avatarUrl);
+        setAvatarImageId(loadedAvatarImageId);
+      } else {
+        toast.error(result.message || '無法載入個人資料');
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const avatarFilled = avatarPreviewUrl !== null;
   const avatarInitial = nickname.trim().charAt(0).toUpperCase() || '?';
 
-  function handleSave() {
+  async function handleSave() {
+    const trimmedNickname = nickname.trim();
+    if (!trimmedNickname) {
+      toast.error('請輸入暱稱');
+      return;
+    }
+
+    setSubmitting(true);
     try {
-      localStorage.setItem('stycue-profile-nickname', nickname || '');
-      if (avatarPreviewUrl) {
-        localStorage.setItem('stycue-profile-avatar', avatarPreviewUrl);
-      } else {
-        localStorage.removeItem('stycue-profile-avatar');
+      const result = await updateMyProfile({
+        nickName: trimmedNickname,
+        bio,
+        gender,
+        height: heightCm.trim(),
+        weight: weightKg.trim(),
+        birthDate,
+      });
+
+      if (!result.success || !result.data) {
+        toast.error(result.message || '儲存失敗，請稍後再試');
+        return;
       }
+
+      const currentUser = getAuthedUser();
+      if (currentUser && currentUser.nickName !== trimmedNickname) {
+        setAuthed({ ...currentUser, nickName: trimmedNickname });
+      }
+
+      toast.success('個人資料已更新');
     } catch {
-      // ignore write failures (e.g. private browsing)
+      toast.error('無法連線到伺服器，請稍後再試');
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -76,23 +135,38 @@ export default function ProfileEditPage() {
     setAvatarSheetOpen(false);
   }
 
-  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          setAvatarPreviewUrl(reader.result);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
     event.target.value = '';
+    if (!file) return;
+
+    setAvatarUploading(true);
+    try {
+      const result = await uploadAvatar(file);
+      if (!result.success || !result.data) {
+        toast.error(result.message || '大頭貼上傳失敗，請稍後再試');
+        return;
+      }
+      setAvatarPreviewUrl(result.data.url);
+      setAvatarImageId(result.data.imageId);
+    } catch {
+      toast.error('無法連線到伺服器，請稍後再試');
+    } finally {
+      setAvatarUploading(false);
+    }
   }
 
-  function handleConfirmDeleteAvatar() {
+  async function handleConfirmDeleteAvatar() {
     setDeleteConfirmOpen(false);
+    if (avatarImageId === null) return;
+
+    const result = await deleteImage(avatarImageId);
+    if (!result.success) {
+      toast.error(result.message || '刪除大頭貼失敗，請稍後再試');
+      return;
+    }
     setAvatarPreviewUrl(null);
+    setAvatarImageId(null);
   }
 
   return (
@@ -114,7 +188,8 @@ export default function ProfileEditPage() {
           <button
             type="button"
             onClick={handleSave}
-            className="cursor-pointer text-label-md font-bold text-gold-dark"
+            disabled={submitting}
+            className="cursor-pointer text-label-md font-bold text-gold-dark disabled:cursor-not-allowed disabled:opacity-50"
           >
             儲存
           </button>
@@ -130,7 +205,8 @@ export default function ProfileEditPage() {
             <button
               type="button"
               onClick={() => setAvatarSheetOpen(true)}
-              className="relative h-22 w-22 cursor-pointer overflow-hidden rounded-full border-[3px] border-background bg-primary shadow-[0_4px_12px_rgba(217,154,61,0.16)]"
+              disabled={avatarUploading}
+              className="relative h-22 w-22 cursor-pointer overflow-hidden rounded-full border-[3px] border-background bg-primary shadow-[0_4px_12px_rgba(217,154,61,0.16)] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {avatarPreviewUrl ? (
                 <Image src={avatarPreviewUrl} alt="" fill sizes="88px" className="object-cover" />
@@ -143,13 +219,14 @@ export default function ProfileEditPage() {
             <button
               type="button"
               onClick={() => setAvatarSheetOpen(true)}
-              className="absolute -right-0.5 -bottom-0.5 flex h-7.5 w-7.5 cursor-pointer items-center justify-center rounded-full border-[3px] border-muted bg-foreground"
+              disabled={avatarUploading}
+              className="absolute -right-0.5 -bottom-0.5 flex h-7.5 w-7.5 cursor-pointer items-center justify-center rounded-full border-[3px] border-muted bg-foreground disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Camera className="h-3.5 w-3.5 text-background" strokeWidth={2} />
             </button>
           </div>
           <span className="mt-2.5 text-label-md text-text-tertiary">
-            {avatarFilled ? '點擊以更換大頭貼' : '點擊以上傳大頭貼'}
+            {avatarUploading ? '上傳中…' : avatarFilled ? '點擊以更換大頭貼' : '點擊以上傳大頭貼'}
           </span>
           <input
             ref={fileInputRef}
@@ -178,6 +255,8 @@ export default function ProfileEditPage() {
               <span className="w-19 shrink-0 pt-0.5 text-body-md text-text-muted">自我介紹</span>
               <textarea
                 rows={2}
+                value={bio}
+                onChange={(event) => setBio(event.target.value)}
                 placeholder="介紹一下你的穿搭風格吧"
                 className="flex-1 resize-none border-none bg-transparent text-right text-body-md text-text-primary outline-none placeholder:font-medium placeholder:text-text-placeholder"
               />
