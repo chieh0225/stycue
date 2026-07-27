@@ -16,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { TopBar } from '@/components/ui/top-bar';
-import { uploadAvatar } from '@/lib/image-api';
+import { deleteImage, uploadAvatar } from '@/lib/image-api';
 import { getMyProfile, updateMyProfile } from '@/lib/user-api';
 import { getAuthedUser, setAuthed } from '../../../auth';
 
@@ -55,6 +55,7 @@ export default function ProfileEditPage() {
   const [avatarSheetOpen, setAvatarSheetOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
+  const [avatarImageId, setAvatarImageId] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
 
@@ -66,6 +67,7 @@ export default function ProfileEditPage() {
       if (result.success && result.data) {
         const {
           user,
+          avatarImageId: loadedAvatarImageId,
           bio: loadedBio,
           gender: loadedGender,
           height,
@@ -79,6 +81,7 @@ export default function ProfileEditPage() {
         setWeightKg(weight !== null ? String(weight) : '');
         setBirthDate(loadedBirthDate ? loadedBirthDate.slice(0, 10) : '');
         setAvatarPreviewUrl(user.avatarUrl);
+        setAvatarImageId(loadedAvatarImageId);
       } else {
         toast.error(result.message || '無法載入個人資料');
       }
@@ -104,9 +107,9 @@ export default function ProfileEditPage() {
         nickName: trimmedNickname,
         bio,
         gender,
-        height: heightCm.trim() ? Number(heightCm) : null,
-        weight: weightKg.trim() ? Number(weightKg) : null,
-        birthDate: birthDate ? `${birthDate}T00:00:00.000Z` : null,
+        height: heightCm.trim(),
+        weight: weightKg.trim(),
+        birthDate,
       });
 
       if (!result.success || !result.data) {
@@ -145,6 +148,7 @@ export default function ProfileEditPage() {
         return;
       }
       setAvatarPreviewUrl(result.data.url);
+      setAvatarImageId(result.data.imageId);
     } catch {
       toast.error('無法連線到伺服器，請稍後再試');
     } finally {
@@ -154,12 +158,15 @@ export default function ProfileEditPage() {
 
   async function handleConfirmDeleteAvatar() {
     setDeleteConfirmOpen(false);
-    const result = await updateMyProfile({ avatarImageId: null });
+    if (avatarImageId === null) return;
+
+    const result = await deleteImage(avatarImageId);
     if (!result.success) {
       toast.error(result.message || '刪除大頭貼失敗，請稍後再試');
       return;
     }
     setAvatarPreviewUrl(null);
+    setAvatarImageId(null);
   }
 
   return (
