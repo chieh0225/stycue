@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { buttonVariants } from '@/components/ui/button';
 import { TopBar } from '@/components/ui/top-bar';
+import { calculateAge } from '@/lib/date-utils';
 import { deleteImage } from '@/lib/image-api';
 import { getPointWallet } from '@/lib/points-api';
 import { getMyProfile } from '@/lib/user-api';
@@ -74,15 +75,52 @@ export default function NewPostPage() {
     });
   }, []);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [profileBodyInfo, setProfileBodyInfo] = useState<{
+    height: number | null;
+    weight: number | null;
+    birthDate: string | null;
+  } | null>(null);
   useEffect(() => {
     let active = true;
     getMyProfile().then((res) => {
-      if (active && res.success && res.data) setAvatarUrl(res.data.user.avatarUrl);
+      if (!active || !res.success || !res.data) return;
+      setAvatarUrl(res.data.user.avatarUrl);
+      setProfileBodyInfo({
+        height: res.data.height,
+        weight: res.data.weight,
+        birthDate: res.data.birthDate,
+      });
     });
     return () => {
       active = false;
     };
   }, []);
+
+  // Manual trigger only — never overwrites fields the profile has no value
+  // for, so a partially-filled profile can't blank out what the user already
+  // typed here.
+  function fillBodyInfoFromProfile() {
+    const hasAnyBodyInfo =
+      profileBodyInfo &&
+      (profileBodyInfo.height != null ||
+        profileBodyInfo.weight != null ||
+        profileBodyInfo.birthDate != null);
+    if (!hasAnyBodyInfo) {
+      toast('尚未在個人資料填寫身材資訊，請先前往個人資料頁填寫', {
+        action: {
+          label: '前往填寫',
+          onClick: () => router.push('/profile/edit'),
+        },
+      });
+      return;
+    }
+    setForm((prev) => ({
+      ...prev,
+      height: profileBodyInfo.height != null ? String(profileBodyInfo.height) : prev.height,
+      weight: profileBodyInfo.weight != null ? String(profileBodyInfo.weight) : prev.weight,
+      age: profileBodyInfo.birthDate ? String(calculateAge(profileBodyInfo.birthDate)) : prev.age,
+    }));
+  }
 
   // Computed client-side (rather than at render time) to avoid a hydration
   // mismatch between the server's "now" and the browser's "now".
@@ -400,6 +438,13 @@ export default function NewPostPage() {
             <h2 className="text-body-lg font-semibold text-text-primary">身材資訊</h2>
             <span className="text-label-md text-red-500">*必填</span>
           </div>
+          <button
+            type="button"
+            onClick={fillBodyInfoFromProfile}
+            className="flex w-fit items-center gap-1 rounded-full border border-border-default px-3 py-1.5 text-label-md text-text-muted"
+          >
+            使用我的身材資訊
+          </button>
           <input
             type="number"
             min="1"
