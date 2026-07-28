@@ -21,7 +21,6 @@ export default function RegisterPage() {
   const [apiError, setApiError] = useState<string | null>(null);
   const [emailTaken, setEmailTaken] = useState(false);
   const {
-    containerRef: googleContainerRef,
     triggerClick: triggerGoogleClick,
     loading: googleLoading,
     apiError: googleApiError,
@@ -272,7 +271,6 @@ export default function RegisterPage() {
       </div>
 
       {/* Google */}
-      <div ref={googleContainerRef} className="pointer-events-none absolute h-0 w-0 opacity-0" />
       <button
         type="button"
         onClick={triggerGoogleClick}
