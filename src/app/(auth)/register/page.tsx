@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { setAuthed } from '../../auth';
 import { AlertIcon, GoogleIcon, LockIcon, LogoIcon, MailIcon, PersonIcon } from '../icons';
+import { useGoogleAuth } from '../use-google-auth';
 import { EMAIL_REGEX, PASSWORD_REGEX } from '../validation';
 
 export default function RegisterPage() {
@@ -19,6 +20,12 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [emailTaken, setEmailTaken] = useState(false);
+  const {
+    containerRef: googleContainerRef,
+    triggerClick: triggerGoogleClick,
+    loading: googleLoading,
+    apiError: googleApiError,
+  } = useGoogleAuth();
 
   const nicknameError = submitted && !nickname.trim() ? '請輸入暱稱' : null;
   const emailError = emailTaken
@@ -239,10 +246,10 @@ export default function RegisterPage() {
           )}
         </div>
 
-        {apiError && (
+        {(apiError || googleApiError) && (
           <div className="mt-4 flex items-center gap-1.25 rounded-lg bg-destructive-bg px-3.5 py-2.5 text-label-md font-semibold text-destructive">
             <AlertIcon />
-            {apiError}
+            {apiError || googleApiError}
           </div>
         )}
 
@@ -265,9 +272,12 @@ export default function RegisterPage() {
       </div>
 
       {/* Google */}
+      <div ref={googleContainerRef} className="pointer-events-none absolute h-0 w-0 opacity-0" />
       <button
         type="button"
-        className="mb-6 flex h-12.5 w-full cursor-pointer items-center justify-center gap-2.5 rounded-lg border border-border-default bg-white text-label-md font-semibold text-text-primary shadow-card"
+        onClick={triggerGoogleClick}
+        disabled={googleLoading}
+        className="mb-6 flex h-12.5 w-full cursor-pointer items-center justify-center gap-2.5 rounded-lg border border-border-default bg-white text-label-md font-semibold text-text-primary shadow-card disabled:cursor-not-allowed disabled:opacity-60"
       >
         <GoogleIcon />
         使用 Google 繼續
