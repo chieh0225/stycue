@@ -1,6 +1,6 @@
 'use client';
 
-import { Calendar, ChevronDown, ImagePlus, Info, Plus, Tag, X } from 'lucide-react';
+import { Calendar, Check, ChevronDown, ImagePlus, Info, Plus, Tag, User, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { buttonVariants } from '@/components/ui/button';
 import { TopBar } from '@/components/ui/top-bar';
+import { calculateAge } from '@/lib/date-utils';
 import { deleteImage } from '@/lib/image-api';
 import { getPointWallet } from '@/lib/points-api';
 import { getMyProfile } from '@/lib/user-api';
@@ -74,15 +75,66 @@ export default function NewPostPage() {
     });
   }, []);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [profileBodyInfo, setProfileBodyInfo] = useState<{
+    height: number | null;
+    weight: number | null;
+    birthDate: string | null;
+  } | null>(null);
   useEffect(() => {
     let active = true;
     getMyProfile().then((res) => {
-      if (active && res.success && res.data) setAvatarUrl(res.data.user.avatarUrl);
+      if (!active || !res.success || !res.data) return;
+      setAvatarUrl(res.data.user.avatarUrl);
+      setProfileBodyInfo({
+        height: res.data.height,
+        weight: res.data.weight,
+        birthDate: res.data.birthDate,
+      });
     });
     return () => {
       active = false;
     };
   }, []);
+
+  // Toggle button: fills height/weight/age from the profile on first click
+  // (never overwriting a field the profile has no value for), and clears
+  // those same fields back to empty on a second click. Manually emptying any
+  // of the three fields also drops back to the "not applied" state, same as
+  // clicking the button to clear.
+  const [bodyInfoApplied, setBodyInfoApplied] = useState(false);
+  function fillBodyInfoFromProfile() {
+    if (bodyInfoApplied) {
+      setForm((prev) => ({ ...prev, height: '', weight: '', age: '' }));
+      setBodyInfoApplied(false);
+      return;
+    }
+    const hasAnyBodyInfo =
+      profileBodyInfo &&
+      (profileBodyInfo.height != null ||
+        profileBodyInfo.weight != null ||
+        profileBodyInfo.birthDate != null);
+    if (!hasAnyBodyInfo) {
+      toast('尚未在個人資料填寫身材資訊，請先前往個人資料頁填寫', {
+        action: {
+          label: '前往填寫',
+          onClick: () => router.push('/profile/edit'),
+        },
+      });
+      return;
+    }
+    setForm((prev) => ({
+      ...prev,
+      height: profileBodyInfo.height != null ? String(profileBodyInfo.height) : prev.height,
+      weight: profileBodyInfo.weight != null ? String(profileBodyInfo.weight) : prev.weight,
+      age: profileBodyInfo.birthDate ? String(calculateAge(profileBodyInfo.birthDate)) : prev.age,
+    }));
+    setBodyInfoApplied(true);
+  }
+
+  function updateBodyInfoField(field: 'height' | 'weight' | 'age', value: string) {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    if (value === '') setBodyInfoApplied(false);
+  }
 
   // Computed client-side (rather than at render time) to avoid a hydration
   // mismatch between the server's "now" and the browser's "now".
@@ -400,11 +452,28 @@ export default function NewPostPage() {
             <h2 className="text-body-lg font-semibold text-text-primary">身材資訊</h2>
             <span className="text-label-md text-red-500">*必填</span>
           </div>
+          <button
+            type="button"
+            onClick={fillBodyInfoFromProfile}
+            className={cn(
+              'flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border px-3 py-3 text-label-md font-bold',
+              bodyInfoApplied
+                ? 'border-sage bg-[#E3E9D3] text-[#4E5C3A]'
+                : 'border-dashed border-gold bg-[#FBF4DD] text-gold-dark',
+            )}
+          >
+            {bodyInfoApplied ? (
+              <Check className="h-4 w-4" aria-hidden />
+            ) : (
+              <User className="h-4 w-4" aria-hidden />
+            )}
+            {bodyInfoApplied ? '已套用身材資訊' : '使用我的身材資訊'}
+          </button>
           <input
             type="number"
             min="1"
             value={height}
-            onChange={(event) => setForm((prev) => ({ ...prev, height: event.target.value }))}
+            onChange={(event) => updateBodyInfoField('height', event.target.value)}
             placeholder={heightFocused ? '' : '您的身高 (公分)'}
             onFocus={() => setHeightFocused(true)}
             onBlur={() => setHeightFocused(false)}
@@ -414,7 +483,7 @@ export default function NewPostPage() {
             type="number"
             min="1"
             value={weight}
-            onChange={(event) => setForm((prev) => ({ ...prev, weight: event.target.value }))}
+            onChange={(event) => updateBodyInfoField('weight', event.target.value)}
             placeholder={weightFocused ? '' : '您的體重 (公斤)'}
             onFocus={() => setWeightFocused(true)}
             onBlur={() => setWeightFocused(false)}
@@ -424,7 +493,7 @@ export default function NewPostPage() {
             type="number"
             min="1"
             value={age}
-            onChange={(event) => setForm((prev) => ({ ...prev, age: event.target.value }))}
+            onChange={(event) => updateBodyInfoField('age', event.target.value)}
             placeholder={ageFocused ? '' : '您的年齡'}
             onFocus={() => setAgeFocused(true)}
             onBlur={() => setAgeFocused(false)}
