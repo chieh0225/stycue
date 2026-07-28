@@ -35,7 +35,7 @@ export function useGoogleAuth() {
     }
   }
 
-  const { containerRef, triggerClick } = useGoogleSignIn({
+  const { triggerClick } = useGoogleSignIn({
     onCredential: handleCredential,
     onError: (message) => {
       setLoading(false);
@@ -43,5 +43,5 @@ export function useGoogleAuth() {
     },
   });
 
-  return { containerRef, triggerClick, loading, apiError };
+  return { triggerClick, loading, apiError };
 }

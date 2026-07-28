@@ -19,7 +19,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const {
-    containerRef: googleContainerRef,
     triggerClick: triggerGoogleClick,
     loading: googleLoading,
     apiError: googleApiError,
@@ -166,7 +165,6 @@ export default function LoginPage() {
       </div>
 
       {/* Google */}
-      <div ref={googleContainerRef} className="pointer-events-none absolute h-0 w-0 opacity-0" />
       <button
         type="button"
         onClick={triggerGoogleClick}
