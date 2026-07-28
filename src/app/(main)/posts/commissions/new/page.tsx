@@ -1,6 +1,6 @@
 'use client';
 
-import { Calendar, ChevronDown, ImagePlus, Info, Plus, Tag, X } from 'lucide-react';
+import { Calendar, Check, ChevronDown, ImagePlus, Info, Plus, Tag, User, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -96,10 +96,18 @@ export default function NewPostPage() {
     };
   }, []);
 
-  // Manual trigger only — never overwrites fields the profile has no value
-  // for, so a partially-filled profile can't blank out what the user already
-  // typed here.
+  // Toggle button: fills height/weight/age from the profile on first click
+  // (never overwriting a field the profile has no value for), and clears
+  // those same fields back to empty on a second click. Manually emptying any
+  // of the three fields also drops back to the "not applied" state, same as
+  // clicking the button to clear.
+  const [bodyInfoApplied, setBodyInfoApplied] = useState(false);
   function fillBodyInfoFromProfile() {
+    if (bodyInfoApplied) {
+      setForm((prev) => ({ ...prev, height: '', weight: '', age: '' }));
+      setBodyInfoApplied(false);
+      return;
+    }
     const hasAnyBodyInfo =
       profileBodyInfo &&
       (profileBodyInfo.height != null ||
@@ -120,6 +128,12 @@ export default function NewPostPage() {
       weight: profileBodyInfo.weight != null ? String(profileBodyInfo.weight) : prev.weight,
       age: profileBodyInfo.birthDate ? String(calculateAge(profileBodyInfo.birthDate)) : prev.age,
     }));
+    setBodyInfoApplied(true);
+  }
+
+  function updateBodyInfoField(field: 'height' | 'weight' | 'age', value: string) {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    if (value === '') setBodyInfoApplied(false);
   }
 
   // Computed client-side (rather than at render time) to avoid a hydration
@@ -441,15 +455,25 @@ export default function NewPostPage() {
           <button
             type="button"
             onClick={fillBodyInfoFromProfile}
-            className="flex w-fit items-center gap-1 rounded-full border border-border-default px-3 py-1.5 text-label-md text-text-muted"
+            className={cn(
+              'flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border px-3 py-3 text-label-md font-bold',
+              bodyInfoApplied
+                ? 'border-sage bg-[#E3E9D3] text-[#4E5C3A]'
+                : 'border-dashed border-gold bg-[#FBF4DD] text-gold-dark',
+            )}
           >
-            使用我的身材資訊
+            {bodyInfoApplied ? (
+              <Check className="h-4 w-4" aria-hidden />
+            ) : (
+              <User className="h-4 w-4" aria-hidden />
+            )}
+            {bodyInfoApplied ? '已套用身材資訊' : '使用我的身材資訊'}
           </button>
           <input
             type="number"
             min="1"
             value={height}
-            onChange={(event) => setForm((prev) => ({ ...prev, height: event.target.value }))}
+            onChange={(event) => updateBodyInfoField('height', event.target.value)}
             placeholder={heightFocused ? '' : '您的身高 (公分)'}
             onFocus={() => setHeightFocused(true)}
             onBlur={() => setHeightFocused(false)}
@@ -459,7 +483,7 @@ export default function NewPostPage() {
             type="number"
             min="1"
             value={weight}
-            onChange={(event) => setForm((prev) => ({ ...prev, weight: event.target.value }))}
+            onChange={(event) => updateBodyInfoField('weight', event.target.value)}
             placeholder={weightFocused ? '' : '您的體重 (公斤)'}
             onFocus={() => setWeightFocused(true)}
             onBlur={() => setWeightFocused(false)}
@@ -469,7 +493,7 @@ export default function NewPostPage() {
             type="number"
             min="1"
             value={age}
-            onChange={(event) => setForm((prev) => ({ ...prev, age: event.target.value }))}
+            onChange={(event) => updateBodyInfoField('age', event.target.value)}
             placeholder={ageFocused ? '' : '您的年齡'}
             onFocus={() => setAgeFocused(true)}
             onBlur={() => setAgeFocused(false)}
