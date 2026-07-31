@@ -8,6 +8,7 @@ import { MaybeLink } from '@/components/ui/maybe-link';
 import { Separator } from '@/components/ui/separator';
 import { setAuthed } from '../../auth';
 import { AlertIcon, GoogleIcon, LockIcon, LogoIcon, MailIcon } from '../icons';
+import { useGoogleAuth } from '../use-google-auth';
 import { EMAIL_REGEX, PASSWORD_REGEX } from '../validation';
 
 export default function LoginPage() {
@@ -17,6 +18,11 @@ export default function LoginPage() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const {
+    triggerClick: triggerGoogleClick,
+    loading: googleLoading,
+    apiError: googleApiError,
+  } = useGoogleAuth();
 
   const emailError = submitted && !EMAIL_REGEX.test(email) ? '請輸入正確的 Email 格式' : null;
   const passwordError =
@@ -139,10 +145,10 @@ export default function LoginPage() {
           </MaybeLink>
         </div>
 
-        {apiError && (
+        {(apiError || googleApiError) && (
           <div className="mb-4 flex items-center gap-1.25 rounded-lg bg-destructive-bg px-3.5 py-2.5 text-label-md font-semibold text-destructive">
             <AlertIcon />
-            {apiError}
+            {apiError || googleApiError}
           </div>
         )}
 
@@ -161,7 +167,9 @@ export default function LoginPage() {
       {/* Google */}
       <button
         type="button"
-        className="mb-7 flex h-12.5 w-full cursor-pointer items-center justify-center gap-2.5 rounded-lg border border-border-default bg-white text-label-md font-semibold text-text-primary shadow-card"
+        onClick={triggerGoogleClick}
+        disabled={googleLoading}
+        className="mb-7 flex h-12.5 w-full cursor-pointer items-center justify-center gap-2.5 rounded-lg border border-border-default bg-white text-label-md font-semibold text-text-primary shadow-card disabled:cursor-not-allowed disabled:opacity-60"
       >
         <GoogleIcon />
         使用 Google 繼續
