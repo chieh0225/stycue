@@ -9,7 +9,7 @@ export default function MainLayout({
   return (
     <AuthGuard>
       <div className="flex flex-1 flex-col">
-        <div className="flex flex-1 flex-col pb-6">{children}</div>
+        <div className="flex flex-1 flex-col">{children}</div>
         <BottomNav />
       </div>
     </AuthGuard>

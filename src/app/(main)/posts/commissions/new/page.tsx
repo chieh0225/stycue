@@ -618,7 +618,7 @@ export default function NewPostPage() {
         <button
           type="button"
           onClick={handleSubmit}
-          className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'w-full')}
+          className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'mt-auto w-full')}
         >
           送出
         </button>
