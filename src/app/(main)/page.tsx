@@ -149,7 +149,7 @@ export default function Home() {
   const [trendingLoading, setTrendingLoading] = useState(true);
   useEffect(() => {
     let active = true;
-    getHomepageFeed({ sortBy: 'mostLikes', filter: 'all', pageSize: 10 })
+    getHomepageFeed({ sortBy: 'highestCommissionPoints', filter: 'all', pageSize: 10 })
       .then((res) => {
         if (!active) return;
         if (res.success && res.data) setTrending(res.data.items);

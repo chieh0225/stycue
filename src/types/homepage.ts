@@ -3,7 +3,7 @@ import type { ImageResponse } from '@/types/image';
 import type { PagedResponse } from '@/types/points';
 import type { TagResponse } from '@/types/tag';
 
-export type HomepageSortBy = 'latest' | 'mostLikes' | 'mostComments';
+export type HomepageSortBy = 'latest' | 'highestCommissionPoints' | 'mostComments';
 export type HomepageFilter = 'all' | 'postShare' | 'postAsk' | 'commission';
 
 export type HomepageQuery = {
