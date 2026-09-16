@@ -399,7 +399,7 @@ export default function NewSharePostPage() {
         <Link
           href="/posts/share/new/preview"
           onClick={saveDraft}
-          className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'w-full')}
+          className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'mt-auto w-full')}
         >
           送出
         </Link>
