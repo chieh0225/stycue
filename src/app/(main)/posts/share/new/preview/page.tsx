@@ -396,11 +396,6 @@ export default function NewSharePostPreviewPage() {
             </div>
           </div>
         </Card>
-        <p className="-mt-3.5 mb-5.5 text-label-md text-text-muted">
-          穿搭資訊目前僅本機暫存，尚未隨貼文送出（等後端支援後再串接）。
-        </p>
-
-        <Separator className="mb-4" />
 
         {submitError && <p className="mt-4 text-xs text-red-500">{submitError}</p>}
       </div>
